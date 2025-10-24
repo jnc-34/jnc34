@@ -5,59 +5,65 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Calculadora de Plazos - Fuero Nacional Civil</title>
   <style>
-    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,'Helvetica Neue',Arial;margin:18px;color:#0f172a}
-    .card{border:1px solid #e6e9ee;padding:16px;border-radius:8px;margin-bottom:12px}
-    label{display:block;margin:8px 0 4px;font-weight:600}
-    input,select,button{padding:8px;border-radius:6px;border:1px solid #cbd5e1}
+    :root{--bg:#f8fafc;--card:#ffffff;--muted:#6b7280;--accent:#0f172a}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,'Helvetica Neue',Arial;margin:18px;color:var(--accent);background:linear-gradient(180deg,#ffffff 0%, #f7fbfe 100%)}
+    .container{max-width:900px;margin:0 auto}
+    .card{background:var(--card);border:1px solid #e6e9ee;padding:18px;border-radius:12px;margin-bottom:14px;box-shadow:0 6px 18px rgba(15,23,42,0.03)}
+    label{display:block;margin:8px 0 6px;font-weight:700}
+    input,select,button{padding:10px;border-radius:8px;border:1px solid #dbe7f5;font-size:1rem}
     .row{display:flex;gap:12px;flex-wrap:wrap}
-    .muted{color:#6b7280;font-size:0.95rem}
-    .result{background:#f8fafc;padding:12px;border-radius:8px;margin-top:12px}
-    ul.trace{background:#fff;padding:10px;border-radius:6px;border:1px solid #eef2ff}
-    table{border-collapse:collapse;width:100%}
-    td,th{padding:6px;border-bottom:1px solid #f1f5f9}
-    .warn{background:#fff4e6;padding:8px;border-radius:6px;border:1px solid #ffe8cc}
+    .muted{color:var(--muted);font-size:0.95rem}
+    .result{background:var(--bg);padding:14px;border-radius:10px;margin-top:12px;border:1px solid #eef6ff}
+    ul.trace{background:#fff;padding:12px;border-radius:8px;border:1px solid #eef2ff;list-style:none}
+    ul.trace li{padding:6px 0;border-bottom:1px dashed #f1f5f9}
+    .warn{background:#fff8f0;padding:10px;border-radius:8px;border:1px solid #ffe8cc}
+    h1{font-size:1.4rem;margin-bottom:8px}
+    .muted.small{font-size:0.88rem}
+    .grid-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:680px){.grid-two{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <h1>Calculadora de plazos (Fuero Nacional Civil)</h1>
-  <div class="card">
-    <label>Modalidad de notificación</label>
-    <select id="modalidad">
-      <option value="cedula_habil">1. Por cédula - día y hora hábil (art.152) — por defecto</option>
-      <option value="cedula_inhabil">2. Por cédula - día y hora inhábil</option>
-      <option value="nota">3. Por nota (art.133) — notificación martes o jueves hábil siguiente</option>
-    </select>
+  <div class="container">
+    <h1>Calculadora de plazos (Fuero Nacional Civil)</h1>
+    <div class="card">
+      <label>Modalidad de notificación</label>
+      <select id="modalidad">
+        <option value="cedula_habil">1. Por cédula - día y hora hábil según art. 152, 3er párrafo CPCCN</option>
+        <option value="cedula_inhabil">2. Por cédula - día y hora hábil (por fuera de los supuestos del art. 152 CPCCN)</option>
+        <option value="nota">3. Por nota - notificación automática (art. 133 CPCCN)</option>
+      </select>
 
-    <label id="fechaLabel">Fecha indicada (dd / mm / aaaa)</label>
-    <div class="row">
-      <input id="dia" placeholder="DD" maxlength="2" style="width:72px" />
-      <input id="mes" placeholder="MM" maxlength="2" style="width:72px" />
-      <input id="anio" placeholder="AAAA" maxlength="4" style="width:92px" />
-      <input type="date" id="fechaCalendar" />
+      <label id="fechaLabel">Indicar fecha</label>
+      <div class="row">
+        <input id="dia" placeholder="DD" maxlength="2" style="width:80px" />
+        <input id="mes" placeholder="MM" maxlength="2" style="width:80px" />
+        <input id="anio" placeholder="AAAA" maxlength="4" style="width:110px" />
+      </div>
+
+      <label>Indicar duración del plazo</label>
+      <input id="duracion" type="number" min="1" value="5" />
+
+      <div style="margin-top:12px">
+        <button id="calcular">Calcular vencimiento</button>
+        <button id="reset">Limpiar</button>
+      </div>
+
+      <p class="muted small">Años soportados: <span id="anioRange"></span></p>
     </div>
 
-    <label>Duración del plazo (en días corridos)</label>
-    <input id="duracion" type="number" min="1" value="2" />
+    <div id="output" class="card" style="display:none">
+      <h2>Resultado</h2>
+      <div id="vencimiento" class="result"></div>
+      <div id="notaGracia" class="warn" style="margin-top:8px;display:none"></div>
 
-    <div style="margin-top:12px">
-      <button id="calcular">Calcular vencimiento</button>
-      <button id="reset">Limpiar</button>
+      <h3>Trazabilidad</h3>
+      <p><strong>Fecha de inicio del conteo:</strong> <span id="inicioConteo"></span></p>
+      <p><strong>Días NO contados (inhábiles) dentro del periodo de cálculo:</strong></p>
+      <ul id="listaInhabiles" class="trace"></ul>
+
+      <p class="muted">Si crees que hubo un error, por favor escribe a <a href="mailto:jncivil34@pjn.gov.ar">jncivil34@pjn.gov.ar</a> indicando el problema y, si puedes, adjunta una captura.</p>
     </div>
-
-    <p class="muted">Años soportados: <span id="anioRange"></span></p>
-  </div>
-
-  <div id="output" class="card" style="display:none">
-    <h2>Resultado</h2>
-    <div id="vencimiento" class="result"></div>
-    <div id="notaGracia" class="warn" style="margin-top:8px;display:none"></div>
-
-    <h3>Trazabilidad</h3>
-    <p><strong>Fecha de inicio del conteo:</strong> <span id="inicioConteo"></span></p>
-    <p><strong>Días NO contados (inhábiles) dentro del periodo:</strong></p>
-    <ul id="listaInhabiles" class="trace"></ul>
-
-    <p class="muted">Si crees que hubo un error, por favor escribe a <a href="mailto:jncivil34@pjn.gov.ar">jncivil34@pjn.gov.ar</a> indicando el problema y, si puedes, adjunta una captura.</p>
   </div>
 
   <script>
@@ -65,31 +71,24 @@
   // CONFIG
   // -----------------------------
   const API_BASE = 'https://api.argentinadatos.com/v1/feriados';
-  // años: desde 2021 hasta 2025; se intentará agregar automáticamente el siguiente año.
   const MIN_YEAR = 2021;
-  let MAX_YEAR = new Date().getFullYear() + 0; // intentamos incluir año actual
-  if (MAX_YEAR < 2025) MAX_YEAR = 2025; // garantizamos hasta 2025 si la API lo soporta
+  let MAX_YEAR = new Date().getFullYear();
+  if (MAX_YEAR < 2025) MAX_YEAR = 2025;
 
   // -----------------------------
-  // UTIL: fechas en cadena YYYY-MM-DD
+  // UTIL
   // -----------------------------
-  function toYmd(d){ return d.toISOString().slice(0,10); }
+  function toYmd(d){ // use local date components to avoid timezone issues
+    const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const day = String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`;
+  }
   function parseYmd(str){ const [y,m,day]=str.split('-').map(Number); return new Date(y,m-1,day); }
   function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
 
   // -----------------------------
   // CÁLCULO: tercer lunes de julio y 14 días subsiguientes
   // -----------------------------
-  function thirdMondayOfJuly(year){ const d=new Date(year,6,1); // July is 6
-    // find first monday
-    while(d.getDay()!==1) d.setDate(d.getDate()+1);
-    // now it's first monday; add 14 days to get third monday
-    return addDays(d,14);
-  }
+  function thirdMondayOfJuly(year){ const d=new Date(year,6,1); while(d.getDay()!==1) d.setDate(d.getDate()+1); return addDays(d,14); }
 
-  // -----------------------------
-  // Construir lista de inhábiles propios por año
-  // -----------------------------
   function customInhabilesForYear(year){
     const res = new Map();
     // all January days
@@ -99,30 +98,20 @@
     // Feria de julio: 14 días corridos subsiguientes al 3er lunes de julio
     const thirdMon = thirdMondayOfJuly(year);
     for(let i=1;i<=14;i++){ res.set(toYmd(addDays(thirdMon,i)),'Feria de julio'); }
-    return res; // Map fecha->motivo
+    return res;
   }
 
-  // -----------------------------
-  // Fetch feriados from API per year (returns Map fecha->nombre)
-  // -----------------------------
   async function fetchFeriados(year){
     try{
       const res = await fetch(`${API_BASE}/${year}`);
       if(!res.ok) throw new Error('API feriados no disponible: '+res.status);
       const data = await res.json();
       const m = new Map();
-      data.forEach(f=>{ m.set(f.fecha, f.nombre || ('Feriado: '+f.tipo || 'Feriado')); });
+      data.forEach(f=>{ if(f.fecha) m.set(f.fecha, f.nombre || f.tipo || 'Feriado'); });
       return m;
-    }catch(e){
-      console.warn('No se pudieron obtener feriados desde API para',year,e);
-      return new Map();
-    }
+    }catch(e){ console.warn('No se pudieron obtener feriados desde API para',year,e); return new Map(); }
   }
 
-  // -----------------------------
-  // Build full inhábiles set for a year (API + custom + weekends handled separately)
-  // returns Map fecha->motivo
-  // -----------------------------
   async function buildInhabilesForYears(years){
     const combined = new Map();
     for(const y of years){
@@ -134,92 +123,65 @@
     return combined;
   }
 
-  // -----------------------------
-  // Es día hábil?
-  // -----------------------------
   function isWeekend(date){ const d = date.getDay(); return d===0||d===6; }
   function isInMapYmd(map,date){ return map.has(toYmd(date)); }
   function isBusinessDay(date, inhMap){ return !isWeekend(date) && !isInMapYmd(inhMap,date); }
 
-  // -----------------------------
-  // Encuentra el siguiente día hábil (>= date?)
-  // -----------------------------
   function nextBusinessDay(date, inhMap){ let d = new Date(date); d.setHours(0,0,0,0); while(!isBusinessDay(d,inhMap)) d = addDays(d,1); return d; }
-  function nextBusinessDayStrict(date, inhMap){ // strictly after date
-    return nextBusinessDay(addDays(date,1), inhMap);
-  }
+  function nextBusinessDayStrict(date, inhMap){ return nextBusinessDay(addDays(date,1), inhMap); }
 
-  // -----------------------------
-  // Modalidad: start of counting logic
-  // 1) Por cédula hábil: conteo comienza al día siguiente hábil al de la notificación
-  // 2) Por cédula inhábil: conteo comienza al día subsiguiente hábil (one more)
-  // 3) Por nota: notificación se considera efectuada el martes o jueves hábil siguiente a la fecha indicada y el conteo comienza al día hábil siguiente
-  // -----------------------------
   function computeStartDate(modalidad,inputDate,inhMap){
     const notifDate = new Date(inputDate); notifDate.setHours(0,0,0,0);
     if(modalidad==='cedula_habil'){
-      // if notifDate is a business day and within horario 7-20 it's assumed; but UI doesn't capture hora so we assume as user chose
       return nextBusinessDayStrict(notifDate, inhMap);
     }
     if(modalidad==='cedula_inhabil'){
-      // conteo comienza al día subsiguiente hábil al de la notificación (uno más que anterior)
-      // so skip next business day after notif, then take the subsequent business day
+      // two business days after notification date
       const first = nextBusinessDayStrict(notifDate, inhMap);
       return nextBusinessDayStrict(first, inhMap);
     }
     if(modalidad==='nota'){
-      // notificación considerada efectuada el día martes o jueves hábil siguiente a la fecha indicada
-      // find next business day that is Tue(2) or Thu(4)
+      // notification considered effected the next Tue or Thu business day after the indicated date
       let d = addDays(notifDate,1);
-      while(true){
-        if(isBusinessDay(d,inhMap) && (d.getDay()===2 || d.getDay()===4)) break;
-        d = addDays(d,1);
-      }
-      // conteo comienza al día hábil siguiente
+      while(true){ if(isBusinessDay(d,inhMap) && (d.getDay()===2 || d.getDay()===4)) break; d = addDays(d,1); }
       return nextBusinessDayStrict(d, inhMap);
     }
     throw new Error('Modalidad desconocida');
   }
 
-  // -----------------------------
-  // Conteo de plazo en días naturales ignorando inhábiles
-  // dado fecha inicio y duración n días -> contar n días hábiles?
-  // The user requested "duración en días". Interpretation: plazo en días corridos, but inhábiles are ignored in all conteos (so we increment business days only).
-  // We'll advance through calendar adding 1 to countedDays only when the day is business day.
-  // -----------------------------
   function countPeriod(startDate, days, inhMap){
-    const ignored = []; // list of {fecha,motivo}
-    let counted=0;
-    let cursor = new Date(startDate);
-    cursor.setHours(0,0,0,0);
+    // counts business days starting from startDate inclusive
+    let counted=0; let cursor = new Date(startDate); cursor.setHours(0,0,0,0);
     while(counted < days){
       if(isBusinessDay(cursor, inhMap)){
         counted++;
-        // that day is counted
-      } else {
-        const motivo = isWeekend(cursor)? 'Fin de semana' : (inhMap.get(toYmd(cursor)) || 'Inhábil');
-        ignored.push({fecha:toYmd(cursor), motivo});
       }
       if(counted>=days) break;
       cursor = addDays(cursor,1);
     }
-    // cursor is the last day that was counted (the day that completed the Nth counted day)
-    return {lastCountedDay: cursor, ignored};
+    return {lastCountedDay: cursor};
   }
 
-  // -----------------------------
-  // VENCIMIENTO: se produce a las 9:30hs del día subsiguiente al que corresponde agotado el conteo en función del plazo de gracia art.124
-  // i.e., expiration = next business day after lastCountedDay at 09:30
-  // Also system shows alternative if grace not applicable: the previous business day of the defined expiration
-  // -----------------------------
   function computeVencimiento(lastCountedDay, inhMap){
     const nextBiz = nextBusinessDayStrict(lastCountedDay, inhMap);
     const expiration = new Date(nextBiz); expiration.setHours(9,30,0,0);
-    // alternative if no grace: day hábil anterior to the defined expiration -> that would be lastCountedDay at end of day? The instruction: show the day hábil anterior al de definido como vencimiento del plazo.
-    // That previous business day is the last business day before nextBiz.
-    let prev = addDays(nextBiz,-1);
-    while(!isBusinessDay(prev,inhMap)) prev = addDays(prev,-1);
+    let prev = addDays(nextBiz,-1); while(!isBusinessDay(prev,inhMap)) prev = addDays(prev,-1);
     return {expiration, altNoGracia: prev};
+  }
+
+  // new helper: gather all inhábiles between two dates inclusive
+  function gatherInhabilesBetween(startDate, endDate, inhMap){
+    const res = [];
+    let cur = new Date(startDate); cur.setHours(0,0,0,0);
+    const end = new Date(endDate); end.setHours(0,0,0,0);
+    while(cur <= end){
+      if(!isBusinessDay(cur, inhMap)){
+        const motivo = isWeekend(cur)? 'Fin de semana' : (inhMap.get(toYmd(cur)) || 'Inhábil');
+        res.push({fecha: toYmd(cur), motivo});
+      }
+      cur = addDays(cur,1);
+    }
+    return res;
   }
 
   // -----------------------------
@@ -229,34 +191,27 @@
   const modalidadSel = document.getElementById('modalidad');
   modalidadSel.addEventListener('change', ()=>{
     const label = document.getElementById('fechaLabel');
-    label.textContent = (modalidadSel.value==='nota')? 'Fecha de la resolución (firma) (dd / mm / aaaa)' : 'Fecha indicada (dd / mm / aaaa)';
+    label.textContent = (modalidadSel.value==='nota')? 'Indicar fecha (firma de la resolución)' : 'Indicar fecha';
   });
 
-  document.getElementById('fechaCalendar').addEventListener('change',(e)=>{
-    const v = e.target.value; if(!v) return;
-    const [y,m,d] = v.split('-'); document.getElementById('dia').value=d; document.getElementById('mes').value=m; document.getElementById('anio').value=y;
-  });
-
-  document.getElementById('reset').addEventListener('click',()=>{ document.getElementById('dia').value='';document.getElementById('mes').value='';document.getElementById('anio').value='';document.getElementById('duracion').value='2'; document.getElementById('output').style.display='none'; });
+  document.getElementById('reset').addEventListener('click',()=>{ document.getElementById('dia').value='';document.getElementById('mes').value='';document.getElementById('anio').value='';document.getElementById('duracion').value='5'; document.getElementById('output').style.display='none'; });
 
   document.getElementById('calcular').addEventListener('click', async ()=>{
     // read inputs
-    const dia = document.getElementById('dia').value.padStart(2,'0');
-    const mes = document.getElementById('mes').value.padStart(2,'0');
+    const diaRaw = document.getElementById('dia').value;
+    const mesRaw = document.getElementById('mes').value;
     const anio = document.getElementById('anio').value;
-    if(!dia || !mes || !anio) return alert('Por favor indique día, mes y año.');
-    const y = Number(anio);
-    if(y < MIN_YEAR || y > (MAX_YEAR+1)){
-      if(!confirm('El año ingresado está fuera del rango soportado. Continuar de todos modos?')) return;
-    }
-    const inputDate = new Date(Number(anio), Number(mes)-1, Number(dia));
-    // build inhábiles for range years we may need: from input year to input year+1 possibly because feria july may extend etc.
-    const yearsToFetch = new Set();
-    for(let yy=MIN_YEAR; yy<=MAX_YEAR+1; yy++) yearsToFetch.add(yy);
-    // but to optimize: include only relevant years around input and plus one
-    const y0 = inputDate.getFullYear(); yearsToFetch.add(y0); yearsToFetch.add(y0+1);
+    if(!diaRaw || !mesRaw || !anio) return alert('Por favor indique día, mes y año.');
+    const dia = String(diaRaw).padStart(2,'0'); const mes = String(mesRaw).padStart(2,'0');
 
-    const inhMap = await buildInhabilesForYears(Array.from(yearsToFetch).sort());
+    const inputDate = new Date(Number(anio), Number(mes)-1, Number(dia));
+
+    // build inhábiles for relevant years (input year and next year)
+    const yearsToFetch = [];
+    const y0 = inputDate.getFullYear();
+    for(let yy=Math.max(MIN_YEAR, y0-1); yy<=Math.max(y0+1, MAX_YEAR+1); yy++) yearsToFetch.push(yy);
+
+    const inhMap = await buildInhabilesForYears(Array.from(new Set(yearsToFetch)).sort());
 
     // compute start date
     const modalidad = modalidadSel.value;
@@ -267,29 +222,25 @@
 
     // count
     const days = Number(document.getElementById('duracion').value);
-    const {lastCountedDay, ignored} = countPeriod(start, days, inhMap);
+    const {lastCountedDay} = countPeriod(start, days, inhMap);
 
     // compute vencimiento
     const {expiration, altNoGracia} = computeVencimiento(lastCountedDay, inhMap);
 
+    // gather inhábiles between NOTIFICATION DATE and lastCountedDay inclusive for traceability
+    const ignored = gatherInhabilesBetween(inputDate, lastCountedDay, inhMap);
+
     // populate output
-    document.getElementById('vencimiento').innerHTML = `Vencimiento definitivo: <strong>${expiration.toLocaleString('es-AR', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</strong>.`;
+    document.getElementById('vencimiento').innerHTML = `Vencimiento del plazo: <strong>${expiration.toLocaleString('es-AR', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</strong>.`;
     document.getElementById('notaGracia').style.display='block';
     document.getElementById('notaGracia').innerHTML = `Nota: si <strong>NO</strong> resulta aplicable el plazo de gracia del art. 124 CPCCN, el vencimiento se produce el día: <strong>${altNoGracia.toLocaleDateString('es-AR')}</strong>.`;
 
     const ul = document.getElementById('listaInhabiles'); ul.innerHTML='';
-    // combine weekends and inhMap ignored during period
-    // Add all ignored with motivo
-    ignored.forEach(it=>{
-      const li=document.createElement('li'); li.textContent = `${it.fecha} — ${it.motivo}`; ul.appendChild(li);
-    });
+    if(ignored.length===0){ const li=document.createElement('li'); li.textContent='No se detectaron días inhábiles dentro del periodo.'; ul.appendChild(li); }
+    ignored.forEach(it=>{ const li=document.createElement('li'); const d = parseYmd(it.fecha); li.textContent = `${d.toLocaleDateString('es-AR')} — ${it.motivo}`; ul.appendChild(li); });
 
     document.getElementById('output').style.display='block';
   });
-
-  // -----------------------------
-  // Nota final: el endpoint /v1/feriados/{año} (ArgentinaDatos) está documentado públicamente y se consulta por año.
-  // -----------------------------
   </script>
 </body>
 </html>
