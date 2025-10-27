@@ -5,27 +5,53 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Calculadora de Plazos - Fuero Nacional Civil</title>
   <style>
-    :root{--bg:#f8fafc;--card:#ffffff;--muted:#6b7280;--accent:#0f172a}
-    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,'Helvetica Neue',Arial;margin:18px;color:var(--accent);background:linear-gradient(180deg,#ffffff 0%, #f7fbfe 100%)}
-    .container{max-width:900px;margin:0 auto}
-    .card{background:var(--card);border:1px solid #e6e9ee;padding:18px;border-radius:12px;margin-bottom:14px;box-shadow:0 6px 18px rgba(15,23,42,0.03)}
+    :root{
+      --bg: #ffffff;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --accent: #0f172a;
+      --border: #eef2f7;
+    }
+    /* Layout */
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin:18px;
+      color:var(--accent);
+      background: var(--bg); /* TODO: entirely white theme */
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .container{max-width:960px;margin:0 auto}
+    h1{font-size:1.35rem;margin-bottom:8px}
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      padding:18px;
+      border-radius:10px;
+      margin-bottom:14px;
+      box-shadow: 0 4px 10px rgba(15,23,42,0.03);
+    }
     label{display:block;margin:8px 0 6px;font-weight:700}
-    input,select,button{padding:10px;border-radius:8px;border:1px solid #dbe7f5;font-size:1rem}
+    input,select,button{
+      padding:10px;border-radius:8px;border:1px solid var(--border);font-size:1rem;
+      background: #fff;
+    }
     .row{display:flex;gap:12px;flex-wrap:wrap}
     .muted{color:var(--muted);font-size:0.95rem}
-    .result{background:var(--bg);padding:14px;border-radius:10px;margin-top:12px;border:1px solid #eef6ff}
-    ul.trace{background:#fff;padding:12px;border-radius:8px;border:1px solid #eef2ff;list-style:none}
-    ul.trace li{padding:6px 0;border-bottom:1px dashed #f1f5f9}
+    .result{background:var(--card);padding:14px;border-radius:10px;margin-top:12px;border:1px solid var(--border)}
+    ul.trace{background:var(--card);padding:12px;border-radius:8px;border:1px solid var(--border);list-style:none}
+    ul.trace li{padding:6px 0;border-bottom:1px dashed #f5f7fa}
     .warn{background:#fff8f0;padding:10px;border-radius:8px;border:1px solid #ffe8cc}
-    h1{font-size:1.4rem;margin-bottom:8px}
     .muted.small{font-size:0.88rem}
-    .grid-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:680px){.grid-two{grid-template-columns:1fr}}
+    button{cursor:pointer}
+    @media(max-width:680px){ .row{flex-direction:column} }
+    a { color: inherit; text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Calculadora de plazos (Fuero Nacional Civil)</h1>
+
     <div class="card">
       <label>Modalidad de notificación</label>
       <select id="modalidad">
@@ -35,21 +61,21 @@
       </select>
 
       <label id="fechaLabel">Indicar fecha</label>
-      <div class="row">
-        <input id="dia" placeholder="DD" maxlength="2" style="width:80px" />
-        <input id="mes" placeholder="MM" maxlength="2" style="width:80px" />
-        <input id="anio" placeholder="AAAA" maxlength="4" style="width:110px" />
+      <div class="row" style="margin-bottom:8px;">
+        <input id="dia" placeholder="DD" maxlength="2" style="width:86px" />
+        <input id="mes" placeholder="MM" maxlength="2" style="width:86px" />
+        <input id="anio" placeholder="AAAA" maxlength="4" style="width:118px" />
       </div>
 
       <label>Indicar duración del plazo</label>
-      <input id="duracion" type="number" min="1" value="5" />
+      <input id="duracion" type="number" min="1" value="5" style="width:120px" />
 
       <div style="margin-top:12px">
         <button id="calcular">Calcular vencimiento</button>
-        <button id="reset">Limpiar</button>
+        <button id="reset" style="margin-left:8px">Limpiar</button>
       </div>
 
-      <p class="muted small">Años soportados: <span id="anioRange"></span></p>
+      <p class="muted small" style="margin-top:10px">Años soportados: <span id="anioRange"></span></p>
     </div>
 
     <div id="output" class="card" style="display:none">
@@ -57,12 +83,12 @@
       <div id="vencimiento" class="result"></div>
       <div id="notaGracia" class="warn" style="margin-top:8px;display:none"></div>
 
-      <h3>Trazabilidad</h3>
+      <h3 style="margin-top:14px">Trazabilidad</h3>
       <p><strong>Fecha de inicio del conteo:</strong> <span id="inicioConteo"></span></p>
       <p><strong>Días NO contados (inhábiles) dentro del periodo de cálculo:</strong></p>
       <ul id="listaInhabiles" class="trace"></ul>
 
-      <p class="muted">Si crees que hubo un error, por favor escribe a <a href="mailto:jncivil34@pjn.gov.ar">jncivil34@pjn.gov.ar</a> indicando el problema y, si puedes, adjunta una captura.</p>
+      <p class="muted" style="margin-top:10px">Si crees que hubo un error, por favor escribe a <a href="mailto:jncivil34@pjn.gov.ar">jncivil34@pjn.gov.ar</a> indicando el problema y, si puedes, adjunta una captura.</p>
     </div>
   </div>
 
@@ -78,8 +104,12 @@
   // -----------------------------
   // UTIL
   // -----------------------------
-  function toYmd(d){ // use local date components to avoid timezone issues
-    const y = d.getFullYear(); const m = String(d.getMonth()+1).padStart(2,'0'); const day = String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`;
+  function toYmd(d){
+    // formatea en base a componentes locales (evita problemas de zona horaria)
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
   }
   function parseYmd(str){ const [y,m,day]=str.split('-').map(Number); return new Date(y,m-1,day); }
   function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
@@ -112,6 +142,20 @@
     }catch(e){ console.warn('No se pudieron obtener feriados desde API para',year,e); return new Map(); }
   }
 
+  // Fetch overrides JSON (custom_inhabiles.json)
+  async function fetchCustomOverrides(){
+    try{
+      const res = await fetch('/data/custom_inhabiles.json', {cache: "no-store"});
+      if(!res.ok) {
+        // si no existe, devolvemos vacío pero no interrumpimos
+        console.warn('No se encontró /data/custom_inhabiles.json');
+        return [];
+      }
+      const j = await res.json();
+      return Array.isArray(j.overrides) ? j.overrides : [];
+    }catch(e){ console.warn('No se pudo cargar custom_inhabiles.json', e); return []; }
+  }
+
   async function buildInhabilesForYears(years){
     const combined = new Map();
     for(const y of years){
@@ -120,6 +164,16 @@
       const custom = customInhabilesForYear(y);
       for(const [k,v] of custom.entries()) combined.set(k, v);
     }
+
+    // incorporar overrides globales (archivo JSON)
+    const overrides = await fetchCustomOverrides();
+    overrides.forEach(o => {
+      if(o.fecha && o.motivo){
+        // normalizar fecha (se espera YYYY-MM-DD)
+        combined.set(o.fecha, o.motivo + ' (override)');
+      }
+    });
+
     return combined;
   }
 
@@ -136,12 +190,10 @@
       return nextBusinessDayStrict(notifDate, inhMap);
     }
     if(modalidad==='cedula_inhabil'){
-      // two business days after notification date
       const first = nextBusinessDayStrict(notifDate, inhMap);
       return nextBusinessDayStrict(first, inhMap);
     }
     if(modalidad==='nota'){
-      // notification considered effected the next Tue or Thu business day after the indicated date
       let d = addDays(notifDate,1);
       while(true){ if(isBusinessDay(d,inhMap) && (d.getDay()===2 || d.getDay()===4)) break; d = addDays(d,1); }
       return nextBusinessDayStrict(d, inhMap);
@@ -169,7 +221,7 @@
     return {expiration, altNoGracia: prev};
   }
 
-  // new helper: gather all inhábiles between two dates inclusive
+  // gather inhábiles between two dates inclusive
   function gatherInhabilesBetween(startDate, endDate, inhMap){
     const res = [];
     let cur = new Date(startDate); cur.setHours(0,0,0,0);
@@ -197,16 +249,14 @@
   document.getElementById('reset').addEventListener('click',()=>{ document.getElementById('dia').value='';document.getElementById('mes').value='';document.getElementById('anio').value='';document.getElementById('duracion').value='5'; document.getElementById('output').style.display='none'; });
 
   document.getElementById('calcular').addEventListener('click', async ()=>{
-    // read inputs
     const diaRaw = document.getElementById('dia').value;
     const mesRaw = document.getElementById('mes').value;
     const anio = document.getElementById('anio').value;
     if(!diaRaw || !mesRaw || !anio) return alert('Por favor indique día, mes y año.');
     const dia = String(diaRaw).padStart(2,'0'); const mes = String(mesRaw).padStart(2,'0');
-
     const inputDate = new Date(Number(anio), Number(mes)-1, Number(dia));
 
-    // build inhábiles for relevant years (input year and next year)
+    // build inhábiles for relevant years (range around input)
     const yearsToFetch = [];
     const y0 = inputDate.getFullYear();
     for(let yy=Math.max(MIN_YEAR, y0-1); yy<=Math.max(y0+1, MAX_YEAR+1); yy++) yearsToFetch.push(yy);
