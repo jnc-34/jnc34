@@ -5,47 +5,57 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Calculadora de Plazos - Fuero Nacional Civil</title>
   <style>
+    /* Palette y estilos más amigables */
     :root{
-      --bg: #ffffff;
+      --bg: #f6f9fc;
       --card: #ffffff;
       --muted: #6b7280;
-      --accent: #0f172a;
-      --border: #eef2f7;
+      --text: #0f172a;
+      --accent: #0b76f4; /* azul principal */
+      --accent-2: #0ea5a4; /* azul-verde secundario */
+      --border: #e6eef9;
+      --success: #16a34a;
+      --warn: #f59e0b;
     }
-    /* Layout */
     body{
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      margin:18px;
-      color:var(--accent);
-      background: var(--bg); /* TODO: entirely white theme */
+      margin: 18px;
+      color: var(--text);
+      background: linear-gradient(180deg,#f8fbfc 0%, #f6f9fc 100%);
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
     }
-    .container{max-width:960px;margin:0 auto}
-    h1{font-size:1.35rem;margin-bottom:8px}
+    .container{max-width:980px;margin:0 auto}
+    h1{font-size:1.4rem;margin-bottom:6px}
     .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      padding:18px;
-      border-radius:10px;
-      margin-bottom:14px;
-      box-shadow: 0 4px 10px rgba(15,23,42,0.03);
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(11,118,244,0.04);
     }
     label{display:block;margin:8px 0 6px;font-weight:700}
     input,select,button{
-      padding:10px;border-radius:8px;border:1px solid var(--border);font-size:1rem;
-      background: #fff;
+      padding:10px;border-radius:8px;border:1px solid #e9f1ff;font-size:1rem;background:#fff;
     }
     .row{display:flex;gap:12px;flex-wrap:wrap}
     .muted{color:var(--muted);font-size:0.95rem}
-    .result{background:var(--card);padding:14px;border-radius:10px;margin-top:12px;border:1px solid var(--border)}
+    .result{background:linear-gradient(180deg,#ffffff 0%, #f7fbff 100%);padding:14px;border-radius:10px;margin-top:12px;border:1px solid var(--border)}
     ul.trace{background:var(--card);padding:12px;border-radius:8px;border:1px solid var(--border);list-style:none}
-    ul.trace li{padding:6px 0;border-bottom:1px dashed #f5f7fa}
+    ul.trace li{padding:8px 0;border-bottom:1px dashed #f1f5f9}
     .warn{background:#fff8f0;padding:10px;border-radius:8px;border:1px solid #ffe8cc}
     .muted.small{font-size:0.88rem}
-    button{cursor:pointer}
-    @media(max-width:680px){ .row{flex-direction:column} }
-    a { color: inherit; text-decoration: underline; }
+    button{
+      cursor:pointer;border:none;background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;font-weight:600;
+      box-shadow: 0 6px 16px rgba(11,118,244,0.12);
+    }
+    button.secondary{background:transparent;color:var(--accent);border:1px solid rgba(11,118,244,0.12);box-shadow:none}
+    .meta{font-size:0.9rem;color:var(--muted)}
+    .flex{display:flex;gap:12px;align-items:center}
+    @media(max-width:720px){ .row{flex-direction:column} .flex{flex-direction:column;align-items:flex-start} }
+    a{color:var(--accent-2);text-decoration:underline}
+    .small-bubble{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(14,165,164,0.08);color:var(--accent-2);font-weight:700;font-size:0.85rem}
   </style>
 </head>
 <body>
@@ -54,7 +64,7 @@
 
     <div class="card">
       <label>Modalidad de notificación</label>
-      <select id="modalidad">
+      <select id="modalidad" aria-label="Modalidad de notificación">
         <option value="cedula_habil">1. Por cédula - día y hora hábil según art. 152, 3er párrafo CPCCN</option>
         <option value="cedula_inhabil">2. Por cédula - día y hora hábil (por fuera de los supuestos del art. 152 CPCCN)</option>
         <option value="nota">3. Por nota - notificación automática (art. 133 CPCCN)</option>
@@ -67,15 +77,22 @@
         <input id="anio" placeholder="AAAA" maxlength="4" style="width:118px" />
       </div>
 
-      <label>Indicar duración del plazo</label>
-      <input id="duracion" type="number" min="1" value="5" style="width:120px" />
+      <div class="flex">
+        <div style="flex:0 0 220px">
+          <label>Indicar duración del plazo</label>
+          <input id="duracion" type="number" min="1" value="5" style="width:120px" />
+        </div>
 
-      <div style="margin-top:12px">
-        <button id="calcular">Calcular vencimiento</button>
-        <button id="reset" style="margin-left:8px">Limpiar</button>
+        <div style="flex:1">
+          <label style="visibility:hidden">Acciones</label>
+          <div>
+            <button id="calcular">Calcular vencimiento</button>
+            <button id="reset" class="secondary" style="margin-left:8px">Limpiar</button>
+          </div>
+        </div>
       </div>
 
-      <p class="muted small" style="margin-top:10px">Años soportados: <span id="anioRange"></span></p>
+      <p class="meta" style="margin-top:10px">Años soportados: <span id="anioRange" class="small-bubble"></span></p>
     </div>
 
     <div id="output" class="card" style="display:none">
@@ -105,7 +122,6 @@
   // UTIL
   // -----------------------------
   function toYmd(d){
-    // formatea en base a componentes locales (evita problemas de zona horaria)
     const y = d.getFullYear();
     const m = String(d.getMonth()+1).padStart(2,'0');
     const day = String(d.getDate()).padStart(2,'0');
@@ -121,11 +137,8 @@
 
   function customInhabilesForYear(year){
     const res = new Map();
-    // all January days
     for(let day=1;day<=31;day++){ const d=new Date(year,0,day); res.set(toYmd(d),'Feria de enero'); }
-    // every Nov 16
     const nov16 = new Date(year,10,16); res.set(toYmd(nov16),'16 de noviembre (ley local)');
-    // Feria de julio: 14 días corridos subsiguientes al 3er lunes de julio
     const thirdMon = thirdMondayOfJuly(year);
     for(let i=1;i<=14;i++){ res.set(toYmd(addDays(thirdMon,i)),'Feria de julio'); }
     return res;
@@ -142,18 +155,55 @@
     }catch(e){ console.warn('No se pudieron obtener feriados desde API para',year,e); return new Map(); }
   }
 
-  // Fetch overrides JSON (custom_inhabiles.json)
-  async function fetchCustomOverrides(){
+  // ---------- Robust fetch for custom overrides ----------
+  async function tryFetch(url){
     try{
-      const res = await fetch('/data/custom_inhabiles.json', {cache: "no-store"});
-      if(!res.ok) {
-        // si no existe, devolvemos vacío pero no interrumpimos
-        console.warn('No se encontró /data/custom_inhabiles.json');
-        return [];
+      const res = await fetch(url, {cache: 'no-store'});
+      if(res.ok){
+        const j = await res.json();
+        console.log('custom_inhabiles.json cargado desde', url);
+        return {ok: true, data: j};
+      } else {
+        console.warn('intentó y falló:', url, res.status);
+        return {ok:false, status: res.status};
       }
-      const j = await res.json();
-      return Array.isArray(j.overrides) ? j.overrides : [];
-    }catch(e){ console.warn('No se pudo cargar custom_inhabiles.json', e); return []; }
+    }catch(e){
+      console.warn('error fetch url', url, e);
+      return {ok:false, error: e};
+    }
+  }
+
+  async function fetchCustomOverrides(){
+    // construimos lista de URLs a intentar (con cache buster)
+    const cb = '_=' + Date.now();
+    const candidates = [];
+
+    // relativa respecto al documento actual
+    candidates.push('./data/custom_inhabiles.json?' + cb);
+    candidates.push('data/custom_inhabiles.json?' + cb);
+    // raíz del dominio (fallará en project pages)
+    candidates.push('/data/custom_inhabiles.json?' + cb);
+
+    // fallback: intentar deducir raw.githubusercontent (útil si GitHub Pages sirve en /<repo>/)
+    try {
+      const host = location.hostname; // e.g. usuario.github.io or custom domain
+      const pathParts = location.pathname.split('/').filter(Boolean); // ['<repo>', ...] for project pages
+      if(host.endsWith('github.io') && pathParts.length >= 1){
+        const user = host.split('.')[0]; // usuario
+        const repo = pathParts[0]; // repo name as first path segment
+        const rawUrl = `https://raw.githubusercontent.com/${user}/${repo}/main/data/custom_inhabiles.json?${cb}`;
+        candidates.push(rawUrl);
+      }
+    } catch(e){ /* ignore */ }
+
+    for(const url of candidates){
+      const r = await tryFetch(url);
+      if(r.ok && r.data){
+        return Array.isArray(r.data.overrides) ? r.data.overrides : [];
+      }
+    }
+    console.warn('No se pudo cargar custom_inhabiles.json desde las rutas intentadas:', candidates);
+    return [];
   }
 
   async function buildInhabilesForYears(years){
@@ -165,12 +215,11 @@
       for(const [k,v] of custom.entries()) combined.set(k, v);
     }
 
-    // incorporar overrides globales (archivo JSON)
+    // overrides globales (archivo JSON)
     const overrides = await fetchCustomOverrides();
     overrides.forEach(o => {
-      if(o.fecha && o.motivo){
-        // normalizar fecha (se espera YYYY-MM-DD)
-        combined.set(o.fecha, o.motivo + ' (override)');
+      if(o && o.fecha && o.motivo){
+        combined.set(o.fecha, `${o.motivo} (override)`);
       }
     });
 
@@ -202,7 +251,6 @@
   }
 
   function countPeriod(startDate, days, inhMap){
-    // counts business days starting from startDate inclusive
     let counted=0; let cursor = new Date(startDate); cursor.setHours(0,0,0,0);
     while(counted < days){
       if(isBusinessDay(cursor, inhMap)){
@@ -221,7 +269,6 @@
     return {expiration, altNoGracia: prev};
   }
 
-  // gather inhábiles between two dates inclusive
   function gatherInhabilesBetween(startDate, endDate, inhMap){
     const res = [];
     let cur = new Date(startDate); cur.setHours(0,0,0,0);
@@ -256,31 +303,24 @@
     const dia = String(diaRaw).padStart(2,'0'); const mes = String(mesRaw).padStart(2,'0');
     const inputDate = new Date(Number(anio), Number(mes)-1, Number(dia));
 
-    // build inhábiles for relevant years (range around input)
     const yearsToFetch = [];
     const y0 = inputDate.getFullYear();
     for(let yy=Math.max(MIN_YEAR, y0-1); yy<=Math.max(y0+1, MAX_YEAR+1); yy++) yearsToFetch.push(yy);
 
     const inhMap = await buildInhabilesForYears(Array.from(new Set(yearsToFetch)).sort());
 
-    // compute start date
     const modalidad = modalidadSel.value;
     const start = computeStartDate(modalidad, inputDate, inhMap);
 
-    // show start
     document.getElementById('inicioConteo').textContent = start.toLocaleDateString('es-AR');
 
-    // count
     const days = Number(document.getElementById('duracion').value);
     const {lastCountedDay} = countPeriod(start, days, inhMap);
 
-    // compute vencimiento
     const {expiration, altNoGracia} = computeVencimiento(lastCountedDay, inhMap);
 
-    // gather inhábiles between NOTIFICATION DATE and lastCountedDay inclusive for traceability
     const ignored = gatherInhabilesBetween(inputDate, lastCountedDay, inhMap);
 
-    // populate output
     document.getElementById('vencimiento').innerHTML = `Vencimiento del plazo: <strong>${expiration.toLocaleString('es-AR', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</strong>.`;
     document.getElementById('notaGracia').style.display='block';
     document.getElementById('notaGracia').innerHTML = `Nota: si <strong>NO</strong> resulta aplicable el plazo de gracia del art. 124 CPCCN, el vencimiento se produce el día: <strong>${altNoGracia.toLocaleDateString('es-AR')}</strong>.`;
