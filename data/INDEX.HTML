@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <title>Calculadora Plazos por Distancia (Art. 158 CPCCN)</title>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="calculator-container">
+        <h1>Calculadora de ampliación de plazo por distancia</h1>
+        <p>Según Art. 158 CPCCN (Argentina)</p>
+
+        <div class="form-group">
+            <label for="localidadJuzgado">📍 Localidad asiento del juzgado o tribunal:</label>
+            <div class="input-group">
+                <input type="text" id="localidadJuzgado" placeholder="Escriba para buscar...">
+                <button id="limpiarJuzgado" title="Limpiar y buscar otro">Limpiar</button>
+            </div>
+            <div id="sugerenciasJuzgado" class="sugerencias"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="localidadDiligencia">📍 Localidad donde debe practicarse la diligencia:</label>
+            <input type="text" id="localidadDiligencia" placeholder="Escriba para buscar...">
+            <div id="sugerenciasDiligencia" class="sugerencias"></div>
+        </div>
+
+        <button id="calcular">Calcular Ampliación</button>
+
+        <div id="resultado" class="resultado-container">
+            </div>
+
+        <div id="trazabilidad" class="trazabilidad-container">
+            </div>
+
+    </div>
+
+    <script src="script.js?v=1.0"></script>
+</body>
+</html>
