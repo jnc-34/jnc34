@@ -12,9 +12,10 @@
     input,select,button{font-size:1rem;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #ddd}
     .row{display:flex;gap:10px;align-items:center}
     .result{margin-top:16px;padding:12px;border-radius:8px;background:#f7f7fb;border:1px solid #eee}
-    .warning{background:#fff3cd;border:1px solid #ffeeba;padding:12px;border-radius:8px;margin-top:12px}
+    .warning{background:#fff3cd;border:1px solid #ffeeba;padding:12px;border-radius:8px;margin-top:12px;white-space:pre-wrap}
     small{color:#555}
     footer{margin-top:20px;font-size:.85rem;color:#444}
+    .muted{color:#666;font-size:.9rem}
   </style>
 </head>
 <body>
@@ -22,7 +23,7 @@
 
   <div class="warning" id="advertencia"></div>
 
-  <form id="form">
+  <form id="form" onsubmit="return false;">
     <label>1) Seleccione el plazo del art. 310 CPCCN a computar:</label>
     <select id="tipoPlazo">
       <option value="6">6 meses (primera o única instancia), inc. 1°</option>
@@ -52,25 +53,32 @@
   <div class="result" id="resultado" style="display:none">
     <strong>Vencimiento:</strong>
     <div id="vencimientoText" style="margin-top:8px"></div>
-    <small id="explicacion"></small>
+    <small id="explicacion" class="muted"></small>
   </div>
 
   <footer>
-    <p>Notas: Esta calculadora implementa la lógica solicitada (cómputo fecha a fecha; si el día final no existe en el mes de vencimiento se toma el último día; se excluyen exclusivamente las ferias judiciales: todo enero y 12 días corridos a partir del 3er lunes de julio). Revise siempre con criterio profesional.</p>
+    <p class="muted">Notas: Esta calculadora implementa la lógica solicitada (cómputo fecha a fecha; si el día final no existe en el mes de vencimiento se toma el último día; se excluyen exclusivamente las ferias judiciales: todo enero y 12 días corridos a partir del 3er lunes de julio). Revise siempre con criterio profesional.</p>
   </footer>
 
 <script>
-// Advertencia (texto mejorado):
-const advertenciaTexto = `A continuación se presenta una "Calculadora de Caducidad de la Instancia" cuyo código fuente fue generado mediante Inteligencia Artificial y puede contener errores. Es una herramienta complementaria y no sustituye el criterio profesional ni la consulta de la normativa vigente.\n\nConsideraciones clave para el cómputo: para el receso de verano se excluye todo el mes de enero (1 al 31). Para el receso de invierno se excluyen 12 días corridos a partir del tercer lunes de julio de cada año. Las fechas del Receso Invernal son variables y definidas anualmente por la CSJN; verifíquelas.\n\nUtilice esta calculadora bajo su propia responsabilidad y contrastando siempre el resultado.`;
+// ------------------ Advertencia ------------------
+const advertenciaTexto = `A continuación se presenta una "Calculadora de Caducidad de la Instancia" cuyo código fuente fue generado mediante Inteligencia Artificial y puede contener errores. Es una herramienta complementaria y no sustituye el criterio profesional ni la consulta de la normativa vigente.
+
+Consideraciones clave para el cómputo:
+- Receso de verano: se excluye todo el mes de enero (1 al 31).
+- Receso de invierno: se excluyen 12 días corridos a partir del tercer lunes de julio de cada año.
+Las fechas del Receso Invernal son variables y definidas anualmente por la CSJN; verifíquelas.
+
+Utilice esta calculadora bajo su propia responsabilidad y contrastando siempre el resultado.`;
 document.getElementById('advertencia').innerText = advertenciaTexto;
 
-// ---------- Helpers de fecha ----------
+// ------------------ Helpers de fecha ------------------
 function cloneDate(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
 function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
 function addDays(d,n){ const r = cloneDate(d); r.setDate(r.getDate() + n); return r; }
-function formatDate(d){ const dd = ('0'+d.getDate()).slice(-2); const mm = ('0'+(d.getMonth()+1)).slice(-2); return `${dd}/${mm}/${d.getFullYear()}`; }
+function formatDate(d){ if(!(d instanceof Date) || isNaN(d)) return 'Invalid'; const dd = ('0'+d.getDate()).slice(-2); const mm = ('0'+(d.getMonth()+1)).slice(-2); return `${dd}/${mm}/${d.getFullYear()}`; }
 
-// suma meses fecha-a-fecha (si no existe día destino -> último día del mes)
+// suma meses respetando regla fecha-a-fecha (si no existe día -> último día del mes)
 function addMonthsDateToDate(date, months){
   const y = date.getFullYear(), m = date.getMonth(), day = date.getDate();
   const targetMonth = m + months;
@@ -82,79 +90,91 @@ function addMonthsDateToDate(date, months){
 
 // tercer lunes de julio
 function thirdMondayOfJuly(year){
-  const d = new Date(year, 6, 1);
-  const dow = d.getDay();
+  const d = new Date(year,6,1);
+  const dow = d.getDay(); // 0 dom .. 6 sab
   const firstMonday = 1 + ((8 - dow) % 7);
   const thirdMonday = firstMonday + 14;
   return new Date(year,6,thirdMonday);
 }
 
-// construye períodos excluidos (enero entero + 12 días desde 3er lunes de julio)
+// construir periodos excluidos (enero entero + 12 días desde 3er lunes de julio)
 function buildExcludedPeriods(yearFrom, yearTo){
   const periods = [];
   for(let y = yearFrom - 1; y <= yearTo + 1; y++){
-    periods.push({ start: new Date(y,0,1), end: new Date(y,0,31) }); // enero
+    // enero completo
+    periods.push({ start: new Date(y,0,1), end: new Date(y,0,31) });
+    // receso de invierno 12 días desde 3er lunes de julio
     const tm = thirdMondayOfJuly(y);
     const start = cloneDate(tm);
-    const end = addDays(start, 11); // 12 días inclusivos
+    const end = addDays(start, 11);
     periods.push({ start, end });
   }
   return periods;
 }
 
-// días de solapamiento entre [a,b] y [c,d], contado inclusive
+// overlap inclusive en días entre [a,b] y [c,d]
 function overlapDays(a,b,c,d){
   const start = a > c ? a : c;
   const end = b < d ? b : d;
   if(start > end) return 0;
   const msPerDay = 24*60*60*1000;
-  return Math.round((end - start) / msPerDay) + 1;
+  // usar floor para evitar problemas con DST
+  return Math.floor((end - start) / msPerDay) + 1;
 }
 
-// ---------- Cálculo de vencimiento ----------
+// ------------------ Algoritmo eficiente ------------------
+/*
+  Estrategia:
+  1) Calcular candidate = fecha + meses (fecha a fecha).
+  2) Calcular totalExcluded = suma de días de ferias que caen en (startDate, candidate] (no incluye día inicial).
+  3) candidate += totalExcluded
+  4) Si candidate queda dentro de una feria, moverlo al día siguiente al final de esa feria.
+  5) Repetir hasta que no cambie (normalmente 1-3 iteraciones). Protegemos con un tope.
+*/
 function computeExpiration(startDate, months){
-  // candidato inicial (fecha a fecha)
+  if(!(startDate instanceof Date) || isNaN(startDate)) return null;
+
   let candidate = addMonthsDateToDate(startDate, months);
-  // construimos ferias para un rango razonable
   let excluded = buildExcludedPeriods(startDate.getFullYear(), candidate.getFullYear() + 1);
 
-  // Repetimos: añadimos al candidato los días que resultaron estar en ferias dentro del intervalo (start+1 .. candidate)
-  // y si el candidate cae dentro de una feria lo movemos al día siguiente al fin de esa feria.
-  let safety = 0;
-  while(true){
-    safety++; if(safety > 200) break; // protección contra bucles
-    const intervalStart = addDays(startDate, 1);
+  let iter = 0;
+  while(iter < 20){
+    iter++;
+    const intervalStart = addDays(startDate, 1); // días contados desde el siguiente día
     const intervalEnd = candidate;
+    // sumar días excluidos dentro del intervalo
     let totalExcluded = 0;
-    let candidateInside = null;
-
     for(const p of excluded){
       totalExcluded += overlapDays(intervalStart, intervalEnd, p.start, p.end);
-      if(candidate >= p.start && candidate <= p.end) candidateInside = p;
-    }
-
-    if(candidateInside){
-      // mover candidate al día siguiente del final de la feria
-      candidate = addDays(candidateInside.end, 1);
-      excluded = buildExcludedPeriods(startDate.getFullYear(), candidate.getFullYear() + 1);
-      continue;
     }
 
     if(totalExcluded > 0){
-      // añadimos los días excluidos detectados en el intervalo
       candidate = addDays(candidate, totalExcluded);
+      excluded = buildExcludedPeriods(startDate.getFullYear(), candidate.getFullYear() + 1);
+      // continue loop to re-evaluate (in case we jumped into another feria)
+      continue;
+    }
+
+    // si candidate cae dentro de un periodo excluido, mover al día siguiente al final de ese periodo
+    let insidePeriod = null;
+    for(const p of excluded){
+      if(candidate >= p.start && candidate <= p.end){ insidePeriod = p; break; }
+    }
+    if(insidePeriod){
+      candidate = addDays(insidePeriod.end, 1);
       excluded = buildExcludedPeriods(startDate.getFullYear(), candidate.getFullYear() + 1);
       continue;
     }
 
-    // no hay exclusiones ni cae en feria -> termino
+    // si llegamos aquí no hubo cambios -> terminado
     break;
   }
 
+  // si iter alcanzó tope, devolvemos candidate (pero improbable)
   return candidate;
 }
 
-// ---------- UI wiring (lee DD/MM/AAAA) ----------
+// ------------------ UI wiring ------------------
 const tipoPlazo = document.getElementById('tipoPlazo');
 const customContainer = document.getElementById('customContainer');
 const customMonths = document.getElementById('customMonths');
@@ -167,11 +187,10 @@ const explicacion = document.getElementById('explicacion');
 
 tipoPlazo.addEventListener('change', ()=>{ customContainer.style.display = (tipoPlazo.value === 'custom') ? 'block' : 'none'; });
 
-// permitir sólo dígitos
-function onlyDigits(e){ const allowed = ['Backspace','ArrowLeft','ArrowRight','Tab']; if(allowed.includes(e.key)) return; if(!/^[0-9]$/.test(e.key)) e.preventDefault(); }
+// permitir sólo dígitos y navegación
+function onlyDigits(e){ const allowed=['Backspace','ArrowLeft','ArrowRight','Tab','Delete']; if(allowed.includes(e.key)) return; if(!/^[0-9]$/.test(e.key)) e.preventDefault(); }
 [diaInput, mesInput, anioInput].forEach(i => i.addEventListener('keydown', onlyDigits));
 
-// parsea y valida la fecha ingresada en DD MM AAAA
 function parseUserDate(){
   const d = diaInput.value.trim(), m = mesInput.value.trim(), y = anioInput.value.trim();
   if(!/^\d{1,2}$/.test(d) || !/^\d{1,2}$/.test(m) || !/^\d{4}$/.test(y)) return null;
@@ -186,17 +205,18 @@ function showError(msg){ alert(msg); }
 
 document.getElementById('calcular').addEventListener('click', ()=>{
   const start = parseUserDate();
-  if(!start){ showError('Indique una fecha válida en DD MM AAAA'); return; }
+  if(!start){ showError('Indique una fecha válida en formato DD MM AAAA'); return; }
 
   let months = 0;
   if(tipoPlazo.value === 'custom'){
     months = parseInt(customMonths.value, 10);
     if(isNaN(months) || months < 1 || months > 6){ showError('El plazo de prescripción (inc.3°) debe estar entre 1 y 6 meses'); return; }
-  } else {
-    months = parseInt(tipoPlazo.value, 10);
-  }
+  } else months = parseInt(tipoPlazo.value, 10);
 
+  // compute
   const venc = computeExpiration(start, months);
+  if(!venc){ showError('Error al calcular la fecha. Revise la entrada.'); return; }
+
   resultadoDiv.style.display = 'block';
   vencimientoText.innerText = formatDate(venc) + ' — vence a las 24:00 hrs del día indicado';
   explicacion.innerText = `Cómputo iniciado el ${formatDate(start)}. Plazo nominal: ${months} mes(es). Se aplicaron exclusiones de ferias (enero y receso de invierno).`;
