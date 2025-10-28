@@ -243,9 +243,16 @@
       return nextBusinessDayStrict(first, inhMap);
     }
     if(modalidad==='nota'){
+      // CORRECCIÓN: la notificación se considera efectuada el día martes o viernes hábil siguiente a la fecha indicada
       let d = addDays(notifDate,1);
-      while(true){ if(isBusinessDay(d,inhMap) && (d.getDay()===2 || d.getDay()===4)) break; d = addDays(d,1); }
-      return nextBusinessDayStrict(d, inhMap);
+      while(true){
+        // ahora buscamos martes (2) o viernes (5)
+        if(isBusinessDay(d,inhMap) && (d.getDay()===2 || d.getDay()===5)) break;
+        d = addDays(d,1);
+      }
+      // 'd' es el día de nota; el inicio del conteo es el día hábil siguiente a 'd'
+      const start = nextBusinessDayStrict(d, inhMap);
+      return start;
     }
     throw new Error('Modalidad desconocida');
   }
