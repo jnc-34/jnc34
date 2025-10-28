@@ -1,0 +1,150 @@
+/* Estilos generales */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+h1 {
+    color: #005a9c;
+    border-bottom: 2px solid #005a9c;
+    padding-bottom: 10px;
+}
+
+/* Contenedor principal */
+.calculator-container {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 25px 30px;
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Grupos de formulario */
+.form-group {
+    margin-bottom: 20px;
+    position: relative; /* Para posicionar las sugerencias */
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box; /* Para que el padding no afecte el ancho */
+}
+
+/* Grupo de input con botón */
+.input-group {
+    display: flex;
+}
+
+.input-group input {
+    flex-grow: 1;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group button {
+    padding: 0 15px;
+    border: 1px solid #ccc;
+    border-left: none;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    font-size: 14px;
+}
+
+.input-group button:hover {
+    background-color: #e0e0e0;
+}
+
+/* Botón principal */
+#calcular {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    font-weight: 700;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#calcular:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos de Sugerencias (Autocompletado) */
+.sugerencias {
+    position: absolute;
+    width: 100%;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.sugerencia-item {
+    padding: 12px;
+    cursor: pointer;
+}
+
+.sugerencia-item:hover {
+    background-color: #f0f0f0;
+}
+
+/* Contenedores de Salida */
+.resultado-container {
+    margin-top: 25px;
+    font-size: 1.2em;
+    font-weight: 700;
+    text-align: center;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: #e6f7ff;
+    border: 1px solid #b3e0ff;
+    color: #005a9c;
+}
+
+.trazabilidad-container {
+    margin-top: 20px;
+    background-color: #fafafa;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+
+.trazabilidad-container h4 {
+    margin-top: 0;
+    border-bottom: 1px dashed #ccc;
+    padding-bottom: 5px;
+}
+
+.trazabilidad-container p {
+    margin: 5px 0;
+}
