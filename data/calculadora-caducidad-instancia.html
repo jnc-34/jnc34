@@ -61,7 +61,7 @@
   </footer>
 
 <script>
-// ------------------ Advertencia ------------------
+/* ===== ADVERTENCIA (editable) ===== */
 const advertenciaTexto = `A continuación se presenta una "Calculadora de Caducidad de la Instancia" cuyo código fuente fue generado mediante Inteligencia Artificial y puede contener errores. Es una herramienta complementaria y no sustituye el criterio profesional ni la consulta de la normativa vigente.
 
 Consideraciones clave para el cómputo:
@@ -72,109 +72,125 @@ Las fechas del Receso Invernal son variables y definidas anualmente por la CSJN;
 Utilice esta calculadora bajo su propia responsabilidad y contrastando siempre el resultado.`;
 document.getElementById('advertencia').innerText = advertenciaTexto;
 
-// ------------------ Helpers de fecha ------------------
-function cloneDate(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
-function daysInMonth(y,m){ return new Date(y,m+1,0).getDate(); }
-function addDays(d,n){ const r = cloneDate(d); r.setDate(r.getDate() + n); return r; }
-function formatDate(d){ if(!(d instanceof Date) || isNaN(d)) return 'Invalid'; const dd = ('0'+d.getDate()).slice(-2); const mm = ('0'+(d.getMonth()+1)).slice(-2); return `${dd}/${mm}/${d.getFullYear()}`; }
+/* ===== HELPERS DE FECHA EN UTC (más robusto ante DST) ===== */
+function utcDate(y,m,d){ return new Date(Date.UTC(y,m,d)); } // m: 0-11
+function cloneDate(d){ return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())); }
+function daysInMonth(y,m){ return new Date(Date.UTC(y,m+1,0)).getUTCDate(); }
+function addDaysUTC(d, n){
+  const y=d.getUTCFullYear(), m=d.getUTCMonth(), day=d.getUTCDate();
+  const dt = utcDate(y,m,day + n);
+  return dt;
+}
+function formatDate(d){ if(!(d instanceof Date) || isNaN(d)) return 'Invalid'; const dd=('0'+d.getUTCDate()).slice(-2); const mm=('0'+(d.getUTCMonth()+1)).slice(-2); return `${dd}/${mm}/${d.getUTCFullYear()}`; }
 
-// suma meses respetando regla fecha-a-fecha (si no existe día -> último día del mes)
-function addMonthsDateToDate(date, months){
-  const y = date.getFullYear(), m = date.getMonth(), day = date.getDate();
-  const targetMonth = m + months;
-  const newDate = new Date(y, targetMonth, 1);
-  const dim = daysInMonth(newDate.getFullYear(), newDate.getMonth());
+/* suma meses fecha-a-fecha en UTC (si no existe día -> último día del mes) */
+function addMonthsDateToDateUTC(date, months){
+  const y = date.getUTCFullYear(), m = date.getUTCMonth(), day = date.getUTCDate();
+  const targetMonthIndex = m + months;
+  const targetYear = y + Math.floor(targetMonthIndex / 12);
+  const targetMonth = targetMonthIndex % 12;
+  const dim = daysInMonth(targetYear, targetMonth);
   const resultDay = Math.min(day, dim);
-  return new Date(newDate.getFullYear(), newDate.getMonth(), resultDay);
+  return utcDate(targetYear, targetMonth, resultDay);
 }
 
-// tercer lunes de julio
-function thirdMondayOfJuly(year){
-  const d = new Date(year,6,1);
-  const dow = d.getDay(); // 0 dom .. 6 sab
+/* tercer lunes de julio (UTC) */
+function thirdMondayOfJulyUTC(year){
+  const d = utcDate(year,6,1); // julio = 6
+  const dow = d.getUTCDay(); // 0 domingo
   const firstMonday = 1 + ((8 - dow) % 7);
   const thirdMonday = firstMonday + 14;
-  return new Date(year,6,thirdMonday);
+  return utcDate(year,6,thirdMonday);
 }
 
-// construir periodos excluidos (enero entero + 12 días desde 3er lunes de julio)
-function buildExcludedPeriods(yearFrom, yearTo){
+/* construir períodos excluidos: todo enero (1-31) y receso invierno: 12 días desde 3er lunes de julio */
+function buildExcludedPeriodsUTC(yearFrom, yearTo){
   const periods = [];
   for(let y = yearFrom - 1; y <= yearTo + 1; y++){
-    // enero completo
-    periods.push({ start: new Date(y,0,1), end: new Date(y,0,31) });
-    // receso de invierno 12 días desde 3er lunes de julio
-    const tm = thirdMondayOfJuly(y);
-    const start = cloneDate(tm);
-    const end = addDays(start, 11);
+    periods.push({ start: utcDate(y,0,1), end: utcDate(y,0,31) }); // enero
+    const tm = thirdMondayOfJulyUTC(y);
+    const start = tm;
+    const end = addDaysUTC(start, 11); // 12 días inclusivos
     periods.push({ start, end });
   }
   return periods;
 }
 
-// overlap inclusive en días entre [a,b] y [c,d]
-function overlapDays(a,b,c,d){
-  const start = a > c ? a : c;
-  const end = b < d ? b : d;
-  if(start > end) return 0;
+/* overlapDays inclusive entre [a,b] y [c,d] en días (operando en UTC) */
+function overlapDaysInclusiveUTC(a,b,c,d){
+  // if a > b or c > d => 0
+  if(a.getTime() > b.getTime() || c.getTime() > d.getTime()) return 0;
+  const start = a.getTime() > c.getTime() ? a : c;
+  const end = b.getTime() < d.getTime() ? b : d;
+  if(start.getTime() > end.getTime()) return 0;
   const msPerDay = 24*60*60*1000;
-  // usar floor para evitar problemas con DST
-  return Math.floor((end - start) / msPerDay) + 1;
+  return Math.floor((end.getTime() - start.getTime()) / msPerDay) + 1;
 }
 
-// ------------------ Algoritmo eficiente ------------------
-/*
-  Estrategia:
-  1) Calcular candidate = fecha + meses (fecha a fecha).
-  2) Calcular totalExcluded = suma de días de ferias que caen en (startDate, candidate] (no incluye día inicial).
-  3) candidate += totalExcluded
-  4) Si candidate queda dentro de una feria, moverlo al día siguiente al final de esa feria.
-  5) Repetir hasta que no cambie (normalmente 1-3 iteraciones). Protegemos con un tope.
+/* comprueba si una fecha UTC cae dentro de algún periodo excluido */
+function findContainingPeriodUTC(date, periods){
+  for(const p of periods){
+    if(date.getTime() >= p.start.getTime() && date.getTime() <= p.end.getTime()) return p;
+  }
+  return null;
+}
+
+/* ===== ALGORITMO ROBUSTO =====
+   1) candidate = start + months (fecha a fecha)
+   2) totalExcluded = suma de días excluidos en (start, candidate]  -> intervalStart = start + 1 día
+   3) candidate += totalExcluded
+   4) si candidate queda dentro de una feria -> candidate = día siguiente al final de esa feria
+   5) repetir hasta estabilizar (top 50 iter)
 */
-function computeExpiration(startDate, months){
+function computeExpirationUTC(startDate, months){
   if(!(startDate instanceof Date) || isNaN(startDate)) return null;
 
-  let candidate = addMonthsDateToDate(startDate, months);
-  let excluded = buildExcludedPeriods(startDate.getFullYear(), candidate.getFullYear() + 1);
+  // convertir a UTC midnight (evita problemas de zona)
+  let startUTC = utcDate(startDate.getUTCFullYear(), startDate.getUTCMonth(), startDate.getUTCDate());
 
+  // primer candidato
+  let candidate = addMonthsDateToDateUTC(startUTC, months);
+  let excluded = buildExcludedPeriodsUTC(startUTC.getUTCFullYear(), candidate.getUTCFullYear() + 1);
+
+  const maxIter = 50;
   let iter = 0;
-  while(iter < 20){
+  while(iter < maxIter){
     iter++;
-    const intervalStart = addDays(startDate, 1); // días contados desde el siguiente día
+    // intervalo contado: desde el día siguiente al acto (start+1) hasta candidate inclusive
+    const intervalStart = addDaysUTC(startUTC, 1);
     const intervalEnd = candidate;
+
     // sumar días excluidos dentro del intervalo
     let totalExcluded = 0;
     for(const p of excluded){
-      totalExcluded += overlapDays(intervalStart, intervalEnd, p.start, p.end);
+      totalExcluded += overlapDaysInclusiveUTC(intervalStart, intervalEnd, p.start, p.end);
     }
 
     if(totalExcluded > 0){
-      candidate = addDays(candidate, totalExcluded);
-      excluded = buildExcludedPeriods(startDate.getFullYear(), candidate.getFullYear() + 1);
-      // continue loop to re-evaluate (in case we jumped into another feria)
+      candidate = addDaysUTC(candidate, totalExcluded);
+      // reconstruir excluded si hemos pasado a años nuevos
+      excluded = buildExcludedPeriodsUTC(startUTC.getUTCFullYear(), candidate.getUTCFullYear() + 1);
+      // iterar de nuevo
       continue;
     }
 
-    // si candidate cae dentro de un periodo excluido, mover al día siguiente al final de ese periodo
-    let insidePeriod = null;
-    for(const p of excluded){
-      if(candidate >= p.start && candidate <= p.end){ insidePeriod = p; break; }
-    }
-    if(insidePeriod){
-      candidate = addDays(insidePeriod.end, 1);
-      excluded = buildExcludedPeriods(startDate.getFullYear(), candidate.getFullYear() + 1);
+    // si candidate cae dentro de una feria -> mover al día siguiente al final de la feria y recomputar
+    const inside = findContainingPeriodUTC(candidate, excluded);
+    if(inside){
+      candidate = addDaysUTC(inside.end, 1);
+      excluded = buildExcludedPeriodsUTC(startUTC.getUTCFullYear(), candidate.getUTCFullYear() + 1);
       continue;
     }
 
-    // si llegamos aquí no hubo cambios -> terminado
+    // si no hubo cambios -> terminado
     break;
   }
 
-  // si iter alcanzó tope, devolvemos candidate (pero improbable)
+  // si maxIter alcanzado, devolvemos candidate (caso improbable)
   return candidate;
 }
 
-// ------------------ UI wiring ------------------
+/* ===== UI wiring ===== */
 const tipoPlazo = document.getElementById('tipoPlazo');
 const customContainer = document.getElementById('customContainer');
 const customMonths = document.getElementById('customMonths');
@@ -187,8 +203,8 @@ const explicacion = document.getElementById('explicacion');
 
 tipoPlazo.addEventListener('change', ()=>{ customContainer.style.display = (tipoPlazo.value === 'custom') ? 'block' : 'none'; });
 
-// permitir sólo dígitos y navegación
-function onlyDigits(e){ const allowed=['Backspace','ArrowLeft','ArrowRight','Tab','Delete']; if(allowed.includes(e.key)) return; if(!/^[0-9]$/.test(e.key)) e.preventDefault(); }
+// permitir sólo dígitos
+function onlyDigits(e){ const allowed = ['Backspace','ArrowLeft','ArrowRight','Tab','Delete']; if(allowed.includes(e.key)) return; if(!/^[0-9]$/.test(e.key)) e.preventDefault(); }
 [diaInput, mesInput, anioInput].forEach(i => i.addEventListener('keydown', onlyDigits));
 
 function parseUserDate(){
@@ -198,7 +214,8 @@ function parseUserDate(){
   if(month < 1 || month > 12) return null;
   const dim = daysInMonth(year, month - 1);
   if(day < 1 || day > dim) return null;
-  return new Date(year, month - 1, day);
+  // devolver Date en UTC midnight para consistencia
+  return utcDate(year, month - 1, day);
 }
 
 function showError(msg){ alert(msg); }
@@ -213,8 +230,7 @@ document.getElementById('calcular').addEventListener('click', ()=>{
     if(isNaN(months) || months < 1 || months > 6){ showError('El plazo de prescripción (inc.3°) debe estar entre 1 y 6 meses'); return; }
   } else months = parseInt(tipoPlazo.value, 10);
 
-  // compute
-  const venc = computeExpiration(start, months);
+  const venc = computeExpirationUTC(start, months);
   if(!venc){ showError('Error al calcular la fecha. Revise la entrada.'); return; }
 
   resultadoDiv.style.display = 'block';
@@ -225,6 +241,7 @@ document.getElementById('calcular').addEventListener('click', ()=>{
 document.getElementById('limpiar').addEventListener('click', ()=>{
   diaInput.value = ''; mesInput.value = ''; anioInput.value = ''; tipoPlazo.value = '6'; customContainer.style.display = 'none'; customMonths.value = '6'; resultadoDiv.style.display = 'none';
 });
+
 </script>
 </body>
 </html>
