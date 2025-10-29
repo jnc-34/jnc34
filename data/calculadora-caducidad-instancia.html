@@ -209,5 +209,152 @@ document.getElementById('limpiar').addEventListener('click', ()=>{
   diaInput.value = ''; mesInput.value = ''; anioInput.value = ''; tipoPlazo.value = '6'; customContainer.style.display = 'none'; customMonths.value = '6'; resultadoDiv.style.display = 'none';
 });
 </script>
+<script>
+/* SCRIPT DE DIAGNÓSTICO — temporal. 
+   Pega esto en tu HTML (reemplazando el bloque <script> existente o al final del body), 
+   abre la consola y ejecuta una prueba. Luego pega los logs aquí. */
+
+(function(){
+  console.log('--- DEBUG: inicio diagnóstico calculadora ---');
+
+  // Helpers UTC (idénticos a la versión robusta)
+  function utcDate(y,m,d){ return new Date(Date.UTC(y,m,d)); }
+  function daysInMonth(y,m){ return new Date(Date.UTC(y,m+1,0)).getUTCDate(); }
+  function addDaysUTC(d,n){ const y=d.getUTCFullYear(), m=d.getUTCMonth(), day=d.getUTCDate(); return utcDate(y,m, day + n); }
+  function formatUTC(d){ if(!d || isNaN(d)) return 'InvalidDate'; return ('0'+d.getUTCDate()).slice(-2)+'/'+('0'+(d.getUTCMonth()+1)).slice(-2)+'/'+d.getUTCFullYear(); }
+
+  function addMonthsDateToDateUTC(date, months){
+    const y = date.getUTCFullYear(), m = date.getUTCMonth(), day = date.getUTCDate();
+    const targetMonthIndex = m + months;
+    const targetYear = y + Math.floor(targetMonthIndex / 12);
+    const targetMonth = ((targetMonthIndex % 12) + 12) % 12;
+    const dim = daysInMonth(targetYear, targetMonth);
+    const resultDay = Math.min(day, dim);
+    return utcDate(targetYear, targetMonth, resultDay);
+  }
+
+  function thirdMondayOfJulyUTC(year){
+    const d = utcDate(year,6,1);
+    const dow = d.getUTCDay();
+    const firstMonday = 1 + ((8 - dow) % 7);
+    const thirdMonday = firstMonday + 14;
+    return utcDate(year,6,thirdMonday);
+  }
+
+  function buildExcludedUTC(yearFrom, yearTo){
+    const arr = [];
+    for(let y=yearFrom-1; y<=yearTo+1; y++){
+      arr.push({start: utcDate(y,0,1), end: utcDate(y,0,31)}); // enero
+      const tm = thirdMondayOfJulyUTC(y);
+      arr.push({start: tm, end: addDaysUTC(tm,11)}); // 12 días
+    }
+    return arr;
+  }
+
+  function overlapDaysInclusive(a,b,c,d){
+    if(a.getTime() > b.getTime() || c.getTime() > d.getTime()) return 0;
+    const start = a.getTime() > c.getTime() ? a : c;
+    const end = b.getTime() < d.getTime() ? b : d;
+    if(start.getTime() > end.getTime()) return 0;
+    const msPerDay = 24*60*60*1000;
+    return Math.floor((end.getTime() - start.getTime())/msPerDay) + 1;
+  }
+
+  function findPeriod(date, arr){
+    for(const p of arr) if(date.getTime() >= p.start.getTime() && date.getTime() <= p.end.getTime()) return p;
+    return null;
+  }
+
+  // versión diagnóstica del algoritmo (igual a la robusta, con logs)
+  function computeExpirationDiag(startUTC, months){
+    console.log('DEBUG: startUTC', formatUTC(startUTC), 'months', months);
+    let candidate = addMonthsDateToDateUTC(startUTC, months);
+    console.log('DEBUG: candidate inicial (fecha-a-fecha)', formatUTC(candidate));
+    let excluded = buildExcludedUTC(startUTC.getUTCFullYear(), candidate.getUTCFullYear()+1);
+    console.log('DEBUG: excluded periods (primeros 6):', excluded.slice(0,6).map(p=>({start:formatUTC(p.start), end:formatUTC(p.end)})));
+
+    const max = 100;
+    let iter = 0;
+    while(iter < max){
+      iter++;
+      const intervalStart = addDaysUTC(startUTC, 1);
+      const intervalEnd = candidate;
+      // sumar exclusiones
+      let totalExcluded = 0;
+      for(const p of excluded){
+        const ov = overlapDaysInclusive(intervalStart, intervalEnd, p.start, p.end);
+        if(ov>0) console.log(`DEBUG iter ${iter}: overlap with period ${formatUTC(p.start)} - ${formatUTC(p.end)} => ${ov} días`);
+        totalExcluded += ov;
+      }
+      console.log(`DEBUG iter ${iter}: totalExcluded in (start+1 .. candidate) = ${totalExcluded}`);
+      if(totalExcluded > 0){
+        candidate = addDaysUTC(candidate, totalExcluded);
+        console.log(`DEBUG iter ${iter}: candidate after adding excluded = ${formatUTC(candidate)}`);
+        excluded = buildExcludedUTC(startUTC.getUTCFullYear(), candidate.getUTCFullYear()+1);
+        continue;
+      }
+      const inside = findPeriod(candidate, excluded);
+      if(inside){
+        console.log(`DEBUG iter ${iter}: candidate ${formatUTC(candidate)} is inside period ${formatUTC(inside.start)} - ${formatUTC(inside.end)} -> moving to day after end`);
+        candidate = addDaysUTC(inside.end, 1);
+        console.log(`DEBUG iter ${iter}: candidate moved to ${formatUTC(candidate)}`);
+        excluded = buildExcludedUTC(startUTC.getUTCFullYear(), candidate.getUTCFullYear()+1);
+        continue;
+      }
+      console.log('DEBUG: estabilizado en iter', iter);
+      break;
+    }
+    if(iter>=max) console.warn('DEBUG: max iter alcanzado', iter);
+    console.log('DEBUG: candidate final', formatUTC(candidate));
+    return candidate;
+  }
+
+  // función que lee los campos existentes (intenta ser compatible con variantes)
+  function readInputs(){
+    const dEl = document.getElementById('dia');
+    const mEl = document.getElementById('mes');
+    const yEl = document.getElementById('anio');
+    const fallbackDateInput = document.getElementById('fecha'); // en caso de que exista la versión vieja
+    let d = dEl && dEl.value ? dEl.value.trim() : null;
+    let m = mEl && mEl.value ? mEl.value.trim() : null;
+    let y = yEl && yEl.value ? yEl.value.trim() : null;
+    if((!d || !m || !y) && fallbackDateInput && fallbackDateInput.value){
+      console.log('DEBUG: usando input tipo=date fallback (fecha)');
+      const f = fallbackDateInput.value; // formato yyyy-mm-dd
+      const parts = f.split('-');
+      if(parts.length===3){ y = parts[0]; m = parts[1]; d = parts[2]; }
+    }
+    return {d,m,y};
+  }
+
+  // handler que puedes llamar desde la consola: runDebug()
+  window.runCalcDebug = function(){
+    console.log('--- runCalcDebug() invoked ---');
+    const inputs = readInputs();
+    console.log('DEBUG: raw inputs', inputs);
+    const reD = /^\d{1,2}$/, reM = /^\d{1,2}$/, reY = /^\d{4}$/;
+    if(!reD.test(inputs.d) || !reM.test(inputs.m) || !reY.test(inputs.y)){ console.error('DEBUG: entrada inválida'); return; }
+    const day = parseInt(inputs.d,10), month = parseInt(inputs.m,10), year = parseInt(inputs.y,10);
+    if(month<1||month>12){ console.error('DEBUG: mes inválido'); return; }
+    const dim = daysInMonth(year, month-1);
+    if(day<1||day>dim){ console.error('DEBUG: día inválido para ese mes'); return; }
+    const startUTC = utcDate(year, month-1, day);
+    // leer months seleccionado (compatible con select id tipoPlazo + custom)
+    const tipo = document.getElementById('tipoPlazo') ? document.getElementById('tipoPlazo').value : null;
+    let months = tipo && tipo !== 'custom' ? parseInt(tipo,10) : (document.getElementById('customMonths') ? parseInt(document.getElementById('customMonths').value,10) : null);
+    console.log('DEBUG: meses a computar =', months);
+    if(isNaN(months) || months < 1){ console.error('DEBUG: meses inválidos'); return; }
+    const final = computeExpirationDiag(startUTC, months);
+    console.log('--- RESULTADO FINAL ---', formatUTC(final));
+    // además, muestra en pantalla (si existe el contenedor)
+    const outEl = document.getElementById('vencimientoText');
+    const resDiv = document.getElementById('resultado');
+    if(outEl && resDiv){ outEl.innerText = formatUTC(final) + ' — vence a las 24:00 hrs del día indicado'; resDiv.style.display='block'; }
+  };
+
+  console.log('DEBUG: Instrucciones -> escribe runCalcDebug() en la consola tras cargar la página y pulsar calcular (o directamente tras completar campos).');
+  console.log('--- DEBUG: fin carga script ---');
+})();
+</script>
 </body>
 </html>
