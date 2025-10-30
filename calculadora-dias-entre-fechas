@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Calculadora de días entre fechas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f6fbff; --card:#ffffff; --muted:#6b7280; --text:#0f172a; --accent:#0b76f4; --accent-2:#0ea5a4; --border:#e6eef9;
+    }
+    body{font-family:'Montserrat',system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:var(--bg); color:var(--text); margin:18px}
+    .container{max-width:900px;margin:0 auto}
+    .card{background:var(--card);border:1px solid var(--border);padding:18px;border-radius:12px;box-shadow:0 6px 20px rgba(11,118,244,0.04);}
+    h1{font-size:1.3rem;margin-bottom:8px}
+    label{display:block;margin-top:8px;font-weight:600}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    input,select,button{padding:10px;border-radius:8px;border:1px solid #e9f1ff;font-size:0.95rem;background:#fff}
+    .small{font-size:0.9rem;color:var(--muted)}
+    .result{background:linear-gradient(180deg,#fff 0%,#f7fbff 100%);padding:12px;border-radius:10px;margin-top:12px;border:1px solid var(--border)}
+    .trace{margin-top:10px;background:#fff;padding:12px;border-radius:8px;border:1px solid var(--border)}
+    button{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,118,244,0.12)}
+    .flex{display:flex;gap:10px;align-items:center}
+    @media(max-width:720px){.row{flex-direction:column}.flex{flex-direction:column;align-items:flex-start}}
+    footer{margin-top:12px;font-size:0.85rem;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Calculadora de días entre fechas</h1>
+      <p class="small">Indica la fecha de inicio y la fecha de fin. Elige si incluir/excluir los extremos y si contar días hábiles o corridos.</p>
+
+      <label>Fecha inicio</label>
+      <div class="row">
+        <input id="s_dia" placeholder="DD" maxlength="2" style="width:86px" />
+        <input id="s_mes" placeholder="MM" maxlength="2" style="width:86px" />
+        <input id="s_anio" placeholder="AAAA" maxlength="4" style="width:118px" />
+      </div>
+
+      <label>Fecha fin</label>
+      <div class="row">
+        <input id="e_dia" placeholder="DD" maxlength="2" style="width:86px" />
+        <input id="e_mes" placeholder="MM" maxlength="2" style="width:86px" />
+        <input id="e_anio" placeholder="AAAA" maxlength="4" style="width:118px" />
+      </div>
+
+      <div class="row" style="margin-top:8px;align-items:center">
+        <div>
+          <label class="small">Incluir / Excluir extremos</label>
+          <div class="flex">
+            <label><input type="checkbox" id="includeStart" checked /> Incluir inicio</label>
+            <label style="margin-left:10px"><input type="checkbox" id="includeEnd" checked /> Incluir fin</label>
+          </div>
+        </div>
+
+        <div style="margin-left:20px">
+          <label class="small">Tipo de conteo</label>
+          <div class="flex">
+            <label><input type="radio" name="tipo" value="corridos" checked /> Días corridos</label>
+            <label style="margin-left:10px"><input type="radio" name="tipo" value="habiles" /> Días hábiles</label>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <button id="calc">Calcular</button>
+        <button id="reset" class="ghost" style="margin-left:8px">Limpiar</button>
+        <button id="force" class="ghost" style="margin-left:8px">Forzar recarga (cache)</button>
+      </div>
+
+      <p class="small" style="margin-top:10px">Años soportados: <span id="yearsRange"></span></p>
+
+      <div id="output" class="result" style="display:none">
+        <div id="summary"></div>
+        <div id="details" style="margin-top:8px"></div>
+      </div>
+
+      <div id="trace" class="trace" style="display:none"></div>
+
+      <footer>Nota: si seleccionas días hábiles, la calculadora usa los feriados públicos (API) y los inhábiles locales definidos en <code>custom_inhabiles.json</code>. Si editas ese JSON en el repo, usa el botón "Forzar recarga (cache)" para solicitar la versión más reciente.</footer>
+    </div>
+  </div>
+
+<script>
+// Reutiliza utilidades similares a la calculadora principal
+const API_BASE = 'https://api.argentinadatos.com/v1/feriados';
+const MIN_YEAR = 2021; let MAX_YEAR = new Date().getFullYear(); if (MAX_YEAR < 2025) MAX_YEAR = 2025;
+
+function toYmd(d){const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
+function parseYmd(str){const [y,m,day]=str.split('-').map(Number);return new Date(y,m-1,day)}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function isWeekend(date){const d=date.getDay();return d===0||d===6}
+
+function thirdMondayOfJuly(year){const d=new Date(year,6,1);while(d.getDay()!==1) d.setDate(d.getDate()+1);return addDays(d,14)}
+function customInhabilesForYear(year){const res=new Map();for(let day=1;day<=31;day++){const d=new Date(year,0,day);res.set(toYmd(d),'Feria de enero')}const nov16=new Date(year,10,16);res.set(toYmd(nov16),'16 de noviembre (ley local)');const thirdMon=thirdMondayOfJuly(year);for(let i=1;i<=14;i++){res.set(toYmd(addDays(thirdMon,i)),'Feria de julio')}return res}
+
+async function fetchFeriados(year){try{const res=await fetch(`${API_BASE}/${year}`);if(!res.ok) throw new Error('API feriados no disponible');const data=await res.json();const m=new Map();data.forEach(f=>{if(f.fecha) m.set(f.fecha,f.nombre||f.tipo||'Feriado')});return m}catch(e){console.warn('API feriados falló',e);return new Map()}}
+
+// robust custom fetch (tries multiple paths + cache-buster)
+async function tryFetch(url){try{const res=await fetch(url,{cache:'no-store'});if(res.ok){return {ok:true,data:await res.json(),url}}else{return {ok:false,status:res.status,url}}}catch(e){return {ok:false,error:e,url}}}
+async function fetchCustomOverrides(){const cb='_='+Date.now();const candidates=['./data/custom_inhabiles.json?'+cb,'data/custom_inhabiles.json?'+cb,'/data/custom_inhabiles.json?'+cb];try{const host=location.hostname;const pathParts=location.pathname.split('/').filter(Boolean);if(host.endsWith('github.io')&&pathParts.length>=1){const user=host.split('.')[0];const repo=pathParts[0];candidates.push(`https://raw.githubusercontent.com/${user}/${repo}/main/data/custom_inhabiles.json?${cb}`)}}catch(e){}for(const c of candidates){const r=await tryFetch(c);if(r.ok){console.log('custom overrides loaded from',r.url);return Array.isArray(r.data.overrides)?r.data.overrides:[]}}console.warn('No custom_inhabiles.json loaded');return []}
+
+async function buildInhabilesForYears(years){const combined=new Map();for(const y of years){const api=await fetchFeriados(y);for(const [k,v] of api.entries()) combined.set(k,'Feriado: '+v);const custom=customInhabilesForYear(y);for(const [k,v] of custom.entries()) combined.set(k,v)}const overrides=await fetchCustomOverrides();overrides.forEach(o=>{if(o&&o.fecha&&o.motivo)combined.set(o.fecha,o.motivo+' (override)')});return combined}
+
+function isInMapYmd(map,date){return map.has(toYmd(date))}
+function isBusinessDay(date,inhMap){return !isWeekend(date)&&!isInMapYmd(inhMap,date)}
+
+// UI wiring
+document.getElementById('yearsRange').textContent = `${MIN_YEAR} - ${MAX_YEAR}`
+const calcBtn=document.getElementById('calc');const resetBtn=document.getElementById('reset');const forceBtn=document.getElementById('force');
+
+resetBtn.addEventListener('click',()=>{['s_dia','s_mes','s_anio','e_dia','e_mes','e_anio'].forEach(id=>document.getElementById(id).value='');document.getElementById('includeStart').checked=true;document.getElementById('includeEnd').checked=true;document.querySelector('input[name="tipo"][value="corridos"]').checked=true;document.getElementById('output').style.display='none';document.getElementById('trace').style.display='none'})
+
+forceBtn.addEventListener('click',()=>{ // simply reload with cache-buster
+  // This will force re-download of the HTML and all assets
+  location.reload(true);
+})
+
+calcBtn.addEventListener('click', async ()=>{
+  // read inputs
+  const sd=document.getElementById('s_dia').value;const sm=document.getElementById('s_mes').value;const sy=document.getElementById('s_anio').value;
+  const ed=document.getElementById('e_dia').value;const em=document.getElementById('e_mes').value;const ey=document.getElementById('e_anio').value;
+  if(!sd||!sm||!sy||!ed||!em||!ey) return alert('Por favor complete ambas fechas');
+  const sdate=new Date(Number(sy),Number(sm)-1,Number(sd)); const edate=new Date(Number(ey),Number(em)-1,Number(ed));
+  if(edate < sdate) return alert('La fecha fin debe ser igual o posterior a la fecha inicio');
+
+  const includeStart=document.getElementById('includeStart').checked; const includeEnd=document.getElementById('includeEnd').checked;
+  const tipo = document.querySelector('input[name="tipo"]:checked').value; const useBusiness = (tipo==='habiles');
+
+  // if business days, build inhábiles map
+  let inhMap = new Map(); if(useBusiness){
+    const yearsToFetch = []; const y0 = sdate.getFullYear(); const y1 = edate.getFullYear(); for(let y=Math.max(MIN_YEAR,y0-1); y<=Math.max(MAX_YEAR,y1+1); y++) yearsToFetch.push(y);
+    inhMap = await buildInhabilesForYears(Array.from(new Set(yearsToFetch)).sort());
+  }
+
+  // compute counts
+  let count=0; const ignored=[]; let cur = new Date(sdate); cur.setHours(0,0,0,0);
+  const end = new Date(edate); end.setHours(0,0,0,0);
+
+  while(cur <= end){
+    const isStart = (toYmd(cur)===toYmd(sdate)); const isEnd = (toYmd(cur)===toYmd(edate));
+    let includeThis = true;
+    if(isStart && !includeStart) includeThis = false;
+    if(isEnd && !includeEnd) includeThis = false;
+
+    if(includeThis){
+      if(useBusiness){ if(isBusinessDay(cur,inhMap)){ count++; } else { ignored.push({fecha:toYmd(cur), motivo: isWeekend(cur)?'Fin de semana':(inhMap.get(toYmd(cur))||'Inhábil')}); }}
+      else { count++; }
+    } else {
+      // excluded by endpoints
+    }
+
+    cur = addDays(cur,1);
+  }
+
+  // show results
+  document.getElementById('output').style.display='block';
+  document.getElementById('trace').style.display='block';
+  const summary = document.getElementById('summary'); const details = document.getElementById('details'); const trace = document.getElementById('trace');
+  summary.innerHTML = `<strong>Resultado:</strong> <span style="font-size:1.15rem">${count} día(s)</span> (${useBusiness ? 'días hábiles' : 'días corridos'})`;
+  details.innerHTML = `<div class=\"small\">Fecha inicio: ${sdate.toLocaleDateString('es-AR')} ${includeStart? '(incluido)':'(excluido)'} — Fecha fin: ${edate.toLocaleDateString('es-AR')} ${includeEnd? '(incluido)':'(excluido)'}</div>`;
+
+  // trace list
+  trace.innerHTML=''; if(ignored.length===0){ trace.innerHTML='<div class="small">No se detectaron días inhábiles dentro del periodo (o se usaron días corridos).</div>' } else {
+    const ul=document.createElement('ul'); ul.style.listStyle='none'; ul.style.padding='0'; ignored.forEach(it=>{ const li=document.createElement('li'); const d=parseYmd(it.fecha); li.textContent = `${d.toLocaleDateString('es-AR')} — ${it.motivo}`; li.style.padding='6px 0'; ul.appendChild(li); }); trace.appendChild(ul);
+  }
+
+  // scroll to result
+  summary.scrollIntoView({behavior:'smooth'});
+});
+</script>
+</body>
+</html>
