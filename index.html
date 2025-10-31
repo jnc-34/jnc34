@@ -131,32 +131,49 @@
   function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
 
   // -----------------------------
-  // CÁLCULO: tercer lunes de julio y 14 días subsiguientes
+  // CÁLCULO: tercer lunes de julio y 14 días (incluyendo el tercer lunes)
   // -----------------------------
-  function thirdMondayOfJuly(year){ const d=new Date(year,6,1); while(d.getDay()!==1) d.setDate(d.getDate()+1); return addDays(d,14); }
+  function thirdMondayOfJuly(year){
+    const d = new Date(year,6,1);
+    while(d.getDay() !== 1) d.setDate(d.getDate()+1);
+    // d is first monday, add 14 days to get third monday? careful:
+    // find third monday: advance by 14 days from first monday
+    return addDays(d, 14);
+  }
 
   function customInhabilesForYear(year){
-  const res = new Map();
-  // todos los días de enero
-  for(let day=1; day<=31; day++){
-    const d = new Date(year, 0, day);
-    res.set(toYmd(d), 'Feria de enero');
+    const res = new Map();
+    // todos los días de enero
+    for(let day=1; day<=31; day++){
+      const d = new Date(year, 0, day);
+      res.set(toYmd(d), 'Feria de enero');
+    }
+
+    // 16 de noviembre
+    const nov16 = new Date(year, 10, 16);
+    res.set(toYmd(nov16), '16 de noviembre (ley local)');
+
+    // Feria de julio: 14 días corridos incluyendo el 3er lunes de julio
+    const thirdMon = thirdMondayOfJuly(year); // fecha del 3er lunes de julio
+    // añadir thirdMon + 0 .. thirdMon + 13 (14 días totales)
+    for(let i = 0; i < 14; i++){
+      const d = addDays(thirdMon, i);
+      res.set(toYmd(d), 'Feria de julio');
+    }
+
+    return res;
   }
 
-  // 16 de noviembre
-  const nov16 = new Date(year, 10, 16);
-  res.set(toYmd(nov16), '16 de noviembre (ley local)');
-
-  // Feria de julio: 14 días corridos *incluyendo* el 3er lunes de julio
-  const thirdMon = thirdMondayOfJuly(year); // devuelve la fecha del 3er lunes
-  // Añadimos desde thirdMon + 0 hasta thirdMon + 13 (14 días en total)
-  for(let i = 0; i < 14; i++){
-    const d = addDays(thirdMon, i);
-    res.set(toYmd(d), 'Feria de julio');
+  async function fetchFeriados(year){
+    try{
+      const res = await fetch(`${API_BASE}/${year}`);
+      if(!res.ok) throw new Error('API feriados no disponible: '+res.status);
+      const data = await res.json();
+      const m = new Map();
+      data.forEach(f=>{ if(f.fecha) m.set(f.fecha, f.nombre || f.tipo || 'Feriado'); });
+      return m;
+    }catch(e){ console.warn('No se pudieron obtener feriados desde API para',year,e); return new Map(); }
   }
-
-  return res;
-}
 
   // ---------- Robust fetch for custom overrides ----------
   async function tryFetch(url){
@@ -246,11 +263,10 @@
       return nextBusinessDayStrict(first, inhMap);
     }
     if(modalidad==='nota'){
-      // CORRECCIÓN: la notificación se considera efectuada el día martes o viernes hábil siguiente a la fecha indicada
+      // la notificación se considera efectuada el día martes o viernes hábil siguiente a la fecha indicada
       let d = addDays(notifDate,1);
       while(true){
-        // ahora buscamos martes (2) o viernes (5)
-        if(isBusinessDay(d,inhMap) && (d.getDay()===2 || d.getDay()===5)) break;
+        if(isBusinessDay(d,inhMap) && (d.getDay()===2 || d.getDay()===5)) break; // martes=2, viernes=5
         d = addDays(d,1);
       }
       // 'd' es el día de nota; el inicio del conteo es el día hábil siguiente a 'd'
