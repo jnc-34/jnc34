@@ -136,24 +136,27 @@
   function thirdMondayOfJuly(year){ const d=new Date(year,6,1); while(d.getDay()!==1) d.setDate(d.getDate()+1); return addDays(d,14); }
 
   function customInhabilesForYear(year){
-    const res = new Map();
-    for(let day=1;day<=31;day++){ const d=new Date(year,0,day); res.set(toYmd(d),'Feria de enero'); }
-    const nov16 = new Date(year,10,16); res.set(toYmd(nov16),'16 de noviembre (ley local)');
-    const thirdMon = thirdMondayOfJuly(year);
-    for(let i=1;i<=14;i++){ res.set(toYmd(addDays(thirdMon,i)),'Feria de julio'); }
-    return res;
+  const res = new Map();
+  // todos los días de enero
+  for(let day=1; day<=31; day++){
+    const d = new Date(year, 0, day);
+    res.set(toYmd(d), 'Feria de enero');
   }
 
-  async function fetchFeriados(year){
-    try{
-      const res = await fetch(`${API_BASE}/${year}`);
-      if(!res.ok) throw new Error('API feriados no disponible: '+res.status);
-      const data = await res.json();
-      const m = new Map();
-      data.forEach(f=>{ if(f.fecha) m.set(f.fecha, f.nombre || f.tipo || 'Feriado'); });
-      return m;
-    }catch(e){ console.warn('No se pudieron obtener feriados desde API para',year,e); return new Map(); }
+  // 16 de noviembre
+  const nov16 = new Date(year, 10, 16);
+  res.set(toYmd(nov16), '16 de noviembre (ley local)');
+
+  // Feria de julio: 14 días corridos *incluyendo* el 3er lunes de julio
+  const thirdMon = thirdMondayOfJuly(year); // devuelve la fecha del 3er lunes
+  // Añadimos desde thirdMon + 0 hasta thirdMon + 13 (14 días en total)
+  for(let i = 0; i < 14; i++){
+    const d = addDays(thirdMon, i);
+    res.set(toYmd(d), 'Feria de julio');
   }
+
+  return res;
+}
 
   // ---------- Robust fetch for custom overrides ----------
   async function tryFetch(url){
