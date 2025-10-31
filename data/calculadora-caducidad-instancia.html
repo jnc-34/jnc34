@@ -363,7 +363,8 @@
         function addMonthsWithFerias(startDate, months) {
             let currentDate = new Date(startDate);
             let details = [];
-            let julyFeriaEncountered = false;
+            let traversedJanuaries = new Set();
+            let traversedJulyFerias = new Set();
 
             for (let i = 0; i < months; i++) {
                 const currentDay = currentDate.getDate();
@@ -375,24 +376,36 @@
                     currentDate.setDate(0);
                 }
 
-                // Saltar enero si caemos en él
+                // Si llegamos a enero, lo saltamos (no cuenta)
                 if (currentDate.getMonth() === 0) {
-                    currentDate.setMonth(1);
-                    if (details.indexOf('Se excluyó el mes de enero (feria judicial)') === -1) {
-                        details.push(`Se excluyó el mes de enero (feria judicial)`);
+                    const year = currentDate.getFullYear();
+                    if (!traversedJanuaries.has(year)) {
+                        traversedJanuaries.add(year);
+                        details.push(`Se excluyó enero ${year} (feria judicial)`);
                     }
+                    currentDate.setMonth(1); // Saltar a febrero
                 }
 
-                // Verificar si durante este mes pasamos por la feria de julio
-                if (!julyFeriaEncountered && isInJulyFeria(currentDate)) {
-                    julyFeriaEncountered = true;
+                // Verificar si atravesamos la feria de julio
+                const year = currentDate.getFullYear();
+                const thirdMonday = getThirdMondayOfJuly(year);
+                const feriaStart = new Date(thirdMonday);
+                const feriaEnd = new Date(thirdMonday);
+                feriaEnd.setDate(feriaEnd.getDate() + 11);
+
+                // Si la fecha actual está después del inicio de la feria de este año
+                // y no hemos contado esta feria aún
+                if (currentDate >= feriaStart && !traversedJulyFerias.has(year)) {
+                    traversedJulyFerias.add(year);
+                    details.push(`Se atravesó la feria de julio ${year} (21/07 al 01/08)`);
                 }
             }
 
-            // Al final, si el vencimiento cayó en feria de julio, agregar 12 días
-            if (julyFeriaEncountered) {
-                currentDate.setDate(currentDate.getDate() + 12);
-                details.push(`Se agregaron 12 días por feria de julio (vencimiento dentro de la feria)`);
+            // Agregar 12 días por cada feria de julio atravesada
+            const julyFeriasCount = traversedJulyFerias.size;
+            if (julyFeriasCount > 0) {
+                currentDate.setDate(currentDate.getDate() + (12 * julyFeriasCount));
+                details.push(`Se agregaron ${12 * julyFeriasCount} días por feria${julyFeriasCount > 1 ? 's' : ''} de julio`);
             }
 
             return { date: currentDate, details };
