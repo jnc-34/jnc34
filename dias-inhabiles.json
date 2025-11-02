@@ -1,0 +1,9 @@
+{
+  "dias_inhabiles_adicionales": [
+    {
+      "fecha": "2024-12-24",
+      "motivo": "Ejemplo: Día adicional que puedes agregar"
+    }
+  ],
+  "instrucciones": "Puedes agregar fechas adicionales siguiendo el formato YYYY-MM-DD. Este archivo se carga dinámicamente desde GitHub."
+}
