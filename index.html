@@ -337,8 +337,8 @@
         </div>
         
         <div class="buttons">
-            <button class="btn-calculate" onclick="calcular()">Calcular Plazo</button>
-            <button class="btn-reset" onclick="resetear()">Resetear</button>
+            <button class="btn-calculate" id="btnCalcular">Calcular Plazo</button>
+            <button class="btn-reset" id="btnResetear">Resetear</button>
         </div>
         
         <div class="results" id="results"></div>
@@ -438,19 +438,29 @@
         }
         
         async function cargarFeriados() {
+            console.log('Iniciando carga de feriados...');
             try {
                 const yearsToLoad = [];
                 for (let year = MIN_YEAR; year <= MAX_YEAR; year++) {
                     yearsToLoad.push(year);
                 }
                 
+                console.log('Años a cargar:', yearsToLoad);
+                
                 const promises = yearsToLoad.map(year => 
                     fetch(`${API_FERIADOS_URL}/${year}`)
-                        .then(res => res.ok ? res.json() : null)
-                        .catch(() => null)
+                        .then(res => {
+                            console.log(`Respuesta para año ${year}:`, res.status);
+                            return res.ok ? res.json() : null;
+                        })
+                        .catch(err => {
+                            console.error(`Error cargando año ${year}:`, err);
+                            return null;
+                        })
                 );
                 
                 const results = await Promise.all(promises);
+                console.log('Resultados obtenidos:', results);
                 
                 results.forEach((data, index) => {
                     const year = yearsToLoad[index];
@@ -459,14 +469,16 @@
                         if (!availableYears.includes(year)) {
                             availableYears.push(year);
                         }
+                        console.log(`Feriados cargados para ${year}:`, data.length);
                     }
                 });
                 
                 availableYears.sort((a, b) => a - b);
+                console.log('Años disponibles:', availableYears);
                 
                 if (availableYears.length === 0) {
                     document.getElementById('yearsAvailable').textContent = 
-                        '⚠️ No se pudieron cargar los feriados. Usando solo días inhábiles locales.';
+                        '⚠️ No se pudieron cargar los feriados de la API. Funcionando con días inhábiles locales.';
                 } else {
                     const min = Math.min(...availableYears);
                     const max = Math.max(...availableYears);
@@ -474,9 +486,9 @@
                         `Calculadora disponible para los años ${min} - ${max}`;
                 }
             } catch (error) {
-                console.error('Error al cargar feriados:', error);
+                console.error('Error general al cargar feriados:', error);
                 document.getElementById('yearsAvailable').textContent = 
-                    '⚠️ Error al cargar feriados de la API. Usando solo días inhábiles locales.';
+                    '⚠️ Error al cargar feriados de la API. Funcionando con días inhábiles locales.';
             }
         }
         
@@ -729,4 +741,76 @@
             
             resultsDiv.innerHTML = html;
             resultsDiv.classList.add('show');
-            resultsDiv.scrollIntoView({ behavior:
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function obtenerTextoModalidad(modalidad) {
+            const textos = {
+                'cedula-habitual': 'Por cédula - Día y hora hábil (art. 152 CPCCN)',
+                'cedula-inhabitual': 'Por cédula - Día y hora inhábil (art. 152 CPCCN)',
+                'automatica': 'Notificación automática (art. 133 CPCCN)'
+            };
+            return textos[modalidad] || modalidad;
+        }
+        
+        function resetear() {
+            document.getElementById('modalidad').value = 'cedula-habitual';
+            document.getElementById('dia').value = '';
+            document.getElementById('mes').value = '';
+            document.getElementById('anio').value = '';
+            document.getElementById('plazo').value = '';
+            
+            document.querySelectorAll('.error').forEach(e => e.classList.remove('show'));
+            document.querySelectorAll('input').forEach(i => i.classList.remove('invalid'));
+            
+            document.getElementById('results').classList.remove('show');
+            
+            actualizarLabelFecha();
+        }
+        
+        function actualizarLabelFecha() {
+            const modalidad = document.getElementById('modalidad').value;
+            const label = document.getElementById('labelFecha');
+            
+            if (modalidad === 'automatica') {
+                label.textContent = 'Seleccione la fecha de la firma de la resolución';
+            } else {
+                label.textContent = 'Seleccione la fecha de la notificación';
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('modalidad').addEventListener('change', actualizarLabelFecha);
+        
+        document.getElementById('btnCalcular').addEventListener('click', calcular);
+        document.getElementById('btnResetear').addEventListener('click', resetear);
+        
+        // Validación de entrada numérica
+        ['dia', 'mes', 'anio', 'plazo'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+        });
+        
+        // Navegación automática entre campos de fecha
+        document.getElementById('dia').addEventListener('input', function() {
+            if (this.value.length === 2) {
+                document.getElementById('mes').focus();
+            }
+        });
+        
+        document.getElementById('mes').addEventListener('input', function() {
+            if (this.value.length === 2) {
+                document.getElementById('anio').focus();
+            }
+        });
+        
+        // Prevenir caché con versión
+        const version = new Date().getTime();
+        console.log('Calculadora de Plazos Judiciales - Versión:', version);
+        
+        // Cargar feriados al iniciar
+        cargarFeriados();
+    </script>
+</body>
+</html>
