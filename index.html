@@ -351,23 +351,49 @@
         const MAX_YEAR = 2030;
         
         let feriadosCache = {};
-        let customHolidaysCache = null;
+        let customHolidaysCache = [];
         let availableYears = [];
+        let jsonHolidaysLoaded = false;
+        
+        // Cargar días inhábiles desde el JSON externo
+        async function cargarDiasInhabilesJSON() {
+            try {
+                console.log('Cargando días inhábiles desde JSON...');
+                const response = await fetch(CUSTOM_HOLIDAYS_URL + '?v=' + new Date().getTime());
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.dias_inhabiles_adicionales && Array.isArray(data.dias_inhabiles_adicionales)) {
+                        customHolidaysCache = data.dias_inhabiles_adicionales;
+                        jsonHolidaysLoaded = true;
+                        console.log('Días inhábiles del JSON cargados:', customHolidaysCache.length);
+                    }
+                } else {
+                    console.warn('No se pudo cargar el JSON de días inhábiles');
+                }
+            } catch (error) {
+                console.error('Error al cargar días inhábiles del JSON:', error);
+            }
+        }
         
         // Cargar días inhábiles personalizados
         const customHolidays = [
-            // 16 de noviembre (Ley 26.674)
+            // 16 de noviembre (Ley 26.674) - para todos los años desde 2021
             ...Array.from({length: MAX_YEAR - MIN_YEAR + 1}, (_, i) => ({
                 fecha: `${MIN_YEAR + i}-11-16`,
                 motivo: "Día inhábil judicial (Ley 26.674)"
             })),
-            // Enero completo (feria)
-            ...Array.from({length: MAX_YEAR - MIN_YEAR + 1}, (_, i) => 
-                Array.from({length: 31}, (_, j) => ({
-                    fecha: `${MIN_YEAR + i}-01-${String(j + 1).padStart(2, '0')}`,
-                    motivo: "Feria de enero"
-                }))
-            ).flat(),
+            // Enero completo (feria) - para todos los años desde 2021
+            ...Array.from({length: MAX_YEAR - MIN_YEAR + 1}, (_, i) => {
+                const year = MIN_YEAR + i;
+                const diasEnero = [];
+                for (let dia = 1; dia <= 31; dia++) {
+                    diasEnero.push({
+                        fecha: `${year}-01-${String(dia).padStart(2, '0')}`,
+                        motivo: "Feria de enero"
+                    });
+                }
+                return diasEnero;
+            }).flat(),
             // Fechas específicas COVID y otras
             {fecha: "2024-05-09", motivo: "Acordada CSJN 27/2024"},
             {fecha: "2022-10-18", motivo: "Acordada CSJN 26/2022"},
@@ -509,7 +535,18 @@
         
         function esInhabilCustom(fecha) {
             const fechaStr = fecha.toISOString().split('T')[0];
-            return customHolidays.find(h => h.fecha === fechaStr);
+            
+            // Primero verificar en los días hardcodeados
+            const hardcoded = customHolidays.find(h => h.fecha === fechaStr);
+            if (hardcoded) return hardcoded;
+            
+            // Luego verificar en el JSON cargado
+            if (jsonHolidaysLoaded && customHolidaysCache.length > 0) {
+                const fromJson = customHolidaysCache.find(h => h.fecha === fechaStr);
+                if (fromJson) return fromJson;
+            }
+            
+            return null;
         }
         
         function esDiaHabil(fecha) {
@@ -810,7 +847,10 @@
         console.log('Calculadora de Plazos Judiciales - Versión:', version);
         
         // Cargar feriados al iniciar
-        cargarFeriados();
+        Promise.all([cargarFeriados(), cargarDiasInhabilesJSON()]).then(() => {
+            console.log('Carga completa. Feriados:', Object.keys(feriadosCache).length, 'años');
+            console.log('Días inhábiles JSON:', jsonHolidaysLoaded ? customHolidaysCache.length : 0);
+        });
     </script>
 </body>
 </html>
