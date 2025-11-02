@@ -1,362 +1,732 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Calculadora de Plazos - Fuero Nacional Civil</title>
-  <style>
-    /* Palette y estilos más amigables */
-    :root{
-      --bg: #f6f9fc;
-      --card: #ffffff;
-      --muted: #6b7280;
-      --text: #0f172a;
-      --accent: #0b76f4; /* azul principal */
-      --accent-2: #0ea5a4; /* azul-verde secundario */
-      --border: #e6eef9;
-      --success: #16a34a;
-      --warn: #f59e0b;
-    }
-    body{
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      margin: 18px;
-      color: var(--text);
-      background: linear-gradient(180deg,#f8fbfc 0%, #f6f9fc 100%);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
-    .container{max-width:980px;margin:0 auto}
-    h1{font-size:1.4rem;margin-bottom:6px}
-    .card{
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 18px;
-      border-radius: 12px;
-      margin-bottom: 14px;
-      box-shadow: 0 6px 20px rgba(11,118,244,0.04);
-    }
-    label{display:block;margin:8px 0 6px;font-weight:700}
-    input,select,button{
-      padding:10px;border-radius:8px;border:1px solid #e9f1ff;font-size:1rem;background:#fff;
-    }
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    .muted{color:var(--muted);font-size:0.95rem}
-    .result{background:linear-gradient(180deg,#ffffff 0%, #f7fbff 100%);padding:14px;border-radius:10px;margin-top:12px;border:1px solid var(--border)}
-    ul.trace{background:var(--card);padding:12px;border-radius:8px;border:1px solid var(--border);list-style:none}
-    ul.trace li{padding:8px 0;border-bottom:1px dashed #f1f5f9}
-    .warn{background:#fff8f0;padding:10px;border-radius:8px;border:1px solid #ffe8cc}
-    .muted.small{font-size:0.88rem}
-    button{
-      cursor:pointer;border:none;background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;font-weight:600;
-      box-shadow: 0 6px 16px rgba(11,118,244,0.12);
-    }
-    button.secondary{background:transparent;color:var(--accent);border:1px solid rgba(11,118,244,0.12);box-shadow:none}
-    .meta{font-size:0.9rem;color:var(--muted)}
-    .flex{display:flex;gap:12px;align-items:center}
-    @media(max-width:720px){ .row{flex-direction:column} .flex{flex-direction:column;align-items:flex-start} }
-    a{color:var(--accent-2);text-decoration:underline}
-    .small-bubble{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(14,165,164,0.08);color:var(--accent-2);font-weight:700;font-size:0.85rem}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Plazos Judiciales</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+        
+        .years-available {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 12px;
+            font-style: italic;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .date-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.5fr;
+            gap: 10px;
+        }
+        
+        .date-inputs input {
+            text-align: center;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group small {
+            color: #999;
+            margin-top: 5px;
+            font-size: 11px;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error.show {
+            display: block;
+        }
+        
+        input.invalid {
+            border-color: #e74c3c;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-calculate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-reset {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .btn-reset:hover {
+            background: #d0d0d0;
+        }
+        
+        .results {
+            margin-top: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .result-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .result-item h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .result-item p {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .vencimiento {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .vencimiento h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .vencimiento .fecha {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .warning p {
+            color: #856404;
+            font-size: 13px;
+        }
+        
+        .dias-inhabiles {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .dia-inhabil {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: #fff;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #721c24;
+        }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .calendar-header {
+            background: #667eea;
+            color: white;
+        }
+        
+        .calendar-day.counted {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .calendar-day.ignored {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .calendar-day.empty {
+            background: transparent;
+        }
+        
+        .report-error {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+        }
+        
+        .report-error a {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .date-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Calculadora de plazos (Fuero Nacional Civil)</h1>
-
-    <div class="card">
-      <label>Modalidad de notificación</label>
-      <select id="modalidad" aria-label="Modalidad de notificación">
-        <option value="cedula_habil">1. Por cédula - día y hora hábil según art. 152, 3er párrafo CPCCN</option>
-        <option value="cedula_inhabil">2. Por cédula - día y hora hábil (por fuera de los supuestos del art. 152 CPCCN)</option>
-        <option value="nota">3. Por nota - notificación automática (art. 133 CPCCN)</option>
-      </select>
-
-      <label id="fechaLabel">Indicar fecha</label>
-      <div class="row" style="margin-bottom:8px;">
-        <input id="dia" placeholder="DD" maxlength="2" style="width:86px" />
-        <input id="mes" placeholder="MM" maxlength="2" style="width:86px" />
-        <input id="anio" placeholder="AAAA" maxlength="4" style="width:118px" />
-      </div>
-
-      <div class="flex">
-        <div style="flex:0 0 220px">
-          <label>Indicar duración del plazo</label>
-          <input id="duracion" type="number" min="1" value="5" style="width:120px" />
+    <div class="container">
+        <h1>⚖️ Calculadora de Plazos Judiciales</h1>
+        <div class="years-available" id="yearsAvailable">Cargando información de años disponibles...</div>
+        
+        <div class="form-section">
+            <label for="modalidad">Modalidad de Notificación</label>
+            <select id="modalidad">
+                <option value="cedula-habitual">Por cédula (art. 152 CPCCN) - Día y hora hábil (entre las 7 y las 20 hs.)</option>
+                <option value="cedula-inhabitual">Por cédula (art. 152 CPCCN) - Día y hora inhábil (después de las 20hs. hasta las 6.59 hs.)</option>
+                <option value="automatica">Notificación automática (art. 133 CPCCN)</option>
+            </select>
         </div>
-
-        <div style="flex:1">
-          <label style="visibility:hidden">Acciones</label>
-          <div>
-            <button id="calcular">Calcular vencimiento</button>
-            <button id="reset" class="secondary" style="margin-left:8px">Limpiar</button>
-          </div>
+        
+        <div class="form-section">
+            <label for="fecha" id="labelFecha">Seleccione la fecha de la notificación</label>
+            <div class="date-inputs">
+                <div class="input-group">
+                    <input type="text" id="dia" placeholder="DD" maxlength="2" pattern="[0-9]*" inputmode="numeric">
+                    <small>Día</small>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="mes" placeholder="MM" maxlength="2" pattern="[0-9]*" inputmode="numeric">
+                    <small>Mes</small>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="anio" placeholder="YYYY" maxlength="4" pattern="[0-9]*" inputmode="numeric">
+                    <small>Año</small>
+                </div>
+            </div>
+            <div class="error" id="errorFecha">Fecha inválida. Por favor, verifique la fecha ingresada.</div>
         </div>
-      </div>
-
-      <p class="meta" style="margin-top:10px">Años soportados: <span id="anioRange" class="small-bubble"></span></p>
+        
+        <div class="form-section">
+            <label for="plazo">Duración del Plazo (en días)</label>
+            <input type="text" id="plazo" placeholder="Ej: 5" pattern="[0-9]*" inputmode="numeric">
+            <div class="error" id="errorPlazo">Por favor, ingrese un número válido de días.</div>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn-calculate" onclick="calcular()">Calcular Plazo</button>
+            <button class="btn-reset" onclick="resetear()">Resetear</button>
+        </div>
+        
+        <div class="results" id="results"></div>
     </div>
 
-    <div id="output" class="card" style="display:none">
-      <h2>Resultado</h2>
-      <div id="vencimiento" class="result"></div>
-      <div id="notaGracia" class="warn" style="margin-top:8px;display:none"></div>
-
-      <h3 style="margin-top:14px">Trazabilidad</h3>
-      <p><strong>Fecha de inicio del conteo:</strong> <span id="inicioConteo"></span></p>
-      <p><strong>Días NO contados (inhábiles) dentro del periodo de cálculo:</strong></p>
-      <ul id="listaInhabiles" class="trace"></ul>
-
-      <p class="muted" style="margin-top:10px">Si crees que hubo un error, por favor escribe a <a href="mailto:jncivil34@pjn.gov.ar">jncivil34@pjn.gov.ar</a> indicando el problema y, si puedes, adjunta una captura.</p>
-    </div>
-  </div>
-
-  <script>
-  // -----------------------------
-  // CONFIG
-  // -----------------------------
-  const API_BASE = 'https://api.argentinadatos.com/v1/feriados';
-  const MIN_YEAR = 2021;
-  let MAX_YEAR = new Date().getFullYear();
-  if (MAX_YEAR < 2025) MAX_YEAR = 2025;
-
-  // -----------------------------
-  // UTIL
-  // -----------------------------
-  function toYmd(d){
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${day}`;
-  }
-  function parseYmd(str){ const [y,m,day]=str.split('-').map(Number); return new Date(y,m-1,day); }
-  function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
-
-  // -----------------------------
-  // CÁLCULO: tercer lunes de julio y 14 días (incluyendo el tercer lunes)
-  // -----------------------------
-  function thirdMondayOfJuly(year){
-    const d = new Date(year,6,1);
-    while(d.getDay() !== 1) d.setDate(d.getDate()+1);
-    // d is first monday, add 14 days to get third monday? careful:
-    // find third monday: advance by 14 days from first monday
-    return addDays(d, 14);
-  }
-
-  function customInhabilesForYear(year){
-    const res = new Map();
-    // todos los días de enero
-    for(let day=1; day<=31; day++){
-      const d = new Date(year, 0, day);
-      res.set(toYmd(d), 'Feria de enero');
-    }
-
-    // 16 de noviembre
-    const nov16 = new Date(year, 10, 16);
-    res.set(toYmd(nov16), '16 de noviembre (ley local)');
-
-    // Feria de julio: 14 días corridos incluyendo el 3er lunes de julio
-    const thirdMon = thirdMondayOfJuly(year); // fecha del 3er lunes de julio
-    // añadir thirdMon + 0 .. thirdMon + 13 (14 días totales)
-    for(let i = 0; i < 14; i++){
-      const d = addDays(thirdMon, i);
-      res.set(toYmd(d), 'Feria de julio');
-    }
-
-    return res;
-  }
-
-  async function fetchFeriados(year){
-    try{
-      const res = await fetch(`${API_BASE}/${year}`);
-      if(!res.ok) throw new Error('API feriados no disponible: '+res.status);
-      const data = await res.json();
-      const m = new Map();
-      data.forEach(f=>{ if(f.fecha) m.set(f.fecha, f.nombre || f.tipo || 'Feriado'); });
-      return m;
-    }catch(e){ console.warn('No se pudieron obtener feriados desde API para',year,e); return new Map(); }
-  }
-
-  // ---------- Robust fetch for custom overrides ----------
-  async function tryFetch(url){
-    try{
-      const res = await fetch(url, {cache: 'no-store'});
-      if(res.ok){
-        const j = await res.json();
-        console.log('custom_inhabiles.json cargado desde', url);
-        return {ok: true, data: j};
-      } else {
-        console.warn('intentó y falló:', url, res.status);
-        return {ok:false, status: res.status};
-      }
-    }catch(e){
-      console.warn('error fetch url', url, e);
-      return {ok:false, error: e};
-    }
-  }
-
-  async function fetchCustomOverrides(){
-    // construimos lista de URLs a intentar (con cache buster)
-    const cb = '_=' + Date.now();
-    const candidates = [];
-
-    // relativa respecto al documento actual
-    candidates.push('./data/custom_inhabiles.json?' + cb);
-    candidates.push('data/custom_inhabiles.json?' + cb);
-    // raíz del dominio (fallará en project pages)
-    candidates.push('/data/custom_inhabiles.json?' + cb);
-
-    // fallback: intentar deducir raw.githubusercontent (útil si GitHub Pages sirve en /<repo>/)
-    try {
-      const host = location.hostname; // e.g. usuario.github.io or custom domain
-      const pathParts = location.pathname.split('/').filter(Boolean); // ['<repo>', ...] for project pages
-      if(host.endsWith('github.io') && pathParts.length >= 1){
-        const user = host.split('.')[0]; // usuario
-        const repo = pathParts[0]; // repo name as first path segment
-        const rawUrl = `https://raw.githubusercontent.com/${user}/${repo}/main/data/custom_inhabiles.json?${cb}`;
-        candidates.push(rawUrl);
-      }
-    } catch(e){ /* ignore */ }
-
-    for(const url of candidates){
-      const r = await tryFetch(url);
-      if(r.ok && r.data){
-        return Array.isArray(r.data.overrides) ? r.data.overrides : [];
-      }
-    }
-    console.warn('No se pudo cargar custom_inhabiles.json desde las rutas intentadas:', candidates);
-    return [];
-  }
-
-  async function buildInhabilesForYears(years){
-    const combined = new Map();
-    for(const y of years){
-      const api = await fetchFeriados(y);
-      for(const [k,v] of api.entries()) combined.set(k, 'Feriado: '+v);
-      const custom = customInhabilesForYear(y);
-      for(const [k,v] of custom.entries()) combined.set(k, v);
-    }
-
-    // overrides globales (archivo JSON)
-    const overrides = await fetchCustomOverrides();
-    overrides.forEach(o => {
-      if(o && o.fecha && o.motivo){
-        combined.set(o.fecha, `${o.motivo} (override)`);
-      }
-    });
-
-    return combined;
-  }
-
-  function isWeekend(date){ const d = date.getDay(); return d===0||d===6; }
-  function isInMapYmd(map,date){ return map.has(toYmd(date)); }
-  function isBusinessDay(date, inhMap){ return !isWeekend(date) && !isInMapYmd(inhMap,date); }
-
-  function nextBusinessDay(date, inhMap){ let d = new Date(date); d.setHours(0,0,0,0); while(!isBusinessDay(d,inhMap)) d = addDays(d,1); return d; }
-  function nextBusinessDayStrict(date, inhMap){ return nextBusinessDay(addDays(date,1), inhMap); }
-
-  function computeStartDate(modalidad,inputDate,inhMap){
-    const notifDate = new Date(inputDate); notifDate.setHours(0,0,0,0);
-    if(modalidad==='cedula_habil'){
-      return nextBusinessDayStrict(notifDate, inhMap);
-    }
-    if(modalidad==='cedula_inhabil'){
-      const first = nextBusinessDayStrict(notifDate, inhMap);
-      return nextBusinessDayStrict(first, inhMap);
-    }
-    if(modalidad==='nota'){
-      // la notificación se considera efectuada el día martes o viernes hábil siguiente a la fecha indicada
-      let d = addDays(notifDate,1);
-      while(true){
-        if(isBusinessDay(d,inhMap) && (d.getDay()===2 || d.getDay()===5)) break; // martes=2, viernes=5
-        d = addDays(d,1);
-      }
-      // 'd' es el día de nota; el inicio del conteo es el día hábil siguiente a 'd'
-      const start = nextBusinessDayStrict(d, inhMap);
-      return start;
-    }
-    throw new Error('Modalidad desconocida');
-  }
-
-  function countPeriod(startDate, days, inhMap){
-    let counted=0; let cursor = new Date(startDate); cursor.setHours(0,0,0,0);
-    while(counted < days){
-      if(isBusinessDay(cursor, inhMap)){
-        counted++;
-      }
-      if(counted>=days) break;
-      cursor = addDays(cursor,1);
-    }
-    return {lastCountedDay: cursor};
-  }
-
-  function computeVencimiento(lastCountedDay, inhMap){
-    const nextBiz = nextBusinessDayStrict(lastCountedDay, inhMap);
-    const expiration = new Date(nextBiz); expiration.setHours(9,30,0,0);
-    let prev = addDays(nextBiz,-1); while(!isBusinessDay(prev,inhMap)) prev = addDays(prev,-1);
-    return {expiration, altNoGracia: prev};
-  }
-
-  function gatherInhabilesBetween(startDate, endDate, inhMap){
-    const res = [];
-    let cur = new Date(startDate); cur.setHours(0,0,0,0);
-    const end = new Date(endDate); end.setHours(0,0,0,0);
-    while(cur <= end){
-      if(!isBusinessDay(cur, inhMap)){
-        const motivo = isWeekend(cur)? 'Fin de semana' : (inhMap.get(toYmd(cur)) || 'Inhábil');
-        res.push({fecha: toYmd(cur), motivo});
-      }
-      cur = addDays(cur,1);
-    }
-    return res;
-  }
-
-  // -----------------------------
-  // UI wiring
-  // -----------------------------
-  document.getElementById('anioRange').textContent = `${MIN_YEAR} - ${MAX_YEAR}`;
-  const modalidadSel = document.getElementById('modalidad');
-  modalidadSel.addEventListener('change', ()=>{
-    const label = document.getElementById('fechaLabel');
-    label.textContent = (modalidadSel.value==='nota')? 'Indicar fecha (firma de la resolución)' : 'Indicar fecha';
-  });
-
-  document.getElementById('reset').addEventListener('click',()=>{ document.getElementById('dia').value='';document.getElementById('mes').value='';document.getElementById('anio').value='';document.getElementById('duracion').value='5'; document.getElementById('output').style.display='none'; });
-
-  document.getElementById('calcular').addEventListener('click', async ()=>{
-    const diaRaw = document.getElementById('dia').value;
-    const mesRaw = document.getElementById('mes').value;
-    const anio = document.getElementById('anio').value;
-    if(!diaRaw || !mesRaw || !anio) return alert('Por favor indique día, mes y año.');
-    const dia = String(diaRaw).padStart(2,'0'); const mes = String(mesRaw).padStart(2,'0');
-    const inputDate = new Date(Number(anio), Number(mes)-1, Number(dia));
-
-    const yearsToFetch = [];
-    const y0 = inputDate.getFullYear();
-    for(let yy=Math.max(MIN_YEAR, y0-1); yy<=Math.max(y0+1, MAX_YEAR+1); yy++) yearsToFetch.push(yy);
-
-    const inhMap = await buildInhabilesForYears(Array.from(new Set(yearsToFetch)).sort());
-
-    const modalidad = modalidadSel.value;
-    const start = computeStartDate(modalidad, inputDate, inhMap);
-
-    document.getElementById('inicioConteo').textContent = start.toLocaleDateString('es-AR');
-
-    const days = Number(document.getElementById('duracion').value);
-    const {lastCountedDay} = countPeriod(start, days, inhMap);
-
-    const {expiration, altNoGracia} = computeVencimiento(lastCountedDay, inhMap);
-
-    const ignored = gatherInhabilesBetween(inputDate, lastCountedDay, inhMap);
-
-    document.getElementById('vencimiento').innerHTML = `Vencimiento del plazo: <strong>${expiration.toLocaleString('es-AR', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})}</strong>.`;
-    document.getElementById('notaGracia').style.display='block';
-    document.getElementById('notaGracia').innerHTML = `Nota: si <strong>NO</strong> resulta aplicable el plazo de gracia del art. 124 CPCCN, el vencimiento se produce el día: <strong>${altNoGracia.toLocaleDateString('es-AR')}</strong>.`;
-
-    const ul = document.getElementById('listaInhabiles'); ul.innerHTML='';
-    if(ignored.length===0){ const li=document.createElement('li'); li.textContent='No se detectaron días inhábiles dentro del periodo.'; ul.appendChild(li); }
-    ignored.forEach(it=>{ const li=document.createElement('li'); const d = parseYmd(it.fecha); li.textContent = `${d.toLocaleDateString('es-AR')} — ${it.motivo}`; ul.appendChild(li); });
-
-    document.getElementById('output').style.display='block';
-  });
-  </script>
-</body>
-</html>
+    <script>
+        const CUSTOM_HOLIDAYS_URL = 'https://raw.githubusercontent.com/TU_USUARIO/calculadora-plazos/main/dias-inhabiles.json';
+        const API_FERIADOS_URL = 'https://api.argentinadatos.com/v1/feriados';
+        const MIN_YEAR = 2015;
+        const MAX_YEAR = 2025;
+        
+        let feriadosCache = {};
+        let customHolidaysCache = null;
+        let availableYears = [];
+        
+        // Cargar días inhábiles personalizados
+        const customHolidays = [
+            // 16 de noviembre (Ley 26.674)
+            ...Array.from({length: MAX_YEAR - MIN_YEAR + 1}, (_, i) => ({
+                fecha: `${MIN_YEAR + i}-11-16`,
+                motivo: "Día inhábil judicial (Ley 26.674)"
+            })),
+            // Enero completo (feria)
+            ...Array.from({length: MAX_YEAR - MIN_YEAR + 1}, (_, i) => 
+                Array.from({length: 31}, (_, j) => ({
+                    fecha: `${MIN_YEAR + i}-01-${String(j + 1).padStart(2, '0')}`,
+                    motivo: "Feria de enero"
+                }))
+            ).flat(),
+            // Fechas específicas COVID y otras
+            {fecha: "2024-05-09", motivo: "Acordada CSJN 27/2024"},
+            {fecha: "2022-10-18", motivo: "Acordada CSJN 26/2022"},
+            ...generarRango("2020-03-16", "2020-03-19", "Acordada 4/2020 - Días inhábiles"),
+            ...generarRango("2020-03-20", "2020-03-31", "Acordada 6/2020 - Feria judicial extraordinaria COVID"),
+            ...generarRango("2020-04-01", "2020-04-12", "Acordada 8/2020 - Feria judicial extraordinaria COVID"),
+            ...generarRango("2020-04-13", "2020-04-26", "Acordada 10/2020 - Feria judicial extraordinaria COVID"),
+            ...generarRango("2020-04-27", "2020-05-10", "Acordada 13/2020 - Feria judicial extraordinaria COVID"),
+            ...generarRango("2020-05-11", "2020-05-24", "Acordada 14/2020 - Feria judicial extraordinaria COVID"),
+            ...generarRango("2020-05-25", "2020-06-07", "Acordada 16/2020 - Feria judicial extraordinaria COVID"),
+            ...generarRango("2020-06-08", "2020-06-28", "Acordada 18/2020 - Feria judicial extraordinaria COVID"),
+            ...generarRango("2020-06-29", "2020-07-17", "Acordada 25/2020 - Feria judicial extraordinaria COVID"),
+            ...generarRango("2020-07-18", "2020-07-26", "Acordada 27/2020 - Feria judicial extraordinaria COVID"),
+            ...generarRango("2020-07-27", "2020-08-03", "Acordada 31/2020 - Feria judicial extraordinaria COVID")
+        ];
+        
+        function generarRango(inicio, fin, motivo) {
+            const resultado = [];
+            const fechaInicio = new Date(inicio);
+            const fechaFin = new Date(fin);
+            
+            for (let d = new Date(fechaInicio); d <= fechaFin; d.setDate(d.getDate() + 1)) {
+                resultado.push({
+                    fecha: d.toISOString().split('T')[0],
+                    motivo: motivo
+                });
+            }
+            return resultado;
+        }
+        
+        // Generar feria de julio (últimas 2 semanas)
+        function generarFeriaJulio(anio) {
+            const resultado = [];
+            const ultimoDiaJulio = new Date(anio, 6, 31); // Julio es mes 6
+            let ultimoLunes = null;
+            let penultimoLunes = null;
+            
+            // Buscar los últimos dos lunes
+            for (let d = new Date(ultimoDiaJulio); d.getMonth() === 6; d.setDate(d.getDate() - 1)) {
+                if (d.getDay() === 1) { // Lunes
+                    if (!ultimoLunes) {
+                        ultimoLunes = new Date(d);
+                    } else if (!penultimoLunes) {
+                        penultimoLunes = new Date(d);
+                        break;
+                    }
+                }
+            }
+            
+            // Contar 14 días desde el penúltimo lunes
+            if (penultimoLunes) {
+                for (let i = 0; i < 14; i++) {
+                    const fecha = new Date(penultimoLunes);
+                    fecha.setDate(fecha.getDate() + i);
+                    resultado.push({
+                        fecha: fecha.toISOString().split('T')[0],
+                        motivo: "Feria de julio"
+                    });
+                }
+            }
+            
+            return resultado;
+        }
+        
+        // Agregar ferias de julio para todos los años
+        for (let anio = MIN_YEAR; anio <= MAX_YEAR; anio++) {
+            customHolidays.push(...generarFeriaJulio(anio));
+        }
+        
+        async function cargarFeriados() {
+            try {
+                const yearsToLoad = [];
+                for (let year = MIN_YEAR; year <= MAX_YEAR; year++) {
+                    yearsToLoad.push(year);
+                }
+                
+                const promises = yearsToLoad.map(year => 
+                    fetch(`${API_FERIADOS_URL}/${year}`)
+                        .then(res => res.ok ? res.json() : null)
+                        .catch(() => null)
+                );
+                
+                const results = await Promise.all(promises);
+                
+                results.forEach((data, index) => {
+                    const year = yearsToLoad[index];
+                    if (data && Array.isArray(data)) {
+                        feriadosCache[year] = data;
+                        if (!availableYears.includes(year)) {
+                            availableYears.push(year);
+                        }
+                    }
+                });
+                
+                availableYears.sort((a, b) => a - b);
+                
+                if (availableYears.length === 0) {
+                    document.getElementById('yearsAvailable').textContent = 
+                        '⚠️ No se pudieron cargar los feriados. Usando solo días inhábiles locales.';
+                } else {
+                    const min = Math.min(...availableYears);
+                    const max = Math.max(...availableYears);
+                    document.getElementById('yearsAvailable').textContent = 
+                        `Calculadora disponible para los años ${min} - ${max}`;
+                }
+            } catch (error) {
+                console.error('Error al cargar feriados:', error);
+                document.getElementById('yearsAvailable').textContent = 
+                    '⚠️ Error al cargar feriados de la API. Usando solo días inhábiles locales.';
+            }
+        }
+        
+        function esFinDeSemana(fecha) {
+            const dia = fecha.getDay();
+            return dia === 0 || dia === 6;
+        }
+        
+        function esFeriado(fecha) {
+            const year = fecha.getFullYear();
+            const fechaStr = fecha.toISOString().split('T')[0];
+            
+            if (feriadosCache[year]) {
+                return feriadosCache[year].find(f => f.fecha === fechaStr);
+            }
+            return null;
+        }
+        
+        function esInhabilCustom(fecha) {
+            const fechaStr = fecha.toISOString().split('T')[0];
+            return customHolidays.find(h => h.fecha === fechaStr);
+        }
+        
+        function esDiaHabil(fecha) {
+            if (esFinDeSemana(fecha)) return false;
+            if (esFeriado(fecha)) return false;
+            if (esInhabilCustom(fecha)) return false;
+            return true;
+        }
+        
+        function siguienteDiaHabil(fecha) {
+            const siguiente = new Date(fecha);
+            siguiente.setDate(siguiente.getDate() + 1);
+            while (!esDiaHabil(siguiente)) {
+                siguiente.setDate(siguiente.getDate() + 1);
+            }
+            return siguiente;
+        }
+        
+        function calcularNotificacionAutomatica(fechaFirma) {
+            const dia = fechaFirma.getDay();
+            let diasHastaNotificacion = 0;
+            
+            // Calcular días hasta el próximo martes (2) o viernes (5)
+            if (dia === 0) diasHastaNotificacion = 2; // Domingo -> Martes
+            else if (dia === 1) diasHastaNotificacion = 1; // Lunes -> Martes
+            else if (dia === 2) diasHastaNotificacion = 3; // Martes -> Viernes
+            else if (dia === 3) diasHastaNotificacion = 2; // Miércoles -> Viernes
+            else if (dia === 4) diasHastaNotificacion = 1; // Jueves -> Viernes
+            else if (dia === 5) diasHastaNotificacion = 4; // Viernes -> Martes
+            else if (dia === 6) diasHastaNotificacion = 3; // Sábado -> Martes
+            
+            let fechaNotificacion = new Date(fechaFirma);
+            fechaNotificacion.setDate(fechaNotificacion.getDate() + diasHastaNotificacion);
+            
+            // Si el martes o viernes cae en inhábil, buscar el siguiente martes o viernes hábil
+            while (!esDiaHabil(fechaNotificacion)) {
+                const diaActual = fechaNotificacion.getDay();
+                if (diaActual === 2) { // Era martes, pasar a viernes
+                    fechaNotificacion.setDate(fechaNotificacion.getDate() + 3);
+                } else { // Era viernes, pasar a martes
+                    fechaNotificacion.setDate(fechaNotificacion.getDate() + 4);
+                }
+            }
+            
+            return fechaNotificacion;
+        }
+        
+        function formatearFecha(fecha) {
+            const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
+                          'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+            
+            return `${dias[fecha.getDay()]}, ${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
+        }
+        
+        function validarFecha(dia, mes, anio) {
+            if (!dia || !mes || !anio) return false;
+            
+            const d = parseInt(dia);
+            const m = parseInt(mes);
+            const a = parseInt(anio);
+            
+            if (isNaN(d) || isNaN(m) || isNaN(a)) return false;
+            if (m < 1 || m > 12) return false;
+            if (d < 1) return false;
+            
+            const fecha = new Date(a, m - 1, d);
+            if (fecha.getFullYear() !== a || fecha.getMonth() !== m - 1 || fecha.getDate() !== d) {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function calcular() {
+            // Limpiar errores previos
+            document.querySelectorAll('.error').forEach(e => e.classList.remove('show'));
+            document.querySelectorAll('input').forEach(i => i.classList.remove('invalid'));
+            
+            // Obtener valores
+            const modalidad = document.getElementById('modalidad').value;
+            const dia = document.getElementById('dia').value;
+            const mes = document.getElementById('mes').value;
+            const anio = document.getElementById('anio').value;
+            const plazo = parseInt(document.getElementById('plazo').value);
+            
+            // Validaciones
+            let hayError = false;
+            
+            if (!validarFecha(dia, mes, anio)) {
+                document.getElementById('errorFecha').classList.add('show');
+                document.getElementById('dia').classList.add('invalid');
+                document.getElementById('mes').classList.add('invalid');
+                document.getElementById('anio').classList.add('invalid');
+                hayError = true;
+            }
+            
+            if (!plazo || plazo <= 0) {
+                document.getElementById('errorPlazo').classList.add('show');
+                document.getElementById('plazo').classList.add('invalid');
+                hayError = true;
+            }
+            
+            if (hayError) return;
+            
+            // Crear fecha de notificación
+            const fechaIngresada = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
+            let fechaInicioConteo;
+            let fechaNotificacion;
+            
+            // Calcular según modalidad
+            if (modalidad === 'cedula-habitual') {
+                fechaNotificacion = fechaIngresada;
+                fechaInicioConteo = siguienteDiaHabil(fechaIngresada);
+            } else if (modalidad === 'cedula-inhabitual') {
+                fechaNotificacion = fechaIngresada;
+                fechaInicioConteo = siguienteDiaHabil(fechaIngresada);
+                fechaInicioConteo = siguienteDiaHabil(fechaInicioConteo);
+            } else { // automática
+                fechaNotificacion = calcularNotificacionAutomatica(fechaIngresada);
+                fechaInicioConteo = siguienteDiaHabil(fechaNotificacion);
+            }
+            
+            // Contar días hábiles
+            let diasContados = 0;
+            let fechaActual = new Date(fechaInicioConteo);
+            const diasIgnorados = [];
+            
+            while (diasContados < plazo) {
+                if (esDiaHabil(fechaActual)) {
+                    diasContados++;
+                    if (diasContados === plazo) break;
+                }
+                fechaActual.setDate(fechaActual.getDate() + 1);
+            }
+            
+            // Registrar días ignorados
+            let fechaRegistro = new Date(fechaIngresada);
+            while (fechaRegistro <= fechaActual) {
+                if (!esDiaHabil(fechaRegistro)) {
+                    let motivo = '';
+                    if (esFinDeSemana(fechaRegistro)) {
+                        motivo = 'Fin de semana';
+                    } else {
+                        const feriado = esFeriado(fechaRegistro);
+                        const inhabil = esInhabilCustom(fechaRegistro);
+                        motivo = feriado ? feriado.nombre || 'Feriado nacional' : 
+                                (inhabil ? inhabil.motivo : 'Día inhábil');
+                    }
+                    diasIgnorados.push({
+                        fecha: new Date(fechaRegistro),
+                        motivo: motivo
+                    });
+                }
+                fechaRegistro.setDate(fechaRegistro.getDate() + 1);
+            }
+            
+            // Aplicar plazo de gracia (art. 124)
+            const fechaVencimientoConGracia = siguienteDiaHabil(fechaActual);
+            const fechaVencimientoSinGracia = fechaActual;
+            
+            // Mostrar resultados
+            mostrarResultados({
+                modalidad,
+                fechaIngresada,
+                fechaNotificacion,
+                fechaInicioConteo,
+                plazo,
+                fechaVencimientoConGracia,
+                fechaVencimientoSinGracia,
+                diasIgnorados
+            });
+        }
+        
+        function mostrarResultados(datos) {
+            const resultsDiv = document.getElementById('results');
+            
+            let html = `
+                <div class="vencimiento">
+                    <h2>📅 Vencimiento del Plazo</h2>
+                    <div class="fecha">${formatearFecha(datos.fechaVencimientoConGracia)}</div>
+                    <p style="margin-top: 10px;">Hora: 9:30 hs. (plazo de gracia art. 124 CPCCN)</p>
+                </div>
+                
+                <div class="warning">
+                    <p><strong>⚠️ Nota:</strong> Si NO resulta aplicable el plazo de gracia del art. 124 CPCCN, el vencimiento se produce el día: <strong>${formatearFecha(datos.fechaVencimientoSinGracia)}</strong></p>
+                </div>
+                
+                <div class="result-item">
+                    <h3>📋 Información del Cálculo</h3>
+                    <p><strong>Modalidad:</strong> ${obtenerTextoModalidad(datos.modalidad)}</p>
+                    ${datos.modalidad === 'automatica' ? 
+                        `<p><strong>Fecha de firma:</strong> ${formatearFecha(datos.fechaIngresada)}</p>
+                         <p><strong>Fecha de notificación:</strong> ${formatearFecha(datos.fechaNotificacion)}</p>` :
+                        `<p><strong>Fecha de notificación:</strong> ${formatearFecha(datos.fechaNotificacion)}</p>`
+                    }
+                    <p><strong>Fecha de inicio del conteo:</strong> ${formatearFecha(datos.fechaInicioConteo)}</p>
+                    <p><strong>Plazo:</strong> ${datos.plazo} días hábiles</p>
+                </div>
+            `;
+            
+            if (datos.diasIgnorados.length > 0) {
+                html += `
+                    <div class="result-item">
+                        <h3>🚫 Días NO Contados (Inhábiles)</h3>
+                        <div class="dias-inhabiles">
+                `;
+                
+                datos.diasIgnorados.forEach(dia => {
+                    html += `
+                        <div class="dia-inhabil">
+                            <strong>${formatearFecha(dia.fecha)}</strong> - ${dia.motivo}
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div class="report-error">
+                    <p>⚠️ <strong>Reportar error:</strong> Si crees que ha habido un error, por favor envíanos un email a 
+                    <a href="mailto:jncivil34@gmail.gov.ar">jncivil34@gmail.gov.ar</a> describiendo qué salió mal.</p>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add('show');
+            resultsDiv.scrollIntoView({ behavior:
