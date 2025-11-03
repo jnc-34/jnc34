@@ -383,7 +383,6 @@
     </div>
 
     <script>
-        // Sistema de logging para depuración
         const LOG_PREFIX = '[CalcFechas]';
         const log = {
             info: (msg, data) => console.log(`${LOG_PREFIX} INFO:`, msg, data || ''),
@@ -392,23 +391,19 @@
             debug: (msg, data) => console.debug(`${LOG_PREFIX} DEBUG:`, msg, data || '')
         };
 
-        // Cache busting para evitar problemas de caché
         const CACHE_BUSTER = `v=${Date.now()}`;
         log.info('Calculadora inicializada', { timestamp: new Date().toISOString() });
 
-        // Variables globales
         let feriadosData = {};
         let diasInhabilesExtra = [];
         let availableYears = [];
 
-        // Inicialización
         document.addEventListener('DOMContentLoaded', async () => {
             log.info('DOM cargado, iniciando carga de datos');
             await loadData();
             setupInputValidation();
         });
 
-        // Carga de datos desde APIs
         async function loadData() {
             log.info('Iniciando carga de datos');
             const currentYear = new Date().getFullYear();
@@ -416,7 +411,6 @@
             
             log.debug('Años a cargar', yearsToLoad);
 
-            // Cargar feriados
             for (const year of yearsToLoad) {
                 try {
                     log.info(`Cargando feriados para ${year}`);
@@ -434,7 +428,6 @@
                 }
             }
 
-            // Cargar días inhábiles extra desde JSON
             try {
                 log.info('Cargando días inhábiles extra desde JSON');
                 const response = await fetch(`https://jnc-34.github.io/jnc34/dias-inhabiles.json?${CACHE_BUSTER}`);
@@ -476,7 +469,6 @@
             }
         }
 
-        // Validación de inputs
         function setupInputValidation() {
             const inputs = document.querySelectorAll('input[type="text"]');
             inputs.forEach(input => {
@@ -487,7 +479,6 @@
             });
         }
 
-        // Función para parsear fecha
         function parseDate(day, month, year) {
             const d = parseInt(day);
             const m = parseInt(month);
@@ -515,7 +506,6 @@
             return date;
         }
 
-        // Formatear fecha
         function formatDate(date) {
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -523,13 +513,11 @@
             return `${day}/${month}/${year}`;
         }
 
-        // Verificar si es fin de semana
         function isWeekend(date) {
             const day = date.getDay();
             return day === 0 || day === 6;
         }
 
-        // Verificar si es feriado
         function isFeriado(date) {
             const year = date.getFullYear();
             if (!feriadosData[year]) {
@@ -555,35 +543,29 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Verificar días inhábiles especiales
         function isEspecialInhabil(date) {
             const day = date.getDate();
             const month = date.getMonth() + 1;
             const year = date.getFullYear();
             
-            // 16 de noviembre (Ley 26.674)
             if (month === 11 && day === 16) {
                 return { is: true, reason: 'Día inhábil especial (16 de noviembre - Ley 26.674)' };
             }
             
-            // Todos los días de enero
             if (month === 1) {
                 return { is: true, reason: 'Feria de enero' };
             }
             
-            // Feria de julio (dos últimas semanas)
             if (month === 7 || month === 8) {
                 if (isInFeriaJulio(date)) {
                     return { is: true, reason: 'Feria de julio (últimas dos semanas)' };
                 }
             }
             
-            // 9 de mayo de 2024
             if (year === 2024 && month === 5 && day === 9) {
                 return { is: true, reason: 'Día inhábil especial (Acordada CSJN 27/2024)' };
             }
             
-            // 18 de octubre de 2022
             if (year === 2022 && month === 10 && day === 18) {
                 return { is: true, reason: 'Día inhábil especial (Acordada CSJN 26/2022)' };
             }
@@ -595,7 +577,6 @@
             const year = date.getFullYear();
             const month = date.getMonth() + 1;
             
-            // Encontrar los dos últimos lunes de julio
             const julyMondays = [];
             for (let day = 1; day <= 31; day++) {
                 const testDate = new Date(year, 6, day);
@@ -614,7 +595,6 @@
             return date >= startFeria && date <= endFeria;
         }
 
-        // Verificar días inhábiles del JSON
         function isInhabilJSON(date) {
             const dateStr = formatDateForAPI(date);
             const found = diasInhabilesExtra.find(d => d.fecha === dateStr);
@@ -626,20 +606,13 @@
             return { is: false, reason: null };
         }
 
-        // Calcular días
         function calculate() {
             log.info('===== INICIANDO CÁLCULO =====');
             
-            // Limpiar errores previos
             document.querySelectorAll('input[type="text"]').forEach(input => {
                 input.classList.remove('error');
             });
-        }
-    </script>
-</body>
-</html>
             
-            // Obtener valores
             const startDay = document.getElementById('startDay').value;
             const startMonth = document.getElementById('startMonth').value;
             const startYear = document.getElementById('startYear').value;
@@ -652,7 +625,6 @@
                 end: `${endDay}/${endMonth}/${endYear}`
             });
             
-            // Validar
             if (!startDay || !startMonth || !startYear || !endDay || !endMonth || !endYear) {
                 alert('Por favor complete todos los campos de fecha');
                 log.warn('Campos incompletos');
@@ -692,11 +664,9 @@
             
             log.debug('Opciones de cálculo', { includeStart, includeEnd, businessDays });
             
-            // Mostrar loading
             document.getElementById('loading').classList.add('show');
             document.getElementById('results').classList.remove('show');
             
-            // Calcular con timeout para permitir que se muestre el loading
             setTimeout(() => {
                 performCalculation(startDate, endDate, includeStart, includeEnd, businessDays);
             }, 100);
@@ -728,13 +698,11 @@
                 let exclusionReason = null;
                 
                 if (businessDays) {
-                    // Verificar fin de semana
                     if (isWeekend(currentDate)) {
                         shouldCount = false;
                         exclusionReason = currentDate.getDay() === 0 ? 'Domingo' : 'Sábado';
                     }
                     
-                    // Verificar feriado
                     if (shouldCount) {
                         const feriadoCheck = isFeriado(currentDate);
                         if (feriadoCheck.is) {
@@ -743,7 +711,6 @@
                         }
                     }
                     
-                    // Verificar días especiales
                     if (shouldCount) {
                         const especialCheck = isEspecialInhabil(currentDate);
                         if (especialCheck.is) {
@@ -752,7 +719,6 @@
                         }
                     }
                     
-                    // Verificar JSON
                     if (shouldCount) {
                         const jsonCheck = isInhabilJSON(currentDate);
                         if (jsonCheck.is) {
@@ -827,3 +793,7 @@
             document.querySelectorAll('input[type="text"]').forEach(input => {
                 input.classList.remove('error');
             });
+        }
+    </script>
+</body>
+</html>
