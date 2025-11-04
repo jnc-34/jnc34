@@ -88,16 +88,17 @@ function thirdMondayOfJuly(year){
 function customInhabilesForYear(year){
     const res=new Map();
     
-    // 1. Feria Judicial de Enero (1 al 31 de enero, inclusive) - CORREGIDO
+    // 1. Feria Judicial de Enero (1 al 31 de enero, inclusive)
     for(let day=1;day<=31;day++){
       const d=new Date(year,0,day); // mes 0 es enero
       res.set(toYmd(d),'Feria judicial de enero (art. 257 CPCCN)');
     }
 
-    // 2. Feria Judicial de Invierno (Dos semanas: 14 días corridos) - CORREGIDO
+    // 2. Feria Judicial de Invierno (12 días corridos: 21 de julio al 1 de agosto) - CORRECCIÓN FINAL
     const startFeria = thirdMondayOfJuly(year); 
     
-    for(let i=0;i<14;i++){ 
+    // El bucle ahora corre por 12 días (de i=0 a i=11), cubriendo hasta el 1 de agosto.
+    for(let i=0;i<12;i++){ 
         const diaFeria = addDays(startFeria, i);
         res.set(toYmd(diaFeria),'Feria judicial de invierno (julio/agosto)');
     }
@@ -110,7 +111,7 @@ function customInhabilesForYear(year){
 }
 // --- FIN DE FUNCIONES DE FECHAS CLAVE CORREGIDAS ---
 
-// --- FUNCION fetchFeriados MODIFICADA para indicar éxito/fallo ---
+
 async function fetchFeriados(year) {
   try {
     const r = await fetch(`${API_BASE}/${year}`);
@@ -149,7 +150,7 @@ async function fetchCustomOverrides(){
 }
 // --- FIN DE MODIFICACION fetchCustomOverrides ---
 
-// --- FUNCION buildInhabilesForYears MODIFICADA para rastrear años cargados ---
+
 async function buildInhabilesForYears(years) {
   const combined = new Map();
   const loadedYears = [];
@@ -178,7 +179,6 @@ async function buildInhabilesForYears(years) {
 
   return { inhMap: combined, loadedYears, failedYears };
 }
-// --- FIN DE MODIFICACION buildInhabilesForYears ---
 
 
 function isInMapYmd(map,date){return map.has(toYmd(date))}
@@ -225,7 +225,7 @@ calcularBtn.addEventListener('click', async ()=>{
   // Vencimiento: al final de endCorr (24:00). For display, show endCorr date and mention 'hasta las 24:00'
   const vencimientoDate = endCorr; // time is end of day
 
-  // --- NUEVO: MENSAJE DE ESTADO DE CARGA (TRANSPARENCIA) ---
+  // --- MENSAJE DE ESTADO DE CARGA (TRANSPARENCIA) ---
   const statusElem = document.getElementById('statusMessage');
   let statusHTML = `<strong>Feriados nacionales cargados:</strong> ${loadedYears.sort().join(', ')} (vía API).`;
 
@@ -241,7 +241,7 @@ calcularBtn.addEventListener('click', async ()=>{
   
   statusElem.innerHTML = statusHTML;
   statusElem.style.display = 'block';
-  // --- FIN NUEVO MENSAJE DE ESTADO DE CARGA ---
+  // --- FIN MENSAJE DE ESTADO DE CARGA ---
 
   // Output
   document.getElementById('output').style.display='block';
