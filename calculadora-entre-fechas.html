@@ -89,12 +89,6 @@
             align-items: center;
         }
 
-        .date-group label {
-            font-weight: 500;
-            color: #555;
-            font-size: 13px;
-        }
-
         input[type="text"] {
             width: 50px;
             padding: 10px;
@@ -398,6 +392,106 @@
         let diasInhabilesExtra = [];
         let availableYears = [];
 
+        // Feriados hardcodeados como fallback
+        const FERIADOS_FALLBACK = {
+            2021: [
+                {fecha: "2021-01-01", motivo: "Año Nuevo"},
+                {fecha: "2021-02-15", motivo: "Carnaval"},
+                {fecha: "2021-02-16", motivo: "Carnaval"},
+                {fecha: "2021-03-24", motivo: "Día Nacional de la Memoria por la Verdad y la Justicia"},
+                {fecha: "2021-04-02", motivo: "Día del Veterano y de los Caídos en la Guerra de Malvinas"},
+                {fecha: "2021-04-02", motivo: "Viernes Santo"},
+                {fecha: "2021-05-01", motivo: "Día del Trabajador"},
+                {fecha: "2021-05-25", motivo: "Día de la Revolución de Mayo"},
+                {fecha: "2021-06-20", motivo: "Paso a la Inmortalidad del General Manuel Belgrano"},
+                {fecha: "2021-07-09", motivo: "Día de la Independencia"},
+                {fecha: "2021-08-16", motivo: "Paso a la Inmortalidad del General José de San Martín"},
+                {fecha: "2021-10-11", motivo: "Día del Respeto a la Diversidad Cultural"},
+                {fecha: "2021-11-22", motivo: "Día de la Soberanía Nacional"},
+                {fecha: "2021-12-08", motivo: "Inmaculada Concepción de María"},
+                {fecha: "2021-12-25", motivo: "Navidad"}
+            ],
+            2022: [
+                {fecha: "2022-01-01", motivo: "Año Nuevo"},
+                {fecha: "2022-02-28", motivo: "Carnaval"},
+                {fecha: "2022-03-01", motivo: "Carnaval"},
+                {fecha: "2022-03-24", motivo: "Día Nacional de la Memoria por la Verdad y la Justicia"},
+                {fecha: "2022-04-02", motivo: "Día del Veterano y de los Caídos en la Guerra de Malvinas"},
+                {fecha: "2022-04-15", motivo: "Viernes Santo"},
+                {fecha: "2022-05-01", motivo: "Día del Trabajador"},
+                {fecha: "2022-05-18", motivo: "Censo Nacional"},
+                {fecha: "2022-05-25", motivo: "Día de la Revolución de Mayo"},
+                {fecha: "2022-06-17", motivo: "Paso a la Inmortalidad del General Martín Miguel de Güemes"},
+                {fecha: "2022-06-20", motivo: "Paso a la Inmortalidad del General Manuel Belgrano"},
+                {fecha: "2022-07-09", motivo: "Día de la Independencia"},
+                {fecha: "2022-08-15", motivo: "Paso a la Inmortalidad del General José de San Martín"},
+                {fecha: "2022-10-07", motivo: "Feriado con fines turísticos"},
+                {fecha: "2022-10-10", motivo: "Día del Respeto a la Diversidad Cultural"},
+                {fecha: "2022-11-20", motivo: "Día de la Soberanía Nacional"},
+                {fecha: "2022-11-21", motivo: "Feriado con fines turísticos"},
+                {fecha: "2022-12-08", motivo: "Inmaculada Concepción de María"},
+                {fecha: "2022-12-09", motivo: "Feriado con fines turísticos"},
+                {fecha: "2022-12-25", motivo: "Navidad"}
+            ],
+            2023: [
+                {fecha: "2023-01-01", motivo: "Año Nuevo"},
+                {fecha: "2023-02-20", motivo: "Carnaval"},
+                {fecha: "2023-02-21", motivo: "Carnaval"},
+                {fecha: "2023-03-24", motivo: "Día Nacional de la Memoria por la Verdad y la Justicia"},
+                {fecha: "2023-04-02", motivo: "Día del Veterano y de los Caídos en la Guerra de Malvinas"},
+                {fecha: "2023-04-07", motivo: "Viernes Santo"},
+                {fecha: "2023-05-01", motivo: "Día del Trabajador"},
+                {fecha: "2023-05-25", motivo: "Día de la Revolución de Mayo"},
+                {fecha: "2023-05-26", motivo: "Feriado con fines turísticos"},
+                {fecha: "2023-06-17", motivo: "Paso a la Inmortalidad del General Martín Miguel de Güemes"},
+                {fecha: "2023-06-19", motivo: "Feriado con fines turísticos"},
+                {fecha: "2023-06-20", motivo: "Paso a la Inmortalidad del General Manuel Belgrano"},
+                {fecha: "2023-07-09", motivo: "Día de la Independencia"},
+                {fecha: "2023-08-21", motivo: "Paso a la Inmortalidad del General José de San Martín"},
+                {fecha: "2023-10-13", motivo: "Feriado con fines turísticos"},
+                {fecha: "2023-10-16", motivo: "Día del Respeto a la Diversidad Cultural"},
+                {fecha: "2023-11-20", motivo: "Día de la Soberanía Nacional"},
+                {fecha: "2023-12-08", motivo: "Inmaculada Concepción de María"},
+                {fecha: "2023-12-25", motivo: "Navidad"}
+            ],
+            2024: [
+                {fecha: "2024-01-01", motivo: "Año Nuevo"},
+                {fecha: "2024-02-12", motivo: "Carnaval"},
+                {fecha: "2024-02-13", motivo: "Carnaval"},
+                {fecha: "2024-03-24", motivo: "Día Nacional de la Memoria por la Verdad y la Justicia"},
+                {fecha: "2024-03-29", motivo: "Viernes Santo"},
+                {fecha: "2024-04-02", motivo: "Día del Veterano y de los Caídos en la Guerra de Malvinas"},
+                {fecha: "2024-05-01", motivo: "Día del Trabajador"},
+                {fecha: "2024-05-25", motivo: "Día de la Revolución de Mayo"},
+                {fecha: "2024-06-17", motivo: "Paso a la Inmortalidad del General Martín Miguel de Güemes"},
+                {fecha: "2024-06-20", motivo: "Paso a la Inmortalidad del General Manuel Belgrano"},
+                {fecha: "2024-07-09", motivo: "Día de la Independencia"},
+                {fecha: "2024-08-17", motivo: "Paso a la Inmortalidad del General José de San Martín"},
+                {fecha: "2024-10-12", motivo: "Día del Respeto a la Diversidad Cultural"},
+                {fecha: "2024-11-18", motivo: "Día de la Soberanía Nacional"},
+                {fecha: "2024-12-08", motivo: "Inmaculada Concepción de María"},
+                {fecha: "2024-12-25", motivo: "Navidad"}
+            ],
+            2025: [
+                {fecha: "2025-01-01", motivo: "Año Nuevo"},
+                {fecha: "2025-03-03", motivo: "Carnaval"},
+                {fecha: "2025-03-04", motivo: "Carnaval"},
+                {fecha: "2025-03-24", motivo: "Día Nacional de la Memoria por la Verdad y la Justicia"},
+                {fecha: "2025-04-02", motivo: "Día del Veterano y de los Caídos en la Guerra de Malvinas"},
+                {fecha: "2025-04-18", motivo: "Viernes Santo"},
+                {fecha: "2025-05-01", motivo: "Día del Trabajador"},
+                {fecha: "2025-05-25", motivo: "Día de la Revolución de Mayo"},
+                {fecha: "2025-06-16", motivo: "Paso a la Inmortalidad del General Martín Miguel de Güemes"},
+                {fecha: "2025-06-20", motivo: "Paso a la Inmortalidad del General Manuel Belgrano"},
+                {fecha: "2025-07-09", motivo: "Día de la Independencia"},
+                {fecha: "2025-08-17", motivo: "Paso a la Inmortalidad del General José de San Martín"},
+                {fecha: "2025-10-12", motivo: "Día del Respeto a la Diversidad Cultural"},
+                {fecha: "2025-11-24", motivo: "Día de la Soberanía Nacional"},
+                {fecha: "2025-12-08", motivo: "Inmaculada Concepción de María"},
+                {fecha: "2025-12-25", motivo: "Navidad"}
+            ]
+        };
+
         document.addEventListener('DOMContentLoaded', async () => {
             log.info('DOM cargado, iniciando carga de datos');
             await loadData();
@@ -411,23 +505,53 @@
             
             log.debug('Años a cargar', yearsToLoad);
 
+            // Intentar cargar desde API con proxy CORS
             for (const year of yearsToLoad) {
                 try {
-                    log.info(`Cargando feriados para ${year}`);
-                    const response = await fetch(`https://argentinadatos.com/api/v1/feriados/${year}?${CACHE_BUSTER}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        feriadosData[year] = data;
-                        availableYears.push(year);
-                        log.info(`Feriados ${year} cargados exitosamente`, { count: data.length });
-                    } else {
-                        log.warn(`Error HTTP al cargar feriados ${year}`, { status: response.status });
+                    log.info(`Intentando cargar feriados para ${year} desde API`);
+                    const apiUrl = `https://argentinadatos.com/api/v1/feriados/${year}`;
+                    const corsProxies = [
+                        `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`,
+                        `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`
+                    ];
+                    
+                    let loaded = false;
+                    
+                    for (const proxyUrl of corsProxies) {
+                        try {
+                            const response = await fetch(proxyUrl);
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (Array.isArray(data) && data.length > 0) {
+                                    feriadosData[year] = data;
+                                    availableYears.push(year);
+                                    log.info(`Feriados ${year} cargados desde API`, { count: data.length });
+                                    loaded = true;
+                                    break;
+                                }
+                            }
+                        } catch (e) {
+                            log.debug(`Proxy falló para ${year}`, e.message);
+                        }
+                    }
+                    
+                    if (!loaded) {
+                        throw new Error('Todos los proxies fallaron');
                     }
                 } catch (error) {
-                    log.error(`Error al cargar feriados ${year}`, error);
+                    log.warn(`No se pudo cargar desde API para ${year}, usando fallback`, error.message);
+                    
+                    if (FERIADOS_FALLBACK[year]) {
+                        feriadosData[year] = FERIADOS_FALLBACK[year];
+                        availableYears.push(year);
+                        log.info(`Feriados ${year} cargados desde fallback`, { count: FERIADOS_FALLBACK[year].length });
+                    } else {
+                        log.error(`No hay fallback disponible para ${year}`);
+                    }
                 }
             }
 
+            // Cargar días inhábiles extra desde JSON
             try {
                 log.info('Cargando días inhábiles extra desde JSON');
                 const response = await fetch(`https://jnc-34.github.io/jnc34/dias-inhabiles.json?${CACHE_BUSTER}`);
@@ -455,7 +579,7 @@
                 yearsEl.style.color = '#dc3545';
                 log.error('No hay años disponibles');
             } else {
-                const sortedYears = availableYears.sort();
+                const sortedYears = [...new Set(availableYears)].sort();
                 yearsEl.textContent = `Calculadora disponible para los años: ${sortedYears.join(', ')}`;
                 
                 const allYears = [2021, 2022, 2023, 2024, 2025];
