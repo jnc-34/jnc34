@@ -78,7 +78,7 @@ function parseYmd(str){const [y,m,day]=str.split('-').map(Number);return new Dat
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
 function isWeekend(date){const dd=date.getDay();return dd===0||dd===6}
 
-// --- FUNCIONES DE FECHAS CLAVE CORREGIDAS PARA LA FERIA ---
+// --- FUNCIONES DE FECHAS CLAVE ---
 function thirdMondayOfJuly(year){
     const d=new Date(year,6,1);
     while(d.getDay()!==1) d.setDate(d.getDate()+1);
@@ -90,26 +90,26 @@ function customInhabilesForYear(year){
     
     // 1. Feria Judicial de Enero (1 al 31 de enero, inclusive)
     for(let day=1;day<=31;day++){
-      const d=new Date(year,0,day); // mes 0 es enero
+      const d=new Date(year,0,day); 
       res.set(toYmd(d),'Feria judicial de enero (art. 257 CPCCN)');
     }
 
-    // 2. Feria Judicial de Invierno (12 días corridos: 21 de julio al 1 de agosto) - CORRECCIÓN FINAL
+    // 2. Feria Judicial de Invierno (12 días corridos)
     const startFeria = thirdMondayOfJuly(year); 
     
-    // El bucle ahora corre por 12 días (de i=0 a i=11), cubriendo hasta el 1 de agosto.
+    // El bucle corre por 12 días (i=0 a i=11).
     for(let i=0;i<12;i++){ 
         const diaFeria = addDays(startFeria, i);
         res.set(toYmd(diaFeria),'Feria judicial de invierno (julio/agosto)');
     }
     
-    // 3. 16 de noviembre (ley local) - Se mantiene
+    // 3. 16 de noviembre (ley local)
     const nov16=new Date(year,10,16); 
     res.set(toYmd(nov16),'16 de noviembre (ley local)');
     
     return res;
 }
-// --- FIN DE FUNCIONES DE FECHAS CLAVE CORREGIDAS ---
+// --- FIN DE FUNCIONES DE FECHAS CLAVE ---
 
 
 async function fetchFeriados(year) {
@@ -131,9 +131,9 @@ async function fetchFeriados(year) {
 // robust custom overrides fetch with cache-buster
 async function tryFetch(url){try{const res=await fetch(url,{cache:'no-store'});if(res.ok)return {ok:true,data:await res.json(),url};return {ok:false,status:res.status,url}}catch(e){return {ok:false,error:e,url}}}
 
-// --- FUNCION fetchCustomOverrides MODIFICADA PARA LA URL ESPECIFICA ---
+// --- FUNCION fetchCustomOverrides CORREGIDA ---
 async function fetchCustomOverrides(){
-  // URL exacta del JSON proporcionada por el usuario
+  // URL exacta del JSON
   const CUSTOM_JSON_URL = 'https://jnc-34.github.io/jnc34/dias-inhabiles.json'; 
   
   const urlWithCacheBuster = CUSTOM_JSON_URL + '?_=' + Date.now();
@@ -142,13 +142,15 @@ async function fetchCustomOverrides(){
   
   if(r.ok){
       console.log('custom_inhabiles loaded from', r.url); 
-      return Array.isArray(r.data.overrides) ? r.data.overrides : [];
+      // LA CORRECCIÓN: ahora busca la clave correcta en tu JSON.
+      const overrides = r.data.dias_inhabiles_adicionales;
+      return Array.isArray(overrides) ? overrides : [];
   }
   
   console.warn('No custom_inhabiles.json loaded from provided URL.');
   return [];
 }
-// --- FIN DE MODIFICACION fetchCustomOverrides ---
+// --- FIN DE CORRECCION fetchCustomOverrides ---
 
 
 async function buildInhabilesForYears(years) {
@@ -196,7 +198,7 @@ resetBtn.addEventListener('click', ()=>{
     document.getElementById('plazoDias').value='10';
     document.getElementById('output').style.display='none';
     document.getElementById('trace').style.display='none';
-    document.getElementById('statusMessage').style.display='none'; // Limpiar mensaje de estado
+    document.getElementById('statusMessage').style.display='none'; 
 });
 forceBtn.addEventListener('click', ()=>{ location.reload(true); });
 
