@@ -429,6 +429,7 @@
                 feriadosSource = 'JSON_FALLBACK';
                 
                 YEARS_TO_LOAD.forEach(year => {
+                    // El JSON extra tiene el formato que queremos para el fallback (fecha y motivo/nombre)
                     const yearData = diasInhabilesExtra.filter(d => d.fecha && d.fecha.startsWith(year.toString()));
                     if (yearData.length > 0) {
                         // Solo usamos el JSON para los años donde no se pudo cargar la API
@@ -457,7 +458,7 @@
                 
                 try {
                     log.info(`Intentando cargar feriados para ${year} desde API`);
-                    // FIX: URL CORREGIDA a api.argentinadatos.com
+                    // URL CORREGIDA a api.argentinadatos.com
                     const apiUrl = `https://api.argentinadatos.com/v1/feriados/${year}`;
                     const corsProxies = [
                         // Mantener los proxies por si falla CORS en la API
@@ -634,8 +635,11 @@
             const feriado = feriadosData[year].find(f => f.fecha === dateStr);
             
             if (feriado) {
-                log.debug('Feriado encontrado', { date: dateStr, motivo: feriado.motivo });
-                return { is: true, reason: `Feriado: ${feriado.motivo}` };
+                // FIX DE CLAVE: La API usa 'nombre'. Usamos 'nombre' como preferido y 'motivo' como fallback (para el JSON fallback).
+                const reason = feriado.nombre || feriado.motivo;
+                
+                log.debug('Feriado encontrado', { date: dateStr, motivo: reason });
+                return { is: true, reason: `Feriado: ${reason}` };
             }
             
             return { is: false, reason: null };
@@ -738,7 +742,9 @@
             const found = diasInhabilesExtra.find(d => d.fecha === dateStr);
             
             if (found) {
-                return { is: true, reason: `Día inhábil adicional: ${found.motivo || 'Sin motivo especificado'}` };
+                // FIX DE CLAVE: Utilizar 'motivo' o 'nombre' del JSON extra.
+                const reason = found.motivo || found.nombre || 'Sin motivo especificado';
+                return { is: true, reason: `Día inhábil adicional: ${reason}` };
             }
             
             return { is: false, reason: null };
