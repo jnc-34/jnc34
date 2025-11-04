@@ -417,10 +417,10 @@
             availableYears = [];
             feriadosData = {}; // Resetear datos de feriados
             
-            // 1. Cargar días inhábiles extra (tu JSON) - Esto es necesario para el Fallback y para los días extra.
+            // 1. Cargar días inhábiles extra (tu JSON) - Necesario para el Fallback y días extra específicos.
             await loadDiasInhabilesExtra(); 
 
-            // 2. Intentar cargar Feriados desde API con proxies
+            // 2. Intentar cargar Feriados desde API con proxies (USANDO URL CORREGIDA)
             let apiSuccess = await loadFeriadosFromAPI();
 
             // 3. Si la API falla, usar el JSON cargado como Fallback de Feriados
@@ -431,12 +431,18 @@
                 YEARS_TO_LOAD.forEach(year => {
                     const yearData = diasInhabilesExtra.filter(d => d.fecha && d.fecha.startsWith(year.toString()));
                     if (yearData.length > 0) {
-                        feriadosData[year] = yearData;
+                        // Solo usamos el JSON para los años donde no se pudo cargar la API
+                        if (!feriadosData[year]) { 
+                            feriadosData[year] = yearData;
+                        }
                         if (!availableYears.includes(year)) availableYears.push(year);
                     }
                 });
             } else if (apiSuccess) {
                 feriadosSource = 'API_ARGENTINADATOS';
+            } else if (diasInhabilesExtra.length > 0) {
+                // Si la API falló y solo tenemos el JSON, pero no lo usamos como Fallback completo (porque no cargó nada la API)
+                feriadosSource = 'JSON_SOLO_EXTRAS';
             } else {
                 feriadosSource = 'SIN_DATOS';
             }
@@ -451,9 +457,10 @@
                 
                 try {
                     log.info(`Intentando cargar feriados para ${year} desde API`);
-                    const apiUrl = `https://argentinadatos.com/api/v1/feriados/${year}`;
+                    // FIX: URL CORREGIDA a api.argentinadatos.com
+                    const apiUrl = `https://api.argentinadatos.com/v1/feriados/${year}`;
                     const corsProxies = [
-                        // Usar solo un proxy suele ser más estable, si falla el primero, probamos el segundo.
+                        // Mantener los proxies por si falla CORS en la API
                         `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`,
                         `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`
                     ];
@@ -495,14 +502,15 @@
                 if (response.ok) {
                     const data = await response.json();
                     
-                    if (Array.isArray(data)) {
-                        diasInhabilesExtra = data;
+                    // FIX DE ESTRUCTURA: Intentar cargar la clave 'dias_inhabiles_adicionales'
+                    const targetArray = data.dias_inhabiles_adicionales || data;
+
+                    if (Array.isArray(targetArray)) {
+                        diasInhabilesExtra = targetArray;
                         log.info('Días inhábiles extra cargados', { count: diasInhabilesExtra.length });
                     } else {
-                        // Se ejecuta si el JSON no es un Array válido
-                        log.error('El JSON de días inhábiles no es un array válido. Usando array vacío.');
-                        // ADICIÓN DE DIAGNÓSTICO: Muestra el contenido que se intentó parsear.
-                        log.error('Estructura de datos obtenida (debería ser un array):', data); 
+                        // Ahora muestra el contenido del targetArray para mejor diagnóstico
+                        log.error('El JSON de días inhábiles no es un array válido, incluso después de buscar la clave.', targetArray); 
                         diasInhabilesExtra = [];
                     }
                 } else {
@@ -524,18 +532,18 @@
             let sourceText = '';
             
             if (feriadosSource === 'API_ARGENTINADATOS') {
-                sourceText = 'Fuente de Feriados: **ArgentinaDatos.com** (API con proxies).';
+                sourceText = 'Fuente de Feriados: **api.ArgentinaDatos.com** (API con proxies). Días Inhábiles Extra: **JSON Local**.';
             } else if (feriadosSource === 'JSON_FALLBACK') {
-                sourceText = '⚠️ **FALLBACK ACTIVO:** Fuente de Feriados/Inhábiles: **JSON Local (jnc-34.github.io/jnc34/dias-inhabiles.json)**. Estos datos también son la fuente de Días Inhábiles Extra.';
+                sourceText = '⚠️ **FALLBACK ACTIVO:** Fuente de Feriados/Inhábiles: **JSON Local (jnc-34.github.io/jnc34/dias-inhabiles.json)**. La API de feriados falló.';
                 warningEl.innerHTML = `**Advertencia Fallback:** La carga de la API de feriados falló. Se usa el JSON de días inhábiles como fuente de feriados. **Verifique la precisión de la información.**`;
                 warningEl.style.display = 'block';
                 warningEl.classList.add('api-fallback');
+            } else if (feriadosSource === 'JSON_SOLO_EXTRAS') {
+                 sourceText = 'Fuente de Días Inhábiles Extra: **JSON Local**. La API de feriados falló y no hay información completa.';
             } else if (feriadosSource === 'SIN_DATOS') {
                 sourceText = 'No se pudo cargar información de feriados/inhábiles. El cálculo de días hábiles no funcionará.';
                 yearsEl.style.color = '#dc3545';
                 log.error('No hay años disponibles para días hábiles');
-            } else if (diasInhabilesExtra.length > 0) {
-                sourceText = 'Fuente de Días Inhábiles Extra: **JSON Local (jnc-34.github.io/jnc34/dias-inhabiles.json)**.';
             }
 
 
@@ -551,10 +559,11 @@
             // Advertencia para años faltantes (solo relevante si la fuente principal era la API)
             if (feriadosSource === 'API_ARGENTINADATOS') {
                 const allYears = YEARS_TO_LOAD;
-                const missingYears = allYears.filter(y => !availableYears.includes(y));
+                const yearsWithData = Object.keys(feriadosData).map(Number);
+                const missingYears = allYears.filter(y => !yearsWithData.includes(y));
                 
                 if (missingYears.length > 0) {
-                    warningEl.innerHTML = `⚠️ Advertencia: No se pudieron cargar los feriados para los años: ${missingYears.join(', ')}. El cálculo de días hábiles puede ser inexacto para esos años.`;
+                    warningEl.innerHTML = `⚠️ Advertencia: No se pudieron cargar los feriados desde la API para los años: ${missingYears.join(', ')}. El cálculo de días hábiles puede ser inexacto para esos años.`;
                     warningEl.style.display = 'block';
                     warningEl.classList.remove('api-fallback');
                     log.warn('Años faltantes', missingYears);
@@ -670,9 +679,6 @@
                 return { is: true, reason: 'Día inhábil especial (Acordada CSJN 26/2022)' };
             }
             
-            // Día de las Elecciones (si es un domingo o feriado, ya está cubierto, pero si cae en día hábil)
-            // Se asume que esto se cubre con los días inhábiles extra si es necesario.
-            
             return { is: false, reason: null };
         }
 
@@ -725,7 +731,7 @@
         }
 
         function isInhabilJSON(date) {
-            // Este chequeo aplica al JSON cargado, sea Fallback o Extra
+            // Este chequeo aplica al JSON cargado para días inhábiles extra
             const dateStr = formatDateForAPI(date);
             
             // diasInhabilesExtra está garantizado como array o []
