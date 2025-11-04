@@ -74,8 +74,41 @@ function toYmd(d){const y=d.getFullYear();const m=String(d.getMonth()+1).padStar
 function parseYmd(str){const [y,m,day]=str.split('-').map(Number);return new Date(y,m-1,day)}
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
 function isWeekend(date){const dd=date.getDay();return dd===0||dd===6}
-function thirdMondayOfJuly(year){const d=new Date(year,6,1);while(d.getDay()!==1) d.setDate(d.getDate()+1);return addDays(d,14)}
-function customInhabilesForYear(year){const res=new Map();for(let day=1;day<=31;day++){const d=new Date(year,0,day);res.set(toYmd(d),'Feria de enero')}const nov16=new Date(year,10,16);res.set(toYmd(nov16),'16 de noviembre (ley local)');const thirdMon=thirdMondayOfJuly(year);for(let i=1;i<=14;i++){res.set(toYmd(addDays(thirdMon,i)),'Feria de julio')}return res}
+
+// FUNCIONES DE FECHAS CLAVE CORREGIDAS PARA LA FERIA
+function thirdMondayOfJuly(year){
+    const d=new Date(year,6,1);
+    while(d.getDay()!==1) d.setDate(d.getDate()+1);
+    return addDays(d,14);
+}
+
+function customInhabilesForYear(year){
+    const res=new Map();
+    
+    // 1. Feria Judicial de Enero (1 al 31 de enero, inclusive) - CORREGIDO
+    for(let day=1;day<=31;day++){
+      const d=new Date(year,0,day); // mes 0 es enero
+      res.set(toYmd(d),'Feria judicial de enero (art. 257 CPCCN)');
+    }
+
+    // 2. Feria Judicial de Invierno (Dos semanas: 14 días corridos) - CORREGIDO
+    const startFeria = thirdMondayOfJuly(year); 
+    
+    // El bucle empieza en i=0 para INCLUIR el día de inicio (ej. 21/07/2025)
+    for(let i=0;i<14;i++){ // De i=0 a i=13 (14 días corridos en total)
+        const diaFeria = addDays(startFeria, i);
+        res.set(toYmd(diaFeria),'Feria judicial de invierno (julio/agosto)');
+    }
+    
+    // 3. 16 de noviembre (ley local) - Se mantiene
+    const nov16=new Date(year,10,16); // mes 10 es noviembre
+    res.set(toYmd(nov16),'16 de noviembre (ley local)');
+    
+    return res;
+}
+// FIN DE FUNCIONES CLAVE CORREGIDAS
+
+
 async function fetchFeriados(year){try{const r=await fetch(`${API_BASE}/${year}`);if(!r.ok) throw new Error('API feriados no disponible');const data=await r.json();const m=new Map();data.forEach(f=>{if(f.fecha) m.set(f.fecha,f.nombre||f.tipo||'Feriado')});return m}catch(e){console.warn('API feriados falló',e);return new Map()}}
 
 // robust custom overrides fetch with cache-buster
