@@ -18,6 +18,7 @@
     .row{display:flex;gap:10px;flex-wrap:wrap}
     input,select,button{padding:10px;border-radius:8px;border:1px solid #e9f1ff;font-size:0.95rem;background:#fff}
     .small{font-size:0.9rem;color:var(--muted)}
+    .status-message{margin-top:10px; padding:10px; border-radius:8px; display:none; font-size:0.9rem;}
     .result{margin-top:12px;padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#f8fbff);border:1px solid var(--border)}
     .trace{margin-top:10px;background:#fff;padding:12px;border-radius:8px;border:1px solid var(--border)}
     button{background:var(--primary);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
@@ -56,6 +57,8 @@
         <div style="flex:0 0 220px;text-align:right" class="small">Años soportados: <span id="anioRange"></span></div>
       </div>
 
+      <div id="statusMessage" class="status-message"></div>
+
       <div id="output" class="result" style="display:none">
         <div id="vencimiento"></div>
         <div id="periodos" style="margin-top:12px"></div>
@@ -75,7 +78,7 @@ function parseYmd(str){const [y,m,day]=str.split('-').map(Number);return new Dat
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
 function isWeekend(date){const dd=date.getDay();return dd===0||dd===6}
 
-// FUNCIONES DE FECHAS CLAVE CORREGIDAS PARA LA FERIA
+// --- FUNCIONES DE FECHAS CLAVE CORREGIDAS PARA LA FERIA ---
 function thirdMondayOfJuly(year){
     const d=new Date(year,6,1);
     while(d.getDay()!==1) d.setDate(d.getDate()+1);
@@ -94,28 +97,89 @@ function customInhabilesForYear(year){
     // 2. Feria Judicial de Invierno (Dos semanas: 14 días corridos) - CORREGIDO
     const startFeria = thirdMondayOfJuly(year); 
     
-    // El bucle empieza en i=0 para INCLUIR el día de inicio (ej. 21/07/2025)
-    for(let i=0;i<14;i++){ // De i=0 a i=13 (14 días corridos en total)
+    for(let i=0;i<14;i++){ 
         const diaFeria = addDays(startFeria, i);
         res.set(toYmd(diaFeria),'Feria judicial de invierno (julio/agosto)');
     }
     
     // 3. 16 de noviembre (ley local) - Se mantiene
-    const nov16=new Date(year,10,16); // mes 10 es noviembre
+    const nov16=new Date(year,10,16); 
     res.set(toYmd(nov16),'16 de noviembre (ley local)');
     
     return res;
 }
-// FIN DE FUNCIONES CLAVE CORREGIDAS
+// --- FIN DE FUNCIONES DE FECHAS CLAVE CORREGIDAS ---
 
-
-async function fetchFeriados(year){try{const r=await fetch(`${API_BASE}/${year}`);if(!r.ok) throw new Error('API feriados no disponible');const data=await r.json();const m=new Map();data.forEach(f=>{if(f.fecha) m.set(f.fecha,f.nombre||f.tipo||'Feriado')});return m}catch(e){console.warn('API feriados falló',e);return new Map()}}
+// --- FUNCION fetchFeriados MODIFICADA para indicar éxito/fallo ---
+async function fetchFeriados(year) {
+  try {
+    const r = await fetch(`${API_BASE}/${year}`);
+    if (!r.ok) throw new Error('API feriados no disponible');
+    const data = await r.json();
+    const m = new Map();
+    data.forEach(f => {
+      if (f.fecha) m.set(f.fecha, f.nombre || f.tipo || 'Feriado');
+    });
+    return { success: true, feriados: m };
+  } catch (e) {
+    console.warn(`API feriados falló para el año ${year}`, e);
+    return { success: false, feriados: new Map() };
+  }
+}
 
 // robust custom overrides fetch with cache-buster
 async function tryFetch(url){try{const res=await fetch(url,{cache:'no-store'});if(res.ok)return {ok:true,data:await res.json(),url};return {ok:false,status:res.status,url}}catch(e){return {ok:false,error:e,url}}}
-async function fetchCustomOverrides(){const cb='_='+Date.now();const candidates=['./data/custom_inhabiles.json?'+cb,'data/custom_inhabiles.json?'+cb,'/data/custom_inhabiles.json?'+cb];try{const host=location.hostname;const pathParts=location.pathname.split('/').filter(Boolean);if(host.endsWith('github.io')&&pathParts.length>=1){const user=host.split('.')[0];const repo=pathParts[0];candidates.push(`https://raw.githubusercontent.com/${user}/${repo}/main/data/custom_inhabiles.json?${cb}`)}}catch(e){}for(const c of candidates){const r=await tryFetch(c);if(r.ok){console.log('custom_inhabiles loaded from',r.url);return Array.isArray(r.data.overrides)?r.data.overrides:[]}}console.warn('No custom_inhabiles.json loaded');return []}
 
-async function buildInhabilesForYears(years){const combined=new Map();for(const y of years){const api=await fetchFeriados(y);for(const [k,v] of api.entries()) combined.set(k,'Feriado: '+v);const custom=customInhabilesForYear(y);for(const [k,v] of custom.entries()) combined.set(k,v)}const overrides=await fetchCustomOverrides();overrides.forEach(o=>{if(o&&o.fecha&&o.motivo)combined.set(o.fecha,o.motivo+' (override)')});return combined}
+// --- FUNCION fetchCustomOverrides MODIFICADA PARA LA URL ESPECIFICA ---
+async function fetchCustomOverrides(){
+  // URL exacta del JSON proporcionada por el usuario
+  const CUSTOM_JSON_URL = 'https://jnc-34.github.io/jnc34/dias-inhabiles.json'; 
+  
+  const urlWithCacheBuster = CUSTOM_JSON_URL + '?_=' + Date.now();
+  
+  const r = await tryFetch(urlWithCacheBuster);
+  
+  if(r.ok){
+      console.log('custom_inhabiles loaded from', r.url); 
+      return Array.isArray(r.data.overrides) ? r.data.overrides : [];
+  }
+  
+  console.warn('No custom_inhabiles.json loaded from provided URL.');
+  return [];
+}
+// --- FIN DE MODIFICACION fetchCustomOverrides ---
+
+// --- FUNCION buildInhabilesForYears MODIFICADA para rastrear años cargados ---
+async function buildInhabilesForYears(years) {
+  const combined = new Map();
+  const loadedYears = [];
+  const failedYears = [];
+
+  for (const y of years) {
+    // 1. Cargar feriados nacionales (API)
+    const api = await fetchFeriados(y);
+    if (api.success) {
+      for (const [k, v] of api.feriados.entries()) combined.set(k, 'Feriado: ' + v);
+      loadedYears.push(y);
+    } else {
+      failedYears.push(y);
+    }
+    
+    // 2. Cargar feriados de Feria (codificados)
+    const custom = customInhabilesForYear(y);
+    for (const [k, v] of custom.entries()) combined.set(k, v);
+  }
+
+  // 3. Cargar Overrides (JSON local)
+  const overrides = await fetchCustomOverrides();
+  overrides.forEach(o => {
+    if (o && o.fecha && o.motivo) combined.set(o.fecha, o.motivo + ' (override)');
+  });
+
+  return { inhMap: combined, loadedYears, failedYears };
+}
+// --- FIN DE MODIFICACION buildInhabilesForYears ---
+
 
 function isInMapYmd(map,date){return map.has(toYmd(date))}
 function isBusinessDay(date,inhMap){return !isWeekend(date)&&!isInMapYmd(inhMap,date)}
@@ -127,7 +191,13 @@ function countBusinessDaysFrom(startDate, days, inhMap){let counted=0;let cursor
 document.getElementById('anioRange').textContent = `${MIN_YEAR} - ${MAX_YEAR}`;
 const calcularBtn = document.getElementById('calcular'); const resetBtn = document.getElementById('reset'); const forceBtn = document.getElementById('force');
 
-resetBtn.addEventListener('click', ()=>{['d_dia','d_mes','d_anio'].forEach(id=>document.getElementById(id).value='');document.getElementById('plazoDias').value='10';document.getElementById('output').style.display='none';document.getElementById('trace').style.display='none'});
+resetBtn.addEventListener('click', ()=>{
+    ['d_dia','d_mes','d_anio'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('plazoDias').value='10';
+    document.getElementById('output').style.display='none';
+    document.getElementById('trace').style.display='none';
+    document.getElementById('statusMessage').style.display='none'; // Limpiar mensaje de estado
+});
 forceBtn.addEventListener('click', ()=>{ location.reload(true); });
 
 calcularBtn.addEventListener('click', async ()=>{
@@ -138,7 +208,9 @@ calcularBtn.addEventListener('click', async ()=>{
 
   // build inhábiles map for relevant years
   const yearsToFetch = []; const y0 = notif.getFullYear(); for(let y=Math.max(MIN_YEAR,y0-1); y<=Math.max(MAX_YEAR,y0+1); y++) yearsToFetch.push(y);
-  const inhMap = await buildInhabilesForYears(Array.from(new Set(yearsToFetch)).sort());
+  
+  // Llamar a la función modificada y obtener el mapa y los estados de carga
+  const { inhMap, loadedYears, failedYears } = await buildInhabilesForYears(Array.from(new Set(yearsToFetch)).sort());
 
   // Compute start: primer día efectivamente contado = día hábil siguiente al de la notificación
   const startBiz = nextBusinessDayStrict(notif, inhMap);
@@ -152,6 +224,24 @@ calcularBtn.addEventListener('click', async ()=>{
 
   // Vencimiento: al final de endCorr (24:00). For display, show endCorr date and mention 'hasta las 24:00'
   const vencimientoDate = endCorr; // time is end of day
+
+  // --- NUEVO: MENSAJE DE ESTADO DE CARGA (TRANSPARENCIA) ---
+  const statusElem = document.getElementById('statusMessage');
+  let statusHTML = `<strong>Feriados nacionales cargados:</strong> ${loadedYears.sort().join(', ')} (vía API).`;
+
+  if (failedYears.length > 0) {
+      statusHTML += `<br><span style="color:red; font-weight:600;">⚠️ Advertencia:</span> No se pudieron cargar los feriados nacionales (API) para el/los año(s): ${failedYears.sort().join(', ')}. Los días de **Feria** y feriados locales codificados (Enero, Julio, 16/11) SÍ fueron utilizados.`;
+      statusElem.style.borderColor = '#ff4d4f'; 
+      statusElem.style.background = '#fff0f0';
+  } else {
+      statusHTML += ` Los días de **Feria** y feriados locales codificados (Enero, Julio, 16/11) también fueron utilizados.`;
+      statusElem.style.borderColor = 'var(--border)';
+      statusElem.style.background = '#f8fdf8';
+  }
+  
+  statusElem.innerHTML = statusHTML;
+  statusElem.style.display = 'block';
+  // --- FIN NUEVO MENSAJE DE ESTADO DE CARGA ---
 
   // Output
   document.getElementById('output').style.display='block';
