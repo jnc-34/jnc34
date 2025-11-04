@@ -1,28 +1,36 @@
 {
   "dias_inhabiles_adicionales": [
     {
-      "fecha": "2024-12-24",
-      "motivo": "Acordada CSJN 47/2024"
-    },
-    {
-      "fecha": "2024-12-31",
-      "motivo": "Acordada CSJN 47/2024"
-    },
-    {
-      "fecha": "2022-12-23",
-      "motivo": "Acordada CSJN 47/2024"
-    },
-    {
-      "fecha": "2022-12-30",
-      "motivo": "Acordada CSJN 47/2024"
-    },
-    {
       "fecha": "2021-12-24",
-      "motivo": "Acordada CSJN 30/2021"
+      "motivo": "Acordada 30/21"
     },
     {
       "fecha": "2021-12-31",
-      "motivo": "Acordada CSJN 30/2021"
+      "motivo": "Acordada 30/21"
+    },
+    {
+      "fecha": "2022-12-23",
+      "motivo": "Acordada 33/22"
+    },
+    {
+      "fecha": "2022-12-30",
+      "motivo": "Acordada 33/22"
+    },
+    {
+      "fecha": "2022-10-18",
+      "motivo": "Acordada 26/22"
+    },
+    {
+      "fecha": "2024-05-09",
+      "motivo": "Acordada 27/24"
+    },
+    {
+      "fecha": "2024-12-24",
+      "motivo": "Acordada 47/24"
+    },
+    {
+      "fecha": "2024-12-31",
+      "motivo": "Acordada 47/24"
     }
   ],
   "instrucciones": "Puedes agregar fechas adicionales siguiendo el formato YYYY-MM-DD. Este archivo se carga dinámicamente desde GitHub."
