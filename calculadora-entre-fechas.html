@@ -1,285 +1,956 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Calculadora de inicio de mora (sentencia / honorarios)</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg:#f7fbff; --card:#ffffff; --muted:#6b7280; --text:#0f172a; --primary:#0b76f4; --accent:#0ea5a4; --border:#e6eef9;
-      --period1:#dbefff; --period2:#e6fff6; --period3:#fff4db;
-    }
-    body{font-family:'Montserrat',system-ui,-apple-system,'Segoe UI',Roboto,Arial;margin:18px;background:var(--bg);color:var(--text)}
-    .container{max-width:980px;margin:0 auto}
-    .card{background:var(--card);border:1px solid var(--border);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(11,118,244,0.04);}
-    h1{font-size:1.3rem;margin:0 0 8px}
-    label{display:block;margin-top:10px;font-weight:600}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    input,select,button{padding:10px;border-radius:8px;border:1px solid #e9f1ff;font-size:0.95rem;background:#fff}
-    .small{font-size:0.9rem;color:var(--muted)}
-    .status-message{margin-top:10px; padding:10px; border-radius:8px; display:none; font-size:0.9rem;}
-    .result{margin-top:12px;padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#f8fbff);border:1px solid var(--border)}
-    .trace{margin-top:10px;background:#fff;padding:12px;border-radius:8px;border:1px solid var(--border)}
-    button{background:var(--primary);color:#fff;border:none;padding:10px 14px;border-radius:8px;cursor:pointer}
-    button.ghost{background:transparent;color:var(--primary);border:1px solid rgba(11,118,244,0.12)}
-    .flex{display:flex;gap:12px;align-items:center}
-    .timeline{display:flex;gap:8px;align-items:center;margin-top:12px}
-    .period{padding:8px 10px;border-radius:8px;min-width:80px;text-align:center;font-size:0.9rem}
-    .legend{display:flex;gap:10px;margin-top:8px}
-    .legend span{display:flex;gap:6px;align-items:center}
-    .swatch{width:14px;height:14px;border-radius:4px;display:inline-block}
-    @media(max-width:720px){.row{flex-direction:column}.flex{flex-direction:column;align-items:flex-start}.timeline{flex-direction:column;align-items:flex-start}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Calculadora de días entre fechas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .available-years {
+            text-align: center;
+            color: #333; /* Color cambiado para el texto principal */
+            font-size: 13px; /* Tamaño ligeramente aumentado */
+            margin-bottom: 30px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .available-years strong {
+             font-weight: 700;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 11px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            width: 50px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"].year-input {
+            width: 70px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="text"].error {
+            border-color: #dc3545;
+            background: #ffe6e6;
+        }
+
+        .input-separator {
+            color: #999;
+            font-weight: 600;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .btn-calculate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-item {
+            margin-bottom: 20px;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .excluded-days {
+            margin-top: 20px;
+        }
+
+        .excluded-days-title {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .excluded-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .excluded-item {
+            padding: 8px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 11px;
+            border-left: 3px solid #667eea;
+        }
+
+        .excluded-date {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .excluded-reason {
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .error-report {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            font-size: 11px;
+            color: #856404;
+        }
+
+        .error-report strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+        
+        /* Estilo para el warning de fallback */
+        .api-fallback {
+            background: #fcf8e3 !important; /* Color de advertencia más suave */
+            border-left: 4px solid #8a6d3b !important;
+        }
+
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .date-inputs {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="card">
-      <h1>Calculadora de inicio de mora (sentencia / honorarios)</h1>
-      <p class="small">Calcula el vencimiento del pago (inicio de mora) según art. 257 CPCCN y los días corridos posteriores.</p>
+    <div class="container">
+        <h1>Calculadora de días entre fechas</h1>
+        <div class="available-years" id="availableYears">Cargando información de años disponibles...</div>
+        <div class="warning" id="apiWarning" style="display: none;"></div>
 
-      <label>Fecha de notificación de la sentencia (DD / MM / AAAA)</label>
-      <div class="row">
-        <input id="d_dia" placeholder="DD" maxlength="2" style="width:86px" />
-        <input id="d_mes" placeholder="MM" maxlength="2" style="width:86px" />
-        <input id="d_anio" placeholder="AAAA" maxlength="4" style="width:118px" />
-      </div>
-
-      <label>Cantidad de días para el pago (días corridos)</label>
-      <input id="plazoDias" type="number" min="0" value="10" style="width:120px;margin-top:8px" />
-
-      <div style="margin-top:12px" class="flex">
-        <div style="flex:1">
-          <button id="calcular">Calcular vencimiento</button>
-          <button id="reset" class="ghost" style="margin-left:8px">Limpiar</button>
-          <button id="force" class="ghost" style="margin-left:8px">Forzar recarga (cache)</button>
+        <div class="section">
+            <div class="section-title">Fecha de Inicio</div>
+            <div class="date-inputs">
+                <div class="date-group">
+                    <input type="text" id="startDay" maxlength="2" placeholder="DD" aria-label="Día inicio">
+                    <span class="input-separator">/</span>
+                    <input type="text" id="startMonth" maxlength="2" placeholder="MM" aria-label="Mes inicio">
+                    <span class="input-separator">/</span>
+                    <input type="text" class="year-input" id="startYear" maxlength="4" placeholder="AAAA" aria-label="Año inicio">
+                </div>
+            </div>
         </div>
-        <div style="flex:0 0 220px;text-align:right" class="small">Años soportados: <span id="anioRange"></span></div>
-      </div>
 
-      <div id="statusMessage" class="status-message"></div>
+        <div class="section">
+            <div class="section-title">Fecha de Fin</div>
+            <div class="date-inputs">
+                <div class="date-group">
+                    <input type="text" id="endDay" maxlength="2" placeholder="DD" aria-label="Día fin">
+                    <span class="input-separator">/</span>
+                    <input type="text" id="endMonth" maxlength="2" placeholder="MM" aria-label="Mes fin">
+                    <span class="input-separator">/</span>
+                    <input type="text" class="year-input" id="endYear" maxlength="4" placeholder="AAAA" aria-label="Año fin">
+                </div>
+            </div>
+        </div>
 
-      <div id="output" class="result" style="display:none">
-        <div id="vencimiento"></div>
-        <div id="periodos" style="margin-top:12px"></div>
-      </div>
+        <div class="section">
+            <div class="section-title">Opciones de cálculo</div>
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="includeStart" checked>
+                    <label for="includeStart">Incluir fecha de inicio en el conteo</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="includeEnd" checked>
+                    <label for="includeEnd">Incluir fecha de fin en el conteo</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="businessDays">
+                    <label for="businessDays">Calcular solo días hábiles (excluye fines de semana, feriados y días inhábiles especiales)</label>
+                </div>
+            </div>
+        </div>
 
-      <div id="trace" class="trace" style="display:none"></div>
+        <div class="buttons">
+            <button class="btn-calculate" onclick="calculate()">Calcular</button>
+            <button class="btn-reset" onclick="resetForm()">Resetear</button>
+        </div>
 
+        <div class="loading" id="loading">Calculando...</div>
+
+        <div class="results" id="results">
+            <div class="result-item">
+                <div class="result-label">Fecha de Inicio del Conteo:</div>
+                <div id="countStartDate" style="font-size: 16px; color: #333; margin-top: 5px;"></div>
+            </div>
+            <div class="result-item">
+                <div class="result-label">Total de días:</div>
+                <div class="result-value" id="totalDays"></div>
+            </div>
+            <div class="excluded-days" id="excludedDaysSection" style="display: none;">
+                <div class="excluded-days-title">Días NO Contados (Inhábiles):</div>
+                <div class="excluded-list" id="excludedDaysList"></div>
+            </div>
+            <div class="error-report">
+                <strong>⚠️ Reportar error</strong>
+                Si crees que ha habido un error para permitir corregirlo por favor envíanos un mail a jncivil34@gmail.gov.ar describiendo qué salió mal.
+            </div>
+        </div>
     </div>
-  </div>
 
-<script>
-// Utilities and inhábiles logic (same approach as other calculators)
-const API_BASE = 'https://api.argentinadatos.com/v1/feriados';
-const MIN_YEAR = 2021; let MAX_YEAR = new Date().getFullYear(); if (MAX_YEAR < 2025) MAX_YEAR = 2025;
-function toYmd(d){const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
-function parseYmd(str){const [y,m,day]=str.split('-').map(Number);return new Date(y,m-1,day)}
-function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
-function isWeekend(date){const dd=date.getDay();return dd===0||dd===6}
+    <script>
+        const LOG_PREFIX = '[CalcFechas]';
+        const log = {
+            info: (msg, data) => console.log(`${LOG_PREFIX} INFO:`, msg, data || ''),
+            warn: (msg, data) => console.warn(`${LOG_PREFIX} WARN:`, msg, data || ''),
+            error: (msg, data) => console.error(`${LOG_PREFIX} ERROR:`, msg, data || ''),
+            debug: (msg, data) => console.debug(`${LOG_PREFIX} DEBUG:`, msg, data || '')
+        };
 
-// --- FUNCIONES DE FECHAS CLAVE CORREGIDAS PARA LA FERIA ---
-function thirdMondayOfJuly(year){
-    const d=new Date(year,6,1);
-    while(d.getDay()!==1) d.setDate(d.getDate()+1);
-    return addDays(d,14);
-}
+        const CACHE_BUSTER = `v=${Date.now()}`;
+        log.info('Calculadora inicializada', { timestamp: new Date().toISOString() });
+        
+        // Años para los que buscaremos feriados.
+        const YEARS_TO_LOAD = [2021, 2022, 2023, 2024, 2025, new Date().getFullYear()].filter((v, i, a) => a.indexOf(v) === i);
 
-function customInhabilesForYear(year){
-    const res=new Map();
-    
-    // 1. Feria Judicial de Enero (1 al 31 de enero, inclusive) - CORREGIDO
-    for(let day=1;day<=31;day++){
-      const d=new Date(year,0,day); // mes 0 es enero
-      res.set(toYmd(d),'Feria judicial de enero (art. 257 CPCCN)');
-    }
+        let feriadosData = {};
+        let diasInhabilesExtra = []; // Siempre inicializado como array
+        let availableYears = []; // Siempre inicializado como array
+        let feriadosSource = 'SIN_CARGAR'; // Variable para guardar la fuente
 
-    // 2. Feria Judicial de Invierno (Dos semanas: 14 días corridos) - CORREGIDO
-    const startFeria = thirdMondayOfJuly(year); 
-    
-    for(let i=0;i<14;i++){ 
-        const diaFeria = addDays(startFeria, i);
-        res.set(toYmd(diaFeria),'Feria judicial de invierno (julio/agosto)');
-    }
-    
-    // 3. 16 de noviembre (ley local) - Se mantiene
-    const nov16=new Date(year,10,16); 
-    res.set(toYmd(nov16),'16 de noviembre (ley local)');
-    
-    return res;
-}
-// --- FIN DE FUNCIONES DE FECHAS CLAVE CORREGIDAS ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            log.info('DOM cargado, iniciando carga de datos');
+            await loadData();
+            setupInputValidation();
+        });
 
-// --- FUNCION fetchFeriados MODIFICADA para indicar éxito/fallo ---
-async function fetchFeriados(year) {
-  try {
-    const r = await fetch(`${API_BASE}/${year}`);
-    if (!r.ok) throw new Error('API feriados no disponible');
-    const data = await r.json();
-    const m = new Map();
-    data.forEach(f => {
-      if (f.fecha) m.set(f.fecha, f.nombre || f.tipo || 'Feriado');
-    });
-    return { success: true, feriados: m };
-  } catch (e) {
-    console.warn(`API feriados falló para el año ${year}`, e);
-    return { success: false, feriados: new Map() };
-  }
-}
+        async function loadData() {
+            log.info('Iniciando carga de datos');
+            availableYears = [];
+            feriadosData = {}; // Resetear datos de feriados
+            
+            // 1. Cargar días inhábiles extra (tu JSON) - Necesario para el Fallback y días extra específicos.
+            await loadDiasInhabilesExtra(); 
 
-// robust custom overrides fetch with cache-buster
-async function tryFetch(url){try{const res=await fetch(url,{cache:'no-store'});if(res.ok)return {ok:true,data:await res.json(),url};return {ok:false,status:res.status,url}}catch(e){return {ok:false,error:e,url}}}
+            // 2. Intentar cargar Feriados desde API con proxies (USANDO URL CORREGIDA)
+            let apiSuccess = await loadFeriadosFromAPI();
 
-// --- FUNCION fetchCustomOverrides MODIFICADA PARA LA URL ESPECIFICA ---
-async function fetchCustomOverrides(){
-  // URL exacta del JSON proporcionada por el usuario
-  const CUSTOM_JSON_URL = 'https://jnc-34.github.io/jnc34/dias-inhabiles.json'; 
-  
-  const urlWithCacheBuster = CUSTOM_JSON_URL + '?_=' + Date.now();
-  
-  const r = await tryFetch(urlWithCacheBuster);
-  
-  if(r.ok){
-      console.log('custom_inhabiles loaded from', r.url); 
-      return Array.isArray(r.data.overrides) ? r.data.overrides : [];
-  }
-  
-  console.warn('No custom_inhabiles.json loaded from provided URL.');
-  return [];
-}
-// --- FIN DE MODIFICACION fetchCustomOverrides ---
+            // 3. Si la API falla, usar el JSON cargado como Fallback de Feriados
+            if (!apiSuccess && diasInhabilesExtra.length > 0) {
+                log.warn('Falla de API. Usando el JSON de días inhábiles como FALLBACK de feriados.');
+                feriadosSource = 'JSON_FALLBACK';
+                
+                YEARS_TO_LOAD.forEach(year => {
+                    // El JSON extra tiene el formato que queremos para el fallback (fecha y motivo/nombre)
+                    const yearData = diasInhabilesExtra.filter(d => d.fecha && d.fecha.startsWith(year.toString()));
+                    if (yearData.length > 0) {
+                        // Solo usamos el JSON para los años donde no se pudo cargar la API
+                        if (!feriadosData[year]) { 
+                            feriadosData[year] = yearData;
+                        }
+                        if (!availableYears.includes(year)) availableYears.push(year);
+                    }
+                });
+            } else if (apiSuccess) {
+                feriadosSource = 'API_ARGENTINADATOS';
+            } else if (diasInhabilesExtra.length > 0) {
+                // Si la API falló y solo tenemos el JSON, pero no lo usamos como Fallback completo (porque no cargó nada la API)
+                feriadosSource = 'JSON_SOLO_EXTRAS';
+            } else {
+                feriadosSource = 'SIN_DATOS';
+            }
 
-// --- FUNCION buildInhabilesForYears MODIFICADA para rastrear años cargados ---
-async function buildInhabilesForYears(years) {
-  const combined = new Map();
-  const loadedYears = [];
-  const failedYears = [];
+            updateAvailableYearsDisplay();
+        }
+        
+        async function loadFeriadosFromAPI() {
+            let successCount = 0;
+            for (const year of YEARS_TO_LOAD) {
+                if (feriadosData[year]) continue;
+                
+                try {
+                    log.info(`Intentando cargar feriados para ${year} desde API`);
+                    // URL CORREGIDA a api.argentinadatos.com
+                    const apiUrl = `https://api.argentinadatos.com/v1/feriados/${year}`;
+                    const corsProxies = [
+                        // Mantener los proxies por si falla CORS en la API
+                        `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`,
+                        `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`
+                    ];
+                    
+                    let loaded = false;
+                    for (const proxyUrl of corsProxies) {
+                        try {
+                            const response = await fetch(proxyUrl);
+                            if (response.ok) {
+                                const data = await response.json();
+                                if (Array.isArray(data) && data.length > 0) {
+                                    feriadosData[year] = data;
+                                    if (!availableYears.includes(year)) availableYears.push(year);
+                                    log.info(`Feriados ${year} cargados desde API`, { count: data.length });
+                                    loaded = true;
+                                    successCount++;
+                                    break;
+                                }
+                            }
+                        } catch (e) {
+                            log.debug(`Proxy falló para ${year}`, e.message);
+                        }
+                    }
+                    
+                    if (!loaded) {
+                        throw new Error('Todos los proxies fallaron');
+                    }
+                } catch (error) {
+                    log.warn(`No se pudo cargar desde API para ${year}`, error.message);
+                }
+            }
+            return successCount > 0;
+        }
 
-  for (const y of years) {
-    // 1. Cargar feriados nacionales (API)
-    const api = await fetchFeriados(y);
-    if (api.success) {
-      for (const [k, v] of api.feriados.entries()) combined.set(k, 'Feriado: ' + v);
-      loadedYears.push(y);
-    } else {
-      failedYears.push(y);
-    }
-    
-    // 2. Cargar feriados de Feria (codificados)
-    const custom = customInhabilesForYear(y);
-    for (const [k, v] of custom.entries()) combined.set(k, v);
-  }
+        async function loadDiasInhabilesExtra() {
+            try {
+                log.info('Cargando días inhábiles extra desde JSON');
+                const response = await fetch(`https://jnc-34.github.io/jnc34/dias-inhabiles.json?${CACHE_BUSTER}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // FIX DE ESTRUCTURA: Intentar cargar la clave 'dias_inhabiles_adicionales'
+                    const targetArray = data.dias_inhabiles_adicionales || data;
 
-  // 3. Cargar Overrides (JSON local)
-  const overrides = await fetchCustomOverrides();
-  overrides.forEach(o => {
-    if (o && o.fecha && o.motivo) combined.set(o.fecha, o.motivo + ' (override)');
-  });
+                    if (Array.isArray(targetArray)) {
+                        diasInhabilesExtra = targetArray;
+                        log.info('Días inhábiles extra cargados', { count: diasInhabilesExtra.length });
+                    } else {
+                        // Ahora muestra el contenido del targetArray para mejor diagnóstico
+                        log.error('El JSON de días inhábiles no es un array válido, incluso después de buscar la clave.', targetArray); 
+                        diasInhabilesExtra = [];
+                    }
+                } else {
+                    log.warn('No se pudo cargar JSON de días inhábiles extra', { status: response.status });
+                    diasInhabilesExtra = [];
+                }
+            } catch (error) {
+                log.error('Error al cargar días inhábiles extra', error);
+                diasInhabilesExtra = [];
+            }
+        }
 
-  return { inhMap: combined, loadedYears, failedYears };
-}
-// --- FIN DE MODIFICACION buildInhabilesForYears ---
+        function updateAvailableYearsDisplay() {
+            const yearsEl = document.getElementById('availableYears');
+            const warningEl = document.getElementById('apiWarning');
+            warningEl.style.display = 'none';
+            warningEl.classList.remove('api-fallback');
+
+            let sourceText = '';
+            
+            if (feriadosSource === 'API_ARGENTINADATOS') {
+                sourceText = 'Fuente de Feriados: **api.ArgentinaDatos.com** (API con proxies). Días Inhábiles Extra: **JSON Local**.';
+            } else if (feriadosSource === 'JSON_FALLBACK') {
+                sourceText = '⚠️ **FALLBACK ACTIVO:** Fuente de Feriados/Inhábiles: **JSON Local (jnc-34.github.io/jnc34/dias-inhabiles.json)**. La API de feriados falló.';
+                warningEl.innerHTML = `**Advertencia Fallback:** La carga de la API de feriados falló. Se usa el JSON de días inhábiles como fuente de feriados. **Verifique la precisión de la información.**`;
+                warningEl.style.display = 'block';
+                warningEl.classList.add('api-fallback');
+            } else if (feriadosSource === 'JSON_SOLO_EXTRAS') {
+                 sourceText = 'Fuente de Días Inhábiles Extra: **JSON Local**. La API de feriados falló y no hay información completa.';
+            } else if (feriadosSource === 'SIN_DATOS') {
+                sourceText = 'No se pudo cargar información de feriados/inhábiles. El cálculo de días hábiles no funcionará.';
+                yearsEl.style.color = '#dc3545';
+                log.error('No hay años disponibles para días hábiles');
+            }
 
 
-function isInMapYmd(map,date){return map.has(toYmd(date))}
-function isBusinessDay(date,inhMap){return !isWeekend(date)&&!isInMapYmd(inhMap,date)}
-function nextBusinessDay(date,inhMap){let d=new Date(date);d.setHours(0,0,0,0);while(!isBusinessDay(d,inhMap)) d=addDays(d,1);return d}
-function nextBusinessDayStrict(date,inhMap){return nextBusinessDay(addDays(date,1),inhMap)}
-function countBusinessDaysFrom(startDate, days, inhMap){let counted=0;let cursor=new Date(startDate);cursor.setHours(0,0,0,0);while(counted<days){if(isBusinessDay(cursor,inhMap)) counted++; if(counted>=days) break; cursor=addDays(cursor,1);} return {lastCountedDay: cursor}}
+            if (availableYears.length > 0) {
+                const sortedYears = [...new Set(availableYears)].sort();
+                yearsEl.innerHTML = `Calculadora disponible para los años: **${sortedYears.join(', ')}**.<br> <span style="font-size: 10px; font-weight: 500;">${sourceText}</span>`;
+            } else if (feriadosSource === 'SIN_DATOS') {
+                 yearsEl.innerHTML = `<span style="font-size: 12px; font-weight: 600; color: #dc3545;">${sourceText}</span>`;
+            } else {
+                 yearsEl.innerHTML = `Calculadora disponible para días corridos. <span style="font-size: 10px; font-weight: 500;">${sourceText}</span>`;
+            }
+            
+            // Advertencia para años faltantes (solo relevante si la fuente principal era la API)
+            if (feriadosSource === 'API_ARGENTINADATOS') {
+                const allYears = YEARS_TO_LOAD;
+                const yearsWithData = Object.keys(feriadosData).map(Number);
+                const missingYears = allYears.filter(y => !yearsWithData.includes(y));
+                
+                if (missingYears.length > 0) {
+                    warningEl.innerHTML = `⚠️ Advertencia: No se pudieron cargar los feriados desde la API para los años: ${missingYears.join(', ')}. El cálculo de días hábiles puede ser inexacto para esos años.`;
+                    warningEl.style.display = 'block';
+                    warningEl.classList.remove('api-fallback');
+                    log.warn('Años faltantes', missingYears);
+                }
+            }
+        }
 
-// UI wiring
-document.getElementById('anioRange').textContent = `${MIN_YEAR} - ${MAX_YEAR}`;
-const calcularBtn = document.getElementById('calcular'); const resetBtn = document.getElementById('reset'); const forceBtn = document.getElementById('force');
+        function setupInputValidation() {
+            const inputs = document.querySelectorAll('input[type="text"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    e.target.classList.remove('error');
+                });
+            });
+        }
 
-resetBtn.addEventListener('click', ()=>{
-    ['d_dia','d_mes','d_anio'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('plazoDias').value='10';
-    document.getElementById('output').style.display='none';
-    document.getElementById('trace').style.display='none';
-    document.getElementById('statusMessage').style.display='none'; // Limpiar mensaje de estado
-});
-forceBtn.addEventListener('click', ()=>{ location.reload(true); });
+        function parseDate(day, month, year) {
+            const d = parseInt(day);
+            const m = parseInt(month);
+            const y = parseInt(year);
+            
+            log.debug('Parseando fecha', { day: d, month: m, year: y });
+            
+            if (isNaN(d) || isNaN(m) || isNaN(y)) {
+                log.error('Fecha con valores NaN');
+                return null;
+            }
+            
+            if (d < 1 || d > 31 || m < 1 || m > 12 || y < 1900 || y > 2100) {
+                log.error('Fecha fuera de rango válido');
+                return null;
+            }
+            
+            // Crear la fecha usando UTC para evitar problemas de zona horaria con el día
+            const date = new Date(Date.UTC(y, m - 1, d)); 
+            
+            // Verificar si la fecha creada coincide con los valores de entrada
+            if (date.getUTCDate() !== d || date.getUTCMonth() !== m - 1 || date.getUTCFullYear() !== y) {
+                 log.error('Fecha inválida (ej. 30 de febrero)', { input: `${d}/${m}/${y}`, parsed: date });
+                 return null;
+            }
+            
+            // Retornar la fecha, ajustada para ser usada en el loop
+            return new Date(y, m - 1, d);
+        }
 
-calcularBtn.addEventListener('click', async ()=>{
-  const dd=document.getElementById('d_dia').value; const dm=document.getElementById('d_mes').value; const dy=document.getElementById('d_anio').value;
-  if(!dd||!dm||!dy) return alert('Por favor ingrese la fecha de notificación');
-  const notif = new Date(Number(dy), Number(dm)-1, Number(dd)); notif.setHours(0,0,0,0);
-  const pagosCorridos = Number(document.getElementById('plazoDias').value) || 0;
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
 
-  // build inhábiles map for relevant years
-  const yearsToFetch = []; const y0 = notif.getFullYear(); for(let y=Math.max(MIN_YEAR,y0-1); y<=Math.max(MAX_YEAR,y0+1); y++) yearsToFetch.push(y);
-  
-  // Llamar a la función modificada y obtener el mapa y los estados de carga
-  const { inhMap, loadedYears, failedYears } = await buildInhabilesForYears(Array.from(new Set(yearsToFetch)).sort());
+        function isWeekend(date) {
+            const day = date.getDay();
+            return day === 0 || day === 6;
+        }
 
-  // Compute start: primer día efectivamente contado = día hábil siguiente al de la notificación
-  const startBiz = nextBusinessDayStrict(notif, inhMap);
+        function isFeriado(date) {
+            const year = date.getFullYear();
+            if (!feriadosData[year]) {
+                log.debug(`No hay datos de feriados para ${year}`);
+                return { is: false, reason: null };
+            }
+            
+            const dateStr = formatDateForAPI(date);
+            const feriado = feriadosData[year].find(f => f.fecha === dateStr);
+            
+            if (feriado) {
+                // FIX DE CLAVE: La API usa 'nombre'. Usamos 'nombre' como preferido y 'motivo' como fallback (para el JSON fallback).
+                const reason = feriado.nombre || feriado.motivo;
+                
+                log.debug('Feriado encontrado', { date: dateStr, motivo: reason });
+                return { is: true, reason: `Feriado: ${reason}` };
+            }
+            
+            return { is: false, reason: null };
+        }
 
-  // Count 10 business days (art.257) starting from startBiz inclusive
-  const { lastCountedDay: lastBiz } = countBusinessDaysFrom(startBiz, 10, inhMap);
+        function formatDateForAPI(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
-  // After lastBiz, count pagosCorridos days corridos. We assume counting starts the day after lastBiz
-  const startCorr = addDays(lastBiz, 1);
-  const endCorr = addDays(startCorr, pagosCorridos-1); // inclusive count of pagosCorridos days
+        function isEspecialInhabil(date) {
+            const day = date.getDate();
+            const month = date.getMonth() + 1;
+            const year = date.getFullYear();
+            
+            // Lógica original de la Justicia
+            
+            if (month === 11 && day === 16) {
+                return { is: true, reason: 'Día inhábil especial (16 de noviembre - Ley 26.674)' };
+            }
+            
+            if (month === 1) {
+                // Feria de Enero (toda)
+                return { is: true, reason: 'Feria de enero' };
+            }
+            
+            if (month === 7 || month === 8) {
+                if (isInFeriaJulio(date)) {
+                    return { is: true, reason: 'Feria de julio (últimas dos semanas)' };
+                }
+            }
+            
+            // Acordadas y días especiales puntuales
+            if (year === 2024 && month === 5 && day === 9) {
+                return { is: true, reason: 'Día inhábil especial (Acordada CSJN 27/2024)' };
+            }
+            
+            if (year === 2022 && month === 10 && day === 18) {
+                return { is: true, reason: 'Día inhábil especial (Acordada CSJN 26/2022)' };
+            }
+            
+            return { is: false, reason: null };
+        }
 
-  // Vencimiento: al final de endCorr (24:00). For display, show endCorr date and mention 'hasta las 24:00'
-  const vencimientoDate = endCorr; // time is end of day
+        const feriaJulioCache = {};
+        
+        function getFeriaJulioDates(year) {
+            if (feriaJulioCache[year]) {
+                return feriaJulioCache[year];
+            }
+            
+            // Buscar los lunes de julio (mes 6 en JS)
+            const julyMondays = [];
+            for (let day = 1; day <= 31; day++) {
+                const testDate = new Date(year, 6, day);
+                // testDate.getMonth() === 6 asegura que es julio
+                // testDate.getDay() === 1 asegura que es lunes
+                if (testDate.getMonth() === 6 && testDate.getDay() === 1) {
+                    julyMondays.push(day);
+                }
+            }
+            
+            // Si hay menos de 2 lunes, algo raro pasa, asumimos que no hay feria o es un cálculo raro
+            if (julyMondays.length < 2) {
+                feriaJulioCache[year] = { start: null, end: null };
+                return feriaJulioCache[year];
+            }
+            
+            // La feria de julio es la última quincena (dos semanas)
+            // Empieza el segundo lunes antes del fin de mes (que es el penúltimo)
+            const secondLastMondayDay = julyMondays[julyMondays.length - 2];
+            
+            const startFeria = new Date(year, 6, secondLastMondayDay);
+            const endFeria = new Date(startFeria);
+            endFeria.setDate(startFeria.getDate() + 13); // 14 días total
+            
+            feriaJulioCache[year] = { start: startFeria, end: endFeria };
+            return feriaJulioCache[year];
+        }
 
-  // --- NUEVO: MENSAJE DE ESTADO DE CARGA (TRANSPARENCIA) ---
-  const statusElem = document.getElementById('statusMessage');
-  let statusHTML = `<strong>Feriados nacionales cargados:</strong> ${loadedYears.sort().join(', ')} (vía API).`;
+        function isInFeriaJulio(date) {
+            const year = date.getFullYear();
+            const { start, end } = getFeriaJulioDates(year);
+            
+            if (!start || !end) return false;
+            
+            // Clonar la fecha y resetear la hora para compararla correctamente con start/end (que tienen hora 00:00:00)
+            const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-  if (failedYears.length > 0) {
-      statusHTML += `<br><span style="color:red; font-weight:600;">⚠️ Advertencia:</span> No se pudieron cargar los feriados nacionales (API) para el/los año(s): ${failedYears.sort().join(', ')}. Los días de **Feria** y feriados locales codificados (Enero, Julio, 16/11) SÍ fueron utilizados.`;
-      statusElem.style.borderColor = '#ff4d4f'; 
-      statusElem.style.background = '#fff0f0';
-  } else {
-      statusHTML += ` Los días de **Feria** y feriados locales codificados (Enero, Julio, 16/11) también fueron utilizados.`;
-      statusElem.style.borderColor = 'var(--border)';
-      statusElem.style.background = '#f8fdf8';
-  }
-  
-  statusElem.innerHTML = statusHTML;
-  statusElem.style.display = 'block';
-  // --- FIN NUEVO MENSAJE DE ESTADO DE CARGA ---
+            return dateOnly >= start && dateOnly <= end;
+        }
 
-  // Output
-  document.getElementById('output').style.display='block';
-  const vencElem = document.getElementById('vencimiento');
-  vencElem.innerHTML = `<strong>Vencimiento del pago:</strong> ${vencimientoDate.toLocaleDateString('es-AR')} (hasta las 24:00).`;
+        function isInhabilJSON(date) {
+            // Este chequeo aplica al JSON cargado para días inhábiles extra
+            const dateStr = formatDateForAPI(date);
+            
+            // diasInhabilesExtra está garantizado como array o []
+            const found = diasInhabilesExtra.find(d => d.fecha === dateStr);
+            
+            if (found) {
+                // FIX DE CLAVE: Utilizar 'motivo' o 'nombre' del JSON extra.
+                const reason = found.motivo || found.nombre || 'Sin motivo especificado';
+                return { is: true, reason: `Día inhábil adicional: ${reason}` };
+            }
+            
+            return { is: false, reason: null };
+        }
 
-  // Periods display: timeline boxes + textual explanation
-  const periodos = document.getElementById('periodos'); periodos.innerHTML = '';
-  // timeline visual (simple boxes)
-  const timeline = document.createElement('div'); timeline.className='timeline';
-  const box1 = document.createElement('div'); box1.className='period'; box1.style.background='var(--period1)'; box1.innerHTML = `<strong>Notificación</strong><br>${notif.toLocaleDateString('es-AR')}`;
-  const box2 = document.createElement('div'); box2.className='period'; box2.style.background='var(--period2)'; box2.innerHTML = `<strong>10 días hábiles</strong><br>Inicio: ${startBiz.toLocaleDateString('es-AR')}<br>Fin: ${lastBiz.toLocaleDateString('es-AR')}`;
-  const box3 = document.createElement('div'); box3.className='period'; box3.style.background='var(--period3)'; box3.innerHTML = `<strong>${pagosCorridos} días corridos</strong><br>Inicio: ${startCorr.toLocaleDateString('es-AR')}<br>Fin: ${endCorr.toLocaleDateString('es-AR')}`;
-  timeline.appendChild(box1); timeline.appendChild(box2); timeline.appendChild(box3);
-  periodos.appendChild(timeline);
+        function calculate() {
+            log.info('===== INICIANDO CÁLCULO =====');
+            
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                input.classList.remove('error');
+            });
+            
+            const startDay = document.getElementById('startDay').value;
+            const startMonth = document.getElementById('startMonth').value;
+            const startYear = document.getElementById('startYear').value;
+            const endDay = document.getElementById('endDay').value;
+            const endMonth = document.getElementById('endMonth').value;
+            const endYear = document.getElementById('endYear').value;
+            
+            log.debug('Valores de entrada', { 
+                start: `${startDay}/${startMonth}/${startYear}`,
+                end: `${endDay}/${endMonth}/${endYear}`
+            });
+            
+            if (!startDay || !startMonth || !startYear || !endDay || !endMonth || !endYear) {
+                alert('Por favor complete todos los campos de fecha');
+                log.warn('Campos incompletos');
+                return;
+            }
+            
+            const startDate = parseDate(startDay, startMonth, startYear);
+            const endDate = parseDate(endDay, endMonth, endYear);
+            
+            if (!startDate) {
+                alert('La fecha de inicio no es válida');
+                ['startDay', 'startMonth', 'startYear'].forEach(id => {
+                    document.getElementById(id).classList.add('error');
+                });
+                log.error('Fecha de inicio inválida');
+                return;
+            }
+            
+            if (!endDate) {
+                alert('La fecha de fin no es válida');
+                ['endDay', 'endMonth', 'endYear'].forEach(id => {
+                    document.getElementById(id).classList.add('error');
+                });
+                log.error('Fecha de fin inválida');
+                return;
+            }
+            
+            if (startDate > endDate) {
+                alert('La fecha de inicio debe ser anterior a la fecha de fin');
+                log.error('Fecha de inicio posterior a fecha de fin');
+                return;
+            }
+            
+            const includeStart = document.getElementById('includeStart').checked;
+            const includeEnd = document.getElementById('includeEnd').checked;
+            const businessDays = document.getElementById('businessDays').checked;
+            
+            log.debug('Opciones de cálculo', { includeStart, includeEnd, businessDays });
+            
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            
+            // Usar setTimeout para permitir que el DOM se actualice antes de empezar el cálculo largo
+            setTimeout(() => {
+                performCalculation(startDate, endDate, includeStart, includeEnd, businessDays);
+            }, 100);
+        }
 
-  // legend
-  const legend = document.createElement('div'); legend.className='legend';
-  legend.innerHTML = `<span><i class="swatch" style="background:var(--period1)"></i> Notificación</span><span><i class="swatch" style="background:var(--period2)"></i> 10 días hábiles (art.257)</span><span><i class="swatch" style="background:var(--period3)"></i> Días corridos para pago</span>`;
-  periodos.appendChild(legend);
+        function performCalculation(startDate, endDate, includeStart, includeEnd, businessDays) {
+            const excludedDays = [];
+            let totalDays = 0;
+            
+            // Configurar el rango de fechas a iterar
+            const actualStartDate = new Date(startDate);
+            const actualEndDate = new Date(endDate);
+            
+            // Ajustar según las opciones de inclusión/exclusión
+            if (!includeStart) {
+                actualStartDate.setDate(actualStartDate.getDate() + 1);
+            }
+            if (!includeEnd) {
+                actualEndDate.setDate(actualEndDate.getDate() - 1);
+            }
+            
+            log.info('Rango de cálculo', {
+                start: formatDate(startDate) + (includeStart ? ' (Incluida)' : ' (Excluida)'),
+                end: formatDate(endDate) + (includeEnd ? ' (Incluida)' : ' (Excluida)'),
+                iteracion_inicio: formatDate(actualStartDate),
+                iteracion_fin: formatDate(actualEndDate),
+            });
+            
+            const currentDate = new Date(actualStartDate);
+            
+            // Loop de día a día
+            while (currentDate.getTime() <= actualEndDate.getTime()) {
+                let shouldCount = true;
+                let exclusionReason = null;
+                
+                if (businessDays) {
+                    
+                    // 1. Fines de Semana
+                    if (isWeekend(currentDate)) {
+                        shouldCount = false;
+                        exclusionReason = currentDate.getDay() === 0 ? 'Domingo' : 'Sábado';
+                    }
+                    
+                    // 2. Feriados (API o Fallback JSON)
+                    if (shouldCount) {
+                        const feriadoCheck = isFeriado(currentDate);
+                        if (feriadoCheck.is) {
+                            shouldCount = false;
+                            exclusionReason = feriadoCheck.reason;
+                        }
+                    }
+                    
+                    // 3. Días Inhábiles Especiales (Hardcodeados - Ferias y Acordadas)
+                    if (shouldCount) {
+                        const especialCheck = isEspecialInhabil(currentDate);
+                        if (especialCheck.is) {
+                            shouldCount = false;
+                            exclusionReason = especialCheck.reason;
+                        }
+                    }
+                    
+                    // 4. Días Inhábiles Extra (JSON)
+                    if (shouldCount) {
+                        const jsonCheck = isInhabilJSON(currentDate);
+                        if (jsonCheck.is) {
+                            shouldCount = false;
+                            exclusionReason = jsonCheck.reason;
+                        }
+                    }
+                }
+                
+                // Contar o Excluir
+                if (shouldCount) {
+                    totalDays++;
+                } else if (businessDays && exclusionReason) {
+                    excludedDays.push({
+                        date: new Date(currentDate),
+                        reason: exclusionReason
+                    });
+                }
+                
+                // Mover al siguiente día
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            log.info('Cálculo completado', {
+                totalDays,
+                excludedDays: excludedDays.length
+            });
+            
+            displayResults(actualStartDate, totalDays, excludedDays, businessDays);
+        }
 
-  // Trace: list which dates were counted in each period
-  const trace = document.getElementById('trace'); trace.style.display='block'; trace.innerHTML = '';
-  const p1 = document.createElement('div'); p1.innerHTML = `<strong>Detalle del cómputo</strong>`; trace.appendChild(p1);
+        function displayResults(startDate, totalDays, excludedDays, businessDays) {
+            document.getElementById('loading').classList.remove('show');
+            
+            document.getElementById('countStartDate').textContent = formatDate(startDate);
+            document.getElementById('totalDays').textContent = totalDays;
+            
+            if (businessDays && excludedDays.length > 0) {
+                document.getElementById('excludedDaysSection').style.display = 'block';
+                const listEl = document.getElementById('excludedDaysList');
+                listEl.innerHTML = excludedDays.map(item => `
+                    <div class="excluded-item">
+                        <span class="excluded-date">${formatDate(item.date)}</span>
+                        <span class="excluded-reason">${item.reason}</span>
+                    </div>
+                `).join('');
+                
+                log.info('Días excluidos mostrados', { count: excludedDays.length });
+            } else {
+                document.getElementById('excludedDaysSection').style.display = 'none';
+            }
+            
+            document.getElementById('results').classList.add('show');
+            log.info('===== CÁLCULO FINALIZADO =====');
+        }
 
-  // list business days counted
-  const ulBiz = document.createElement('ul'); ulBiz.style.padding='0'; ulBiz.style.listStyle='none'; ulBiz.style.marginTop='8px';
-  // iterate from startBiz until lastBiz inclusive
-  let cur = new Date(startBiz); while(cur <= lastBiz){ if(isBusinessDay(cur,inhMap)){ const li=document.createElement('li'); li.textContent = `${cur.toLocaleDateString('es-AR')} — contado (hábil)`; ulBiz.appendChild(li); } else { const li=document.createElement('li'); li.textContent = `${cur.toLocaleDateString('es-AR')} — descontado: ${inhMap.get(toYmd(cur)) || 'Fin de semana'} (no contado)`; ulBiz.appendChild(li); } cur = addDays(cur,1); }
-  const wrapBiz = document.createElement('div'); wrapBiz.innerHTML = '<strong>Período 10 días hábiles (fechas consideradas)</strong>'; wrapBiz.appendChild(ulBiz); trace.appendChild(wrapBiz);
-
-  // list corridos days
-  const ulCorr = document.createElement('ul'); ulCorr.style.padding='0'; ulCorr.style.listStyle='none'; ulCorr.style.marginTop='8px'; let curC = new Date(startCorr); while(curC <= endCorr){ const li=document.createElement('li'); li.textContent = `${curC.toLocaleDateString('es-AR')} — contado (corridos)`; ulCorr.appendChild(li); curC = addDays(curC,1); }
-  const wrapCorr = document.createElement('div'); wrapCorr.innerHTML = `<strong>Período ${pagosCorridos} días corridos (fechas consideradas)</strong>`; wrapCorr.appendChild(ulCorr); trace.appendChild(wrapCorr);
-
-  // scroll into view
-  vencElem.scrollIntoView({behavior:'smooth'});
-});
-</script>
+        function resetForm() {
+            log.info('Reseteando formulario');
+            
+            document.getElementById('startDay').value = '';
+            document.getElementById('startMonth').value = '';
+            document.getElementById('startYear').value = '';
+            document.getElementById('endDay').value = '';
+            document.getElementById('endMonth').value = '';
+            document.getElementById('endYear').value = '';
+            
+            document.getElementById('includeStart').checked = true;
+            document.getElementById('includeEnd').checked = true;
+            document.getElementById('businessDays').checked = false;
+            
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('loading').classList.remove('show');
+            
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                input.classList.remove('error');
+            });
+        }
+    </script>
 </body>
 </html>
