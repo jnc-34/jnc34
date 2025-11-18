@@ -504,7 +504,7 @@
                 
                 if (availableYears.length === 0) {
                     document.getElementById('yearsAvailable').textContent = 
-                        '⚠️ No se pudieron cargar los feriados de la API. Funcionando con días inhábiles locales.';
+                        '⚠️ No se pudieron cargar los feriados de la API(ArgentinaDatos). Se ejecutan los cálculos en función de base de datos propia. Verifique los feriados nacionales en el sitio oficial: <a href="https://www.argentina.gob.ar/interior/feriados-nacionales-2025"target="_blank">argentina.gob.ar</a>';
                 } else {
                     const min = Math.min(...availableYears);
                     const max = Math.max(...availableYears);
