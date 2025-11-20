@@ -420,7 +420,7 @@
             // 1. Cargar días inhábiles extra (tu JSON) - Necesario para el Fallback y días extra específicos.
             await loadDiasInhabilesExtra(); 
 
-            // 2. Intentar cargar Feriados desde API con proxies (USANDO URL CORREGIDA)
+            // 2. Intentar cargar Feriados desde API (USANDO URL DIRECTA + PROXY FALLBACK)
             let apiSuccess = await loadFeriadosFromAPI();
 
             // 3. Si la API falla, usar el JSON cargado como Fallback de Feriados
@@ -451,6 +451,7 @@
             updateAvailableYearsDisplay();
         }
         
+        // --- FUNCIÓN CORREGIDA ---
         async function loadFeriadosFromAPI() {
             let successCount = 0;
             for (const year of YEARS_TO_LOAD) {
@@ -458,18 +459,24 @@
                 
                 try {
                     log.info(`Intentando cargar feriados para ${year} desde API`);
-                    // URL CORREGIDA a api.argentinadatos.com
                     const apiUrl = `https://api.argentinadatos.com/v1/feriados/${year}`;
-                    const corsProxies = [
-                        // Mantener los proxies por si falla CORS en la API
+                    
+                    // 1. Array de URLs a intentar: Directa primero, luego los proxies.
+                    const fetchUrls = [apiUrl];
+
+                    fetchUrls.push(
+                        // Proxies como verdadero FALLBACK por si falla CORS en la conexión directa
                         `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`,
                         `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`
-                    ];
+                    );
                     
                     let loaded = false;
-                    for (const proxyUrl of corsProxies) {
+                    // Iterar sobre las URLs: la directa primero, luego los proxies
+                    for (const targetUrl of fetchUrls) {
                         try {
-                            const response = await fetch(proxyUrl);
+                            log.debug(`Intentando URL: ${targetUrl}`);
+                            const response = await fetch(targetUrl);
+                            
                             if (response.ok) {
                                 const data = await response.json();
                                 if (Array.isArray(data) && data.length > 0) {
@@ -478,16 +485,18 @@
                                     log.info(`Feriados ${year} cargados desde API`, { count: data.length });
                                     loaded = true;
                                     successCount++;
-                                    break;
+                                    break; // ¡Éxito! Salir del bucle de URLs/Proxies
                                 }
                             }
                         } catch (e) {
-                            log.debug(`Proxy falló para ${year}`, e.message);
+                            // Este catch capturará errores de red (net::ERR_FAILED) y, a veces, fallos de CORS, 
+                            // permitiendo que se intente el siguiente proxy.
+                            log.debug(`Solicitud falló para ${targetUrl}:`, e.message);
                         }
                     }
                     
                     if (!loaded) {
-                        throw new Error('Todos los proxies fallaron');
+                        throw new Error('Todos los métodos (Directo + Proxies) fallaron');
                     }
                 } catch (error) {
                     log.warn(`No se pudo cargar desde API para ${year}`, error.message);
@@ -495,6 +504,7 @@
             }
             return successCount > 0;
         }
+        // --- FIN FUNCIÓN CORREGIDA ---
 
         async function loadDiasInhabilesExtra() {
             try {
@@ -533,7 +543,7 @@
             let sourceText = '';
             
             if (feriadosSource === 'API_ARGENTINADATOS') {
-                sourceText = 'Fuente de Feriados: **api.ArgentinaDatos.com** (API con proxies). Días Inhábiles Extra: **JSON Local**.';
+                sourceText = 'Fuente de Feriados: **api.ArgentinaDatos.com** (API directa / con proxies). Días Inhábiles Extra: **JSON Local**.';
             } else if (feriadosSource === 'JSON_FALLBACK') {
                 sourceText = '⚠️ **FALLBACK ACTIVO:** Fuente de Feriados/Inhábiles: **JSON Local (jnc-34.github.io/jnc34/dias-inhabiles.json)**. La API de feriados falló.';
                 warningEl.innerHTML = `**Advertencia Fallback:** La carga de la API de feriados falló. Se usa el JSON de días inhábiles como fuente de feriados. **Verifique la precisión de la información.**`;
