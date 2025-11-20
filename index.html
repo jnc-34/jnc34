@@ -359,23 +359,41 @@
         async function cargarDiasInhabilesJSON() {
             try {
                 console.log('Cargando días inhábiles desde JSON...');
-                const response = await fetch(CUSTOM_HOLIDAYS_URL + '?v=' + new Date().getTime());
+                // Añadir versión para evitar caché, crucial para GitHub Pages
+                const response = await fetch(CUSTOM_HOLIDAYS_URL + '?v=' + new Date().getTime()); 
+                
                 if (response.ok) {
                     const data = await response.json();
                     if (data.dias_inhabiles_adicionales && Array.isArray(data.dias_inhabiles_adicionales)) {
                         customHolidaysCache = data.dias_inhabiles_adicionales;
                         jsonHolidaysLoaded = true;
                         console.log('Días inhábiles del JSON cargados:', customHolidaysCache.length);
+                        return true;
                     }
-                } else {
-                    console.warn('No se pudo cargar el JSON de días inhábiles');
                 }
+                
+                // Si la respuesta no es OK (ej: 404) o el formato es incorrecto, cae aquí
+                throw new Error(`Fallo al cargar el JSON: HTTP ${response.status || 'Desconocido'}`);
+                
             } catch (error) {
                 console.error('Error al cargar días inhábiles del JSON:', error);
+                
+                // --- IMPLEMENTACIÓN DE ADVERTENCIA VISIBLE DE FALLO CRÍTICO DEL JSON ---
+                const statusDiv = document.getElementById('yearsAvailable');
+                statusDiv.innerHTML += `<br>
+                    ❌ **ERROR CRÍTICO:** No se pudo cargar la base de datos local de días inhábiles. 
+                    Las Ferias Judiciales y Acordadas (asueto) NO están incluidas en el cálculo. 
+                    Contacte al desarrollador.
+                `;
+                statusDiv.style.backgroundColor = '#f8d7da'; // Fondo rojo claro para error
+                statusDiv.style.color = '#721c24'; // Texto rojo oscuro
+                // ------------------------------------------------------------------------
+                
+                return false;
             }
         }
         
-        // Cargar días inhábiles personalizados
+        // Cargar días inhábiles personalizados (HARDCODEADOS)
         const customHolidays = [
             // 16 de noviembre (Ley 26.674) - para todos los años desde 2021
             ...Array.from({length: MAX_YEAR - MIN_YEAR + 1}, (_, i) => ({
@@ -427,13 +445,13 @@
         // Generar feria de julio (últimas 2 semanas)
         function generarFeriaJulio(anio) {
             const resultado = [];
-            const ultimoDiaJulio = new Date(anio, 6, 31); // Julio es mes 6
+            const ultimoDiaJulio = new Date(anio, 6, 31); // Julio es mes 6 (0-indexado)
             let ultimoLunes = null;
             let penultimoLunes = null;
             
             // Buscar los últimos dos lunes
             for (let d = new Date(ultimoDiaJulio); d.getMonth() === 6; d.setDate(d.getDate() - 1)) {
-                if (d.getDay() === 1) { // Lunes
+                if (d.getDay() === 1) { // Lunes (1)
                     if (!ultimoLunes) {
                         ultimoLunes = new Date(d);
                     } else if (!penultimoLunes) {
@@ -488,12 +506,14 @@
                 const results = await Promise.all(promises);
                 console.log('Resultados obtenidos:', results);
                 
+                let successCount = 0;
                 results.forEach((data, index) => {
                     const year = yearsToLoad[index];
                     if (data && Array.isArray(data)) {
                         feriadosCache[year] = data;
                         if (!availableYears.includes(year)) {
                             availableYears.push(year);
+                            successCount++;
                         }
                         console.log(`Feriados cargados para ${year}:`, data.length);
                     }
@@ -502,13 +522,17 @@
                 availableYears.sort((a, b) => a - b);
                 console.log('Años disponibles:', availableYears);
                 
-                if (availableYears.length === 0) {
-                    document.getElementById('yearsAvailable').textContent = 
-                        '⚠️ No se pudieron cargar los feriados de la API(ArgentinaDatos). Se ejecutan los cálculos en función de base de datos propia. Verifique los feriados nacionales en el sitio oficial: <a href="https://www.argentina.gob.ar/interior/feriados-nacionales-2025"target="_blank">argentina.gob.ar</a>';
+                const yearsAvailableDiv = document.getElementById('yearsAvailable');
+                
+                if (successCount === 0) { // Ningún año se pudo cargar
+                    // --- IMPLEMENTACIÓN DE MENSAJE DE FALLO DE API MEJORADO ---
+                    yearsAvailableDiv.innerHTML = 
+                        `⚠️ No se pudieron cargar los feriados de la API (ArgentinaDatos). Se ejecutan los cálculos en función de base de datos propia. Verifique los feriados nacionales en el sitio oficial: <a href="https://www.argentina.gob.ar/interior/feriados-nacionales-2025" target="_blank">argentina.gob.ar</a>`;
+                    // -------------------------------------------------------------
                 } else {
                     const min = Math.min(...availableYears);
                     const max = Math.max(...availableYears);
-                    document.getElementById('yearsAvailable').textContent = 
+                    yearsAvailableDiv.textContent = 
                         `Calculadora disponible para los años ${min} - ${max}`;
                 }
             } catch (error) {
@@ -525,6 +549,7 @@
         
         function esFeriado(fecha) {
             const year = fecha.getFullYear();
+            // Asegurarse de que el formato de fecha sea YYYY-MM-DD
             const fechaStr = fecha.toISOString().split('T')[0];
             
             if (feriadosCache[year]) {
@@ -551,8 +576,13 @@
         
         function esDiaHabil(fecha) {
             if (esFinDeSemana(fecha)) return false;
-            if (esFeriado(fecha)) return false;
-            if (esInhabilCustom(fecha)) return false;
+            // Solo verificar feriados si se cargaron de la API o si estamos en un año no cubierto
+            const feriado = esFeriado(fecha);
+            if (feriado) return false;
+            
+            const custom = esInhabilCustom(fecha);
+            if (custom) return false;
+            
             return true;
         }
         
@@ -614,11 +644,24 @@
             if (d < 1) return false;
             
             const fecha = new Date(a, m - 1, d);
+            // Verifica que el JS Date object no haya 'corregido' una fecha inválida (ej: 30 de febrero)
             if (fecha.getFullYear() !== a || fecha.getMonth() !== m - 1 || fecha.getDate() !== d) {
                 return false;
             }
             
             return true;
+        }
+        
+        function obtenerMotivoInhabil(fecha) {
+            if (esFinDeSemana(fecha)) return 'Fin de semana';
+            
+            const feriado = esFeriado(fecha);
+            if (feriado) return feriado.nombre || 'Feriado nacional (API)';
+            
+            const inhabil = esInhabilCustom(fecha);
+            if (inhabil) return inhabil.motivo || 'Día inhábil (JSON/Local)';
+            
+            return 'Día hábil (Error de Lógica)'; // No debería llegar aquí
         }
         
         function calcular() {
@@ -652,8 +695,8 @@
             
             if (hayError) return;
             
-            // Crear fecha de notificación
-            const fechaIngresada = new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia));
+            // Crear fecha de notificación (a las 12:00:00 para evitar problemas de zona horaria)
+            const fechaIngresada = new Date(Date.UTC(parseInt(anio), parseInt(mes) - 1, parseInt(dia), 12));
             let fechaInicioConteo;
             let fechaNotificacion;
             
@@ -663,55 +706,61 @@
                 fechaInicioConteo = siguienteDiaHabil(fechaIngresada);
             } else if (modalidad === 'cedula-inhabitual') {
                 fechaNotificacion = fechaIngresada;
-                fechaInicioConteo = siguienteDiaHabil(fechaIngresada);
+                // Al ser hora inhábil, se notifica el primer día hábil y el plazo comienza al siguiente
+                fechaInicioConteo = siguienteDiaHabil(fechaIngresada); 
                 fechaInicioConteo = siguienteDiaHabil(fechaInicioConteo);
             } else { // automática
                 fechaNotificacion = calcularNotificacionAutomatica(fechaIngresada);
                 fechaInicioConteo = siguienteDiaHabil(fechaNotificacion);
             }
             
-            // Contar días hábiles
+            // Contar días hábiles (Calcula la fecha de vencimiento SIN GRACIA)
             let diasContados = 0;
             let fechaActual = new Date(fechaInicioConteo);
-            const diasIgnorados = [];
             
+            // Retroceder un día la fechaActual para iniciar el bucle en el primer día hábil
+            fechaActual.setDate(fechaActual.getDate() - 1);
+
             while (diasContados < plazo) {
+                fechaActual.setDate(fechaActual.getDate() + 1);
                 if (esDiaHabil(fechaActual)) {
                     diasContados++;
-                    if (diasContados === plazo) break;
                 }
-                fechaActual.setDate(fechaActual.getDate() + 1);
             }
             
-            // Registrar días ignorados
+            const fechaVencimientoSinGracia = new Date(fechaActual);
+            
+            // Aplicar plazo de gracia (art. 124) (Calcula la fecha de vencimiento CON GRACIA)
+            const fechaVencimientoConGracia = siguienteDiaHabil(fechaVencimientoSinGracia);
+            
+            // ** CORRECCIÓN: REGISTRAR DÍAS IGNORADOS **
+            const diasIgnorados = [];
+            // Iterar desde el día ingresado hasta el vencimiento CON GRACIA (inclusive)
             let fechaRegistro = new Date(fechaIngresada);
-            while (fechaRegistro <= fechaActual) {
+            
+            // Usamos un bucle seguro para iterar desde la fecha ingresada hasta la fecha final
+            while (fechaRegistro.getTime() <= fechaVencimientoConGracia.getTime()) {
                 if (!esDiaHabil(fechaRegistro)) {
-                    let motivo = '';
-                    if (esFinDeSemana(fechaRegistro)) {
-                        motivo = 'Fin de semana';
-                    } else {
-                        const feriado = esFeriado(fechaRegistro);
-                        const inhabil = esInhabilCustom(fechaRegistro);
-                        motivo = feriado ? feriado.nombre || 'Feriado nacional' : 
-                                (inhabil ? inhabil.motivo : 'Día inhábil');
+                    const motivo = obtenerMotivoInhabil(fechaRegistro);
+
+                    // Evitar duplicados por múltiples fuentes (JSON, Hardcoded, API)
+                    // Solo registrar si el día inhábil no fue ya registrado
+                    const fechaRegistroStr = fechaRegistro.toISOString().split('T')[0];
+                    if (!diasIgnorados.some(d => d.fecha.toISOString().split('T')[0] === fechaRegistroStr)) {
+                         diasIgnorados.push({
+                            fecha: new Date(fechaRegistro),
+                            motivo: motivo
+                        });
                     }
-                    diasIgnorados.push({
-                        fecha: new Date(fechaRegistro),
-                        motivo: motivo
-                    });
                 }
                 fechaRegistro.setDate(fechaRegistro.getDate() + 1);
             }
-            
-            // Aplicar plazo de gracia (art. 124)
-            const fechaVencimientoConGracia = siguienteDiaHabil(fechaActual);
-            const fechaVencimientoSinGracia = fechaActual;
+            // FIN DE CORRECCIÓN
             
             // Mostrar resultados
             mostrarResultados({
                 modalidad,
-                fechaIngresada,
+                fechaIngresada: new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia)), // Fecha original para el reporte
                 fechaNotificacion,
                 fechaInicioConteo,
                 plazo,
@@ -755,6 +804,9 @@
                         <div class="dias-inhabiles">
                 `;
                 
+                // Ordenar los días ignorados por fecha para mejor lectura
+                datos.diasIgnorados.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
+
                 datos.diasIgnorados.forEach(dia => {
                     html += `
                         <div class="dia-inhabil">
