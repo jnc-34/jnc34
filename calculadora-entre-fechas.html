@@ -463,12 +463,6 @@
                     
                     // 1. Array de URLs a intentar: Directa primero, luego los proxies.
                     const fetchUrls = [apiUrl];
-
-                    fetchUrls.push(
-                        // Proxies como verdadero FALLBACK por si falla CORS en la conexión directa
-                        `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`,
-                        `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`
-                    );
                     
                     let loaded = false;
                     // Iterar sobre las URLs: la directa primero, luego los proxies
