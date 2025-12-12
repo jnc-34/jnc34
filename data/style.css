@@ -68,12 +68,12 @@ h1 {
 
 /* Ocultar contenido inactivo */
 .tab-content {
-    display: none;
+    display: none; /* <--- CRUCIAL: Por defecto, oculto */
     animation: fadeIn 0.4s;
 }
 
 .tab-content.active {
-    display: block;
+    display: block; /* <--- CRUCIAL: Mostrar solo el activo */
 }
 
 @keyframes fadeIn {
