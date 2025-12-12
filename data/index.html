@@ -8,41 +8,79 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     
-    <title>Calculadora de Ampliación de plazos por distancia (Art. 158 CPCCN)</title>
+    <title>Calculadora de Plazos (Argentina e Internacional)</title>
     
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="calculator-container">
+    <div class="main-container">
         <h1>Calculadora de ampliación de plazo por distancia</h1>
-        <p>Según Art. 158 CPCCN (Argentina)</p>
+        <p class="subtitle">Según Art. 158 CPCCN</p>
 
-        <div class="form-group">
-            <label for="localidadJuzgado">📍 Localidad asiento del juzgado o tribunal:</label>
-            <div class="input-group">
-                <input type="text" id="localidadJuzgado" placeholder="Escriba para buscar...">
-                <button id="limpiarJuzgado" title="Limpiar y buscar otro">Limpiar</button>
-            </div>
-            <div id="sugerenciasJuzgado" class="sugerencias"></div>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="argentina">🇦🇷 Argentina</button>
+            <button class="tab-btn" data-tab="internacional">🌍 Internacional</button>
         </div>
 
-        <div class="form-group">
-            <label for="localidadDiligencia">📍 Localidad donde debe practicarse la diligencia:</label>
-            <input type="text" id="localidadDiligencia" placeholder="Escriba para buscar...">
-            <div id="sugerenciasDiligencia" class="sugerencias"></div>
+        <div id="argentina" class="tab-content active">
+            <p class="info-api">Fuente: API GEOREF (Datos Argentina)</p>
+            
+            <div class="form-group">
+                <label>📍 Asiento del juzgado (Arg):</label>
+                <div class="input-group">
+                    <input type="text" id="argJuzgado" placeholder="Buscar localidad argentina...">
+                    <button id="btnLimpiarArg" title="Limpiar">Limpiar</button>
+                </div>
+                <div id="sugArgJuzgado" class="sugerencias"></div>
+            </div>
+
+            <div class="form-group">
+                <label>📍 Lugar de la diligencia (Arg):</label>
+                <input type="text" id="argDiligencia" placeholder="Buscar localidad argentina...">
+                <div id="sugArgDiligencia" class="sugerencias"></div>
+            </div>
+
+            <button id="btnCalcularArg" class="btn-calcular">Calcular (Argentina)</button>
+            
+            <div id="resArg" class="resultado-container"></div>
+            <div id="trazArg" class="trazabilidad-container"></div>
         </div>
 
-        <button id="calcular">Calcular Ampliación</button>
+        <div id="internacional" class="tab-content">
+            <p class="info-api">Fuente: Open-Meteo Geocoding (Datos Mundiales)</p>
 
-        <div id="resultado" class="resultado-container">
+            <div class="form-group">
+                <label>📍 Asiento del juzgado / Origen:</label>
+                <div class="input-group">
+                    <input type="text" id="intlJuzgado" placeholder="Ej: Buenos Aires, Madrid, Roma...">
+                    <button id="btnLimpiarIntl" title="Limpiar">Limpiar</button>
+                </div>
+                <div id="sugIntlJuzgado" class="sugerencias"></div>
             </div>
 
-        <div id="trazabilidad" class="trazabilidad-container">
+            <div class="form-group">
+                <label>📍 Lugar de la diligencia / Destino:</label>
+                <input type="text" id="intlDiligencia" placeholder="Ej: París, Montevideo, New York...">
+                <div id="sugIntlDiligencia" class="sugerencias"></div>
             </div>
+
+            <button id="btnCalcularIntl" class="btn-calcular">Calcular (Internacional)</button>
+            
+            <div id="resIntl" class="resultado-container"></div>
+            <div id="trazIntl" class="trazabilidad-container"></div>
+        </div>
+
+        <div class="legal-warning">
+            <h3>⚠️ Advertencia Legal</h3>
+            <p>Esta calculadora de ampliación de plazo por distancia (art. 158 CPCCN) fue generada mediante Inteligencia Artificial. Es una herramienta complementaria y no sustituye el criterio profesional.</p>
+            <p><strong>Datos:</strong> Para Argentina se usa GEOREF. Para el exterior se usa Open-Meteo.</p>
+            <p><strong>Cálculo:</strong> Distancia lineal (Haversine). 1 día cada 200km o fracción >100km.</p>
+            <p>Utilice bajo su propia responsabilidad contrastando el resultado.</p>
+        </div>
 
     </div>
 
-    <script src="script.js?v=1.0"></script>
+    <script src="script.js?v=2.0"></script>
 </body>
 </html>
