@@ -6,23 +6,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
+    const switchTab = (tabId) => {
+        // 1. Desactivar todos
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        
+        // 2. Activar el clickeado
+        const targetBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+        const targetContent = document.getElementById(tabId);
+        
+        if (targetBtn && targetContent) {
+            targetBtn.classList.add('active');
+            targetContent.classList.add('active');
+        }
+    };
+
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Remover clase active de todos
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
-            
-            // Activar el clickeado
-            btn.classList.add('active');
-            document.getElementById(btn.dataset.tab).classList.add('active');
+            switchTab(btn.dataset.tab);
         });
     });
+
+    // Asegurar que solo la primera pestaña esté activa al cargar
+    switchTab('argentina'); 
 
 
     // ============================================
     // 2. CONFIGURACIÓN COMPARTIDA
     // ============================================
-    // Valor por defecto: Congreso de la Nación
     const defaultCongreso = { 
         lat: -34.609867, 
         lon: -58.39254, 
@@ -31,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let debounceTimer;
 
-    // Fórmula Haversine (Común a ambas calculadoras)
     const calcularDistancia = (lat1, lon1, lat2, lon2) => {
         const R = 6371; 
         const toRad = v => v * Math.PI / 180;
@@ -42,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     };
 
-    // Lógica Art. 158 CPCCN (Común a ambas)
     const calcularDias = (distancia) => {
         if (distancia < 200) return 0;
         const diasBase = Math.floor(distancia / 200);
@@ -50,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return diasBase + (fraccion >= 100 ? 1 : 0);
     };
 
-    // Renderizar Resultado (Común)
     const mostrarResultado = (divRes, divTraz, d, dias, c1, c2, nombre1, nombre2) => {
         let msj = '', logica = '';
         if (dias === 0) {
@@ -59,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             const s = dias > 1 ? 's' : '';
             msj = `<h3>Corresponde ampliación por ${dias} día${s}.</h3>`;
-            logica = `1 día/200km + fracción ≥ 100km.`;
+            logica = `1 día/200km (${Math.floor(d/200)} días) + fracción ${d % 200 >= 100 ? '≥' : '<'} 100km (${d % 200 >= 100 ? '1 día' : '0 días'}).`;
         }
 
         divRes.innerHTML = msj;
@@ -116,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     inpArgJuz.addEventListener('input', () => {
+        // Si el usuario escribe y no selecciona, borramos las coordenadas previamente seteadas
         argJuzgado = { lat: null, lon: null, nombre: '' };
         buscarGeoref(inpArgJuz.value, sugArgJuz, argJuzgado, inpArgJuz);
     });
@@ -130,11 +139,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('btnCalcularArg').addEventListener('click', () => {
-        if(!argJuzgado.lat || !argDiligencia.lat) return alert('Seleccione localidades de la lista');
+        const resDiv = document.getElementById('resArg');
+        const trazDiv = document.getElementById('trazArg');
+        resDiv.innerHTML = '';
+        trazDiv.innerHTML = '';
+
+        if(!argJuzgado.lat || !argDiligencia.lat) {
+            resDiv.innerHTML = `<h3>⚠️ Error: Debe seleccionar ambas localidades de la lista.</h3>`;
+            return;
+        }
+
         const dist = calcularDistancia(argJuzgado.lat, argJuzgado.lon, argDiligencia.lat, argDiligencia.lon);
         mostrarResultado(
-            document.getElementById('resArg'),
-            document.getElementById('trazArg'),
+            resDiv,
+            trazDiv,
             dist, calcularDias(dist), argJuzgado, argDiligencia, argJuzgado.nombre, argDiligencia.nombre
         );
     });
@@ -143,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================
     // 4. CALCULADORA INTERNACIONAL (OPEN-METEO)
     // ============================================
-    let intlJuzgado = { ...defaultCongreso };
+    let intlJuzgado = { ...defaultCongreso }; // Se usa el valor por defecto solo para inicializar
     let intlDiligencia = { lat: null, lon: null, nombre: '' };
 
     const inpIntlJuz = document.getElementById('intlJuzgado');
@@ -151,8 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sugIntlJuz = document.getElementById('sugIntlJuzgado');
     const sugIntlDil = document.getElementById('sugIntlDiligencia');
 
-    // Inicializar input
-    inpIntlJuz.value = defaultCongreso.nombre;
+    // Inicializar input (se mantiene el Congreso como referencia inicial)
+    inpIntlJuz.value = defaultCongreso.nombre; 
 
     // Fetch Open-Meteo
     const buscarMundo = (query, contenedor, storage, input) => {
@@ -160,17 +178,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (query.length < 3) return;
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-            // Buscamos 5 resultados en español
             fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=5&language=es&format=json`)
                 .then(r => r.json())
                 .then(d => {
                     contenedor.innerHTML = '';
-                    if(!d.results) return;
+                    if(!d.results) {
+                        const item = document.createElement('div');
+                        item.className = 'sugerencia-item';
+                        item.textContent = 'No se encontraron resultados';
+                        contenedor.appendChild(item);
+                        return;
+                    }
                     
                     d.results.forEach(loc => {
                         const item = document.createElement('div');
                         item.className = 'sugerencia-item';
-                        // Armar nombre: Ciudad, Admin, Pais
                         const partes = [loc.name, loc.admin1, loc.country].filter(Boolean);
                         const txt = partes.join(', ');
                         
@@ -203,11 +225,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('btnCalcularIntl').addEventListener('click', () => {
-        if(!intlJuzgado.lat || !intlDiligencia.lat) return alert('Seleccione ciudades de la lista');
+        const resDiv = document.getElementById('resIntl');
+        const trazDiv = document.getElementById('trazIntl');
+        resDiv.innerHTML = '';
+        trazDiv.innerHTML = '';
+
+        if(!intlJuzgado.lat || !intlDiligencia.lat) {
+            resDiv.innerHTML = `<h3>⚠️ Error: Debe seleccionar ambas ciudades de la lista.</h3>`;
+            return;
+        }
+
         const dist = calcularDistancia(intlJuzgado.lat, intlJuzgado.lon, intlDiligencia.lat, intlDiligencia.lon);
         mostrarResultado(
-            document.getElementById('resIntl'),
-            document.getElementById('trazIntl'),
+            resDiv,
+            trazDiv,
             dist, calcularDias(dist), intlJuzgado, intlDiligencia, intlJuzgado.nombre, intlDiligencia.nombre
         );
     });
