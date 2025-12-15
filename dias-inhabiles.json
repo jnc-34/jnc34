@@ -103,6 +103,14 @@
     {
       "fecha": "2025-12-25",
       "motivo": "Navidad"
+    },
+    {
+      "fecha": "2025-12-24",
+      "motivo": "Acordada 38/2025 CSJN"
+    },
+    {
+      "fecha": "2025-12-31",
+      "motivo": "Acordada 38/2025 CSJN"
     }
   ],
   "instrucciones": "Puedes agregar fechas adicionales siguiendo el formato YYYY-MM-DD. Este archivo se carga dinámicamente desde GitHub."
