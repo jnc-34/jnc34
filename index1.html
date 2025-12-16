@@ -375,7 +375,6 @@
         async function cargarDiasInhabilesJSON() {
             try {
                 console.log('Cargando días inhábiles desde JSON...');
-                // Añadir versión para evitar caché, crucial para GitHub Pages
                 const response = await fetch(CUSTOM_HOLIDAYS_URL + '?v=' + new Date().getTime()); 
                 
                 if (response.ok) {
@@ -388,22 +387,19 @@
                     }
                 }
                 
-                // Si la respuesta no es OK (ej: 404) o el formato es incorrecto, cae aquí
                 throw new Error(`Fallo al cargar el JSON: HTTP ${response.status || 'Desconocido'}`);
                 
             } catch (error) {
                 console.error('Error al cargar días inhábiles del JSON:', error);
                 
-                // --- ADVERTENCIA VISIBLE DE FALLO CRÍTICO DEL JSON ---
                 const statusDiv = document.getElementById('yearsAvailable');
                 statusDiv.innerHTML += `<br>
                     ❌ **ERROR CRÍTICO:** No se pudo cargar la base de datos local de días inhábiles. 
                     Las Ferias Judiciales y Acordadas (asueto) NO están incluidas en el cálculo. 
                     Contacte al desarrollador.
                 `;
-                statusDiv.style.backgroundColor = '#f8d7da'; // Fondo rojo claro para error
-                statusDiv.style.color = '#721c24'; // Texto rojo oscuro
-                // ------------------------------------------------------------------------
+                statusDiv.style.backgroundColor = '#f8d7da';
+                statusDiv.style.color = '#721c24';
                 
                 return false;
             }
@@ -461,13 +457,12 @@
         // Generar feria de julio (últimas 2 semanas)
         function generarFeriaJulio(anio) {
             const resultado = [];
-            const ultimoDiaJulio = new Date(anio, 6, 31); // Julio es mes 6 (0-indexado)
+            const ultimoDiaJulio = new Date(anio, 6, 31);
             let ultimoLunes = null;
             let penultimoLunes = null;
             
-            // Buscar los últimos dos lunes
             for (let d = new Date(ultimoDiaJulio); d.getMonth() === 6; d.setDate(d.getDate() - 1)) {
-                if (d.getDay() === 1) { // Lunes (1)
+                if (d.getDay() === 1) {
                     if (!ultimoLunes) {
                         ultimoLunes = new Date(d);
                     } else if (!penultimoLunes) {
@@ -477,7 +472,6 @@
                 }
             }
             
-            // Contar 14 días desde el penúltimo lunes
             if (penultimoLunes) {
                 for (let i = 0; i < 14; i++) {
                     const fecha = new Date(penultimoLunes);
@@ -540,11 +534,9 @@
                 
                 const yearsAvailableDiv = document.getElementById('yearsAvailable');
                 
-                if (successCount === 0) { // Ningún año se pudo cargar
-                    // --- IMPLEMENTACIÓN DE MENSAJE DE FALLO DE API MEJORADO ---
+                if (successCount === 0) {
                     yearsAvailableDiv.innerHTML = 
                         `⚠️ No se pudieron cargar los feriados de la API (ArgentinaDatos). Se ejecutan los cálculos en función de base de datos propia. Verifique los feriados nacionales en el sitio oficial: <a href="https://www.argentina.gob.ar/interior/feriados-nacionales-2025" target="_blank">argentina.gob.ar</a>`;
-                    // -------------------------------------------------------------
                 } else {
                     const min = Math.min(...availableYears);
                     const max = Math.max(...availableYears);
@@ -565,7 +557,6 @@
         
         function esFeriado(fecha) {
             const year = fecha.getFullYear();
-            // Asegurarse de que el formato de fecha sea YYYY-MM-DD
             const fechaStr = fecha.toISOString().split('T')[0];
             
             if (feriadosCache[year]) {
@@ -577,11 +568,9 @@
         function esInhabilCustom(fecha) {
             const fechaStr = fecha.toISOString().split('T')[0];
             
-            // Primero verificar en los días hardcodeados
             const hardcoded = customHolidays.find(h => h.fecha === fechaStr);
             if (hardcoded) return hardcoded;
             
-            // Luego verificar en el JSON cargado
             if (jsonHolidaysLoaded && customHolidaysCache.length > 0) {
                 const fromJson = customHolidaysCache.find(h => h.fecha === fechaStr);
                 if (fromJson) return fromJson;
@@ -592,7 +581,6 @@
         
         function esDiaHabil(fecha) {
             if (esFinDeSemana(fecha)) return false;
-            // Solo verificar feriados si se cargaron de la API o si estamos en un año no cubierto
             const feriado = esFeriado(fecha);
             if (feriado) return false;
             
@@ -611,18 +599,16 @@
             return siguiente;
         }
 
-        // --- NUEVAS FUNCIONES PARA NOTA DE ASISTENCIA ---
+        // --- FUNCIONES PARA NOTA DE ASISTENCIA ---
 
         function proximoDiaDeNota(fecha) {
             let siguiente = new Date(fecha);
-            siguiente.setDate(siguiente.getDate() + 1); // Empezar a buscar desde el día siguiente
+            siguiente.setDate(siguiente.getDate() + 1);
 
             while (true) {
-                const diaSemana = siguiente.getDay(); // 0=Domingo, 1=Lunes, ..., 6=Sábado
+                const diaSemana = siguiente.getDay(); 
 
-                // Es Martes (2) o Viernes (5)
-                if (diaSemana === 2 || diaSemana === 5) {
-                    // Verificar si es hábil
+                if (diaSemana === 2 || diaSemana === 5) { // Martes (2) o Viernes (5)
                     if (esDiaHabil(siguiente)) {
                         return siguiente;
                     }
@@ -631,34 +617,42 @@
             }
         }
 
-        function generarNuevoParNotas(fechaBase) {
+        // CORRECCIÓN: Ahora es autosuficiente y usa Date.UTC consistentemente
+        function generarNuevoParNotas() {
             const ultimosCheckboxes = document.querySelectorAll('.nota-checkbox');
-            let fechaInicial = new Date(fechaBase);
+            let fechaBusqueda;
             
             if (ultimosCheckboxes.length > 0) {
-                // La nueva fecha inicial es el día siguiente a la última fecha de nota generada.
+                // 1. Recrear la fecha de la última nota generada usando UTC noon
                 const ultimaFechaStr = ultimosCheckboxes[ultimosCheckboxes.length - 1].dataset.fecha;
-                fechaInicial = new Date(ultimaFechaStr);
-                fechaInicial.setDate(fechaInicial.getDate() + 1); // Empezar a buscar desde el día siguiente
+                const parts = ultimaFechaStr.split('-');
+                fechaBusqueda = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12));
+            } else {
+                // 2. Es la primera llamada, usar la fecha de firma del input
+                const dia = document.getElementById('dia').value;
+                const mes = document.getElementById('mes').value;
+                const anio = document.getElementById('anio').value;
+                if (!validarFecha(dia, mes, anio)) return;
+                fechaBusqueda = new Date(Date.UTC(parseInt(anio), parseInt(mes) - 1, parseInt(dia), 12));
             }
             
-            // Encontrar la primera nota (próximo Martes/Viernes hábil)
-            let nota1 = proximoDiaDeNota(fechaInicial);
-            // La segunda nota parte del día de la primera nota
+            // La búsqueda comienza el día después de fechaBusqueda
+            let nota1 = proximoDiaDeNota(fechaBusqueda);
             let nota2 = proximoDiaDeNota(nota1); 
 
             const container = document.getElementById('diasNotaContainer');
+            const newIndex = ultimosCheckboxes.length;
 
             const parDiv = document.createElement('div');
             parDiv.className = 'nota-par';
             parDiv.innerHTML = `
                 <div class="input-group" style="margin-bottom: 10px; flex-direction: row; align-items: center;">
-                    <input type="checkbox" id="nota-${ultimosCheckboxes.length}" class="nota-checkbox" data-fecha="${nota1.toISOString().split('T')[0]}" style="width: auto; margin-right: 10px; height: 16px;">
-                    <label for="nota-${ultimosCheckboxes.length}" style="margin-bottom: 0;">Nota dejada el: <strong>${formatearFecha(nota1)}</strong></label>
+                    <input type="checkbox" id="nota-${newIndex}" class="nota-checkbox" data-fecha="${nota1.toISOString().split('T')[0]}" style="width: auto; margin-right: 10px; height: 16px;">
+                    <label for="nota-${newIndex}" style="margin-bottom: 0;">Nota dejada el: <strong>${formatearFecha(nota1)}</strong></label>
                 </div>
                 <div class="input-group" style="margin-bottom: 10px; flex-direction: row; align-items: center;">
-                    <input type="checkbox" id="nota-${ultimosCheckboxes.length + 1}" class="nota-checkbox" data-fecha="${nota2.toISOString().split('T')[0]}" style="width: auto; margin-right: 10px; height: 16px;">
-                    <label for="nota-${ultimosCheckboxes.length + 1}" style="margin-bottom: 0;">Nota dejada el: <strong>${formatearFecha(nota2)}</strong></label>
+                    <input type="checkbox" id="nota-${newIndex + 1}" class="nota-checkbox" data-fecha="${nota2.toISOString().split('T')[0]}" style="width: auto; margin-right: 10px; height: 16px;">
+                    <label for="nota-${newIndex + 1}" style="margin-bottom: 0;">Nota dejada el: <strong>${formatearFecha(nota2)}</strong></label>
                 </div>
             `;
             container.appendChild(parDiv);
@@ -671,7 +665,6 @@
             const btnAdd = document.getElementById('btnAddDiasNota');
             const modalidad = document.getElementById('modalidad').value;
             
-            // Solo relevante para modalidad automática
             if (modalidad === 'automatica') {
                 section.style.display = 'block';
             } else {
@@ -679,58 +672,52 @@
                 return;
             }
             
-            // Si la modalidad es automática, y el checkbox cambia
             if (checkNota.checked) {
                 container.innerHTML = '';
                 
-                // Calcular la fecha de inicio (firma)
                 const dia = document.getElementById('dia').value;
                 const mes = document.getElementById('mes').value;
                 const anio = document.getElementById('anio').value;
 
                 if (!validarFecha(dia, mes, anio)) {
-                    document.getElementById('errorNotaAsistencia').style.display = 'block';
+                    document.getElementById('errorNotaAsistencia').classList.add('show');
                     btnAdd.style.display = 'none';
                     return;
                 }
 
-                document.getElementById('errorNotaAsistencia').style.display = 'none';
+                document.getElementById('errorNotaAsistencia').classList.remove('show');
                 
-                // Generar el primer par de notas
-                const fechaBase = new Date(Date.UTC(parseInt(anio), parseInt(mes) - 1, parseInt(dia), 12));
-                generarNuevoParNotas(fechaBase);
+                generarNuevoParNotas(); // Llamada inicial sin argumentos
                 btnAdd.style.display = 'block';
 
             } else {
                 container.innerHTML = '';
                 btnAdd.style.display = 'none';
-                document.getElementById('errorNotaAsistencia').style.display = 'none';
+                document.getElementById('errorNotaAsistencia').classList.remove('show');
             }
         }
-        // --- FIN NUEVAS FUNCIONES PARA NOTA DE ASISTENCIA ---
+        // --- FIN FUNCIONES PARA NOTA DE ASISTENCIA ---
         
         function calcularNotificacionAutomatica(fechaFirma) {
             const dia = fechaFirma.getDay();
             let diasHastaNotificacion = 0;
             
-            // Calcular días hasta el próximo martes (2) o viernes (5)
-            if (dia === 0) diasHastaNotificacion = 2; // Domingo -> Martes
-            else if (dia === 1) diasHastaNotificacion = 1; // Lunes -> Martes
-            else if (dia === 2) diasHastaNotificacion = 3; // Martes -> Viernes
-            else if (dia === 3) diasHastaNotificacion = 2; // Miércoles -> Viernes
-            else if (dia === 4) diasHastaNotificacion = 1; // Jueves -> Viernes
-            else if (dia === 5) diasHastaNotificacion = 4; // Viernes -> Martes
-            else if (dia === 6) diasHastaNotificacion = 3; // Sábado -> Martes
+            if (dia === 0) diasHastaNotificacion = 2; 
+            else if (dia === 1) diasHastaNotificacion = 1; 
+            else if (dia === 2) diasHastaNotificacion = 3; 
+            else if (dia === 3) diasHastaNotificacion = 2; 
+            else if (dia === 4) diasHastaNotificacion = 1; 
+            else if (dia === 5) diasHastaNotificacion = 4; 
+            else if (dia === 6) diasHastaNotificacion = 3; 
             
             let fechaNotificacion = new Date(fechaFirma);
             fechaNotificacion.setDate(fechaNotificacion.getDate() + diasHastaNotificacion);
             
-            // Si el martes o viernes cae en inhábil, buscar el siguiente martes o viernes hábil
             while (!esDiaHabil(fechaNotificacion)) {
                 const diaActual = fechaNotificacion.getDay();
-                if (diaActual === 2) { // Era martes, pasar a viernes
+                if (diaActual === 2) { 
                     fechaNotificacion.setDate(fechaNotificacion.getDate() + 3);
-                } else { // Era viernes, pasar a martes
+                } else { 
                     fechaNotificacion.setDate(fechaNotificacion.getDate() + 4);
                 }
             }
@@ -758,7 +745,6 @@
             if (d < 1) return false;
             
             const fecha = new Date(a, m - 1, d);
-            // Verifica que el JS Date object no haya 'corregido' una fecha inválida (ej: 30 de febrero)
             if (fecha.getFullYear() !== a || fecha.getMonth() !== m - 1 || fecha.getDate() !== d) {
                 return false;
             }
@@ -775,22 +761,19 @@
             const inhabil = esInhabilCustom(fecha);
             if (inhabil) return inhabil.motivo || 'Día inhábil (JSON/Local)';
             
-            return 'Día hábil (Error de Lógica)'; // No debería llegar aquí
+            return 'Día hábil (Error de Lógica)';
         }
         
         function calcular() {
-            // Limpiar errores previos
             document.querySelectorAll('.error').forEach(e => e.classList.remove('show'));
             document.querySelectorAll('input').forEach(i => i.classList.remove('invalid'));
             
-            // Obtener valores
             const modalidad = document.getElementById('modalidad').value;
             const dia = document.getElementById('dia').value;
             const mes = document.getElementById('mes').value;
             const anio = document.getElementById('anio').value;
             const plazo = parseInt(document.getElementById('plazo').value);
             
-            // Validaciones
             let hayError = false;
             
             if (!validarFecha(dia, mes, anio)) {
@@ -809,47 +792,38 @@
             
             if (hayError) return;
             
-            // Crear fecha de notificación (a las 12:00:00 para evitar problemas de zona horaria)
+            // Creamos la fecha de entrada en UTC noon para consistencia
             const fechaIngresada = new Date(Date.UTC(parseInt(anio), parseInt(mes) - 1, parseInt(dia), 12));
             let fechaInicioConteo;
             let fechaNotificacion;
             
-            // Calcular según modalidad
             if (modalidad === 'cedula-habitual') {
                 fechaNotificacion = fechaIngresada;
                 fechaInicioConteo = siguienteDiaHabil(fechaIngresada);
             } else if (modalidad === 'cedula-inhabitual') {
                 fechaNotificacion = fechaIngresada;
-                // Al ser hora inhábil, se notifica el primer día hábil y el plazo comienza al siguiente
                 fechaInicioConteo = siguienteDiaHabil(fechaIngresada); 
                 fechaInicioConteo = siguienteDiaHabil(fechaInicioConteo);
             } else { // automática
                 fechaNotificacion = calcularNotificacionAutomatica(fechaIngresada);
                 
-                // --- NUEVA LÓGICA: CHEQUEO DE NOTA (Art. 133) ---
                 const checkNota = document.getElementById('checkNotaAsistencia');
                 if (checkNota.checked) {
-                    // Recolectar las fechas donde el usuario marcó que SÍ se dejó nota
                     const notasDejadas = Array.from(document.querySelectorAll('.nota-checkbox:checked')).map(cb => {
                         return new Date(cb.dataset.fecha);
                     });
 
-                    // Mientras la fecha de notificación coincida con una nota marcada como "dejada"
                     while (notasDejadas.some(nota => nota.toISOString().split('T')[0] === fechaNotificacion.toISOString().split('T')[0])) {
-                        // Buscamos el siguiente día de nota hábil
                         fechaNotificacion = proximoDiaDeNota(fechaNotificacion);
                     }
                 }
-                // --------------------------------------------------
 
                 fechaInicioConteo = siguienteDiaHabil(fechaNotificacion);
             }
             
-            // Contar días hábiles (Calcula la fecha de vencimiento SIN GRACIA)
             let diasContados = 0;
             let fechaActual = new Date(fechaInicioConteo);
             
-            // Retroceder un día la fechaActual para iniciar el bucle en el primer día hábil
             fechaActual.setDate(fechaActual.getDate() - 1);
 
             while (diasContados < plazo) {
@@ -861,21 +835,15 @@
             
             const fechaVencimientoSinGracia = new Date(fechaActual);
             
-            // Aplicar plazo de gracia (art. 124) (Calcula la fecha de vencimiento CON GRACIA)
             const fechaVencimientoConGracia = siguienteDiaHabil(fechaVencimientoSinGracia);
             
-            // ** CORRECCIÓN: REGISTRAR DÍAS IGNORADOS **
             const diasIgnorados = [];
-            // Iterar desde el día ingresado hasta el vencimiento CON GRACIA (inclusive)
             let fechaRegistro = new Date(fechaIngresada);
             
-            // Usamos un bucle seguro para iterar desde la fecha ingresada hasta la fecha final
             while (fechaRegistro.getTime() <= fechaVencimientoConGracia.getTime()) {
                 if (!esDiaHabil(fechaRegistro)) {
                     const motivo = obtenerMotivoInhabil(fechaRegistro);
 
-                    // Evitar duplicados por múltiples fuentes (JSON, Hardcoded, API)
-                    // Solo registrar si el día inhábil no fue ya registrado
                     const fechaRegistroStr = fechaRegistro.toISOString().split('T')[0];
                     if (!diasIgnorados.some(d => d.fecha.toISOString().split('T')[0] === fechaRegistroStr)) {
                          diasIgnorados.push({
@@ -886,12 +854,10 @@
                 }
                 fechaRegistro.setDate(fechaRegistro.getDate() + 1);
             }
-            // FIN DE CORRECCIÓN
             
-            // Mostrar resultados
             mostrarResultados({
                 modalidad,
-                fechaIngresada: new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia)), // Fecha original para el reporte
+                fechaIngresada: new Date(parseInt(anio), parseInt(mes) - 1, parseInt(dia)),
                 fechaNotificacion,
                 fechaInicioConteo,
                 plazo,
@@ -935,7 +901,6 @@
                         <div class="dias-inhabiles">
                 `;
                 
-                // Ordenar los días ignorados por fecha para mejor lectura
                 datos.diasIgnorados.sort((a, b) => a.fecha.getTime() - b.fecha.getTime());
 
                 datos.diasIgnorados.forEach(dia => {
@@ -986,7 +951,7 @@
             document.getElementById('results').classList.remove('show');
             
             actualizarLabelFecha();
-            mostrarDiasDeNota(); // Resetear también la sección de nota
+            mostrarDiasDeNota(); 
         }
         
         function actualizarLabelFecha() {
@@ -1002,22 +967,16 @@
         
         // Event listeners
         document.getElementById('modalidad').addEventListener('change', actualizarLabelFecha);
-        document.getElementById('modalidad').addEventListener('change', mostrarDiasDeNota); // Muestra/oculta la sección de nota
+        document.getElementById('modalidad').addEventListener('change', mostrarDiasDeNota); 
 
-        // Event listeners para la nueva funcionalidad
         document.getElementById('checkNotaAsistencia').addEventListener('change', mostrarDiasDeNota); 
         document.getElementById('dia').addEventListener('input', mostrarDiasDeNota);
         document.getElementById('mes').addEventListener('input', mostrarDiasDeNota);
         document.getElementById('anio').addEventListener('input', mostrarDiasDeNota);
         
         document.getElementById('btnAddDiasNota').addEventListener('click', (e) => {
-            e.preventDefault(); // Evitar que el botón recargue la página
-            const ultimosCheckboxes = document.querySelectorAll('.nota-checkbox');
-            if (ultimosCheckboxes.length > 0) {
-                // Usar la fecha del último checkbox generado como base para el siguiente par
-                const ultimaFechaStr = ultimosCheckboxes[ultimosCheckboxes.length - 1].dataset.fecha;
-                generarNuevoParNotas(new Date(ultimaFechaStr));
-            }
+            e.preventDefault(); 
+            generarNuevoParNotas(); // Llamada sin argumentos, la función es autosuficiente
         });
         
         document.getElementById('btnCalcular').addEventListener('click', calcular);
@@ -1043,7 +1002,6 @@
             }
         });
         
-        // Prevenir caché con versión
         const version = new Date().getTime();
         console.log('Calculadora de Plazos Judiciales - Versión:', version);
         
