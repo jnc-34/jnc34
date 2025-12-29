@@ -89,12 +89,13 @@
         }
 
         .custom-months input {
-            width: 100%;
+            width: 100px;
             padding: 10px 15px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
             font-family: inherit;
             font-size: 14px;
+            text-align: center;
         }
 
         .date-inputs {
@@ -201,31 +202,18 @@
             display: block;
         }
 
-        .result-section {
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .result-section:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-        }
-
         .result-title {
             color: #2d3748;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 700;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-bottom: 15px;
         }
 
         .result-date {
             font-size: 32px;
             font-weight: 700;
             color: #667eea;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .result-details {
@@ -236,6 +224,12 @@
 
         .result-details strong {
             color: #2d3748;
+        }
+
+        .hr-divider {
+            margin: 20px 0;
+            border: 0;
+            border-top: 1px solid #cbd5e0;
         }
     </style>
 </head>
@@ -289,16 +283,18 @@
         </form>
 
         <div class="result" id="result">
-            <div class="result-section">
-                <div class="result-title">Cómputo Ordinario (Solo Ferias):</div>
-                <div class="result-date" id="resultDateTrad"></div>
-                <div class="result-details" id="resultDetailsTrad"></div>
+            <div id="ordinarioContainer">
+                <div class="result-title">Cómputo Ordinario (Solo ferias):</div>
+                <div class="result-date" id="resultDate"></div>
+                <div class="result-details" id="resultDetails"></div>
             </div>
-
-            <div class="result-section">
+            
+            <hr class="hr-divider">
+            
+            <div id="inhabilesContainer">
                 <div class="result-title">Cómputo con Días Inhábiles (Suspensión):</div>
-                <div class="result-date" id="resultDateInhab"></div>
-                <div class="result-details" id="resultDetailsInhab"></div>
+                <div class="result-date" id="resultDateInhabiles"></div>
+                <div class="result-details" id="resultDetailsInhabiles"></div>
             </div>
         </div>
     </div>
@@ -312,27 +308,22 @@
         const yearInput = document.getElementById('year');
         const dateError = document.getElementById('dateError');
         const result = document.getElementById('result');
+        const resultDate = document.getElementById('resultDate');
+        const resultDetails = document.getElementById('resultDetails');
+        const resultDateInhabiles = document.getElementById('resultDateInhabiles');
+        const resultDetailsInhabiles = document.getElementById('resultDetailsInhabiles');
         const form = document.getElementById('calculatorForm');
         const clearBtn = document.getElementById('clearBtn');
 
-        // Referencias nuevas para los dos tipos de resultados
-        const resultDateTrad = document.getElementById('resultDateTrad');
-        const resultDetailsTrad = document.getElementById('resultDetailsTrad');
-        const resultDateInhab = document.getElementById('resultDateInhab');
-        const resultDetailsInhab = document.getElementById('resultDetailsInhab');
+        let diasInhabiles = [];
 
-        let inhabilesData = [];
-
-        // Cargar días inhábiles desde GitHub
-        async function loadInhabiles() {
-            try {
-                const response = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
-                inhabilesData = await response.json();
-            } catch (error) {
-                console.error("Error cargando días inhábiles:", error);
-            }
-        }
-        loadInhabiles();
+        // Cargar JSON de días inhábiles
+        fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json')
+            .then(response => response.json())
+            .then(data => {
+                diasInhabiles = data;
+            })
+            .catch(err => console.error('Error cargando inhábiles:', err));
 
         plazoSelect.addEventListener('change', function() {
             if (this.value === 'custom') {
@@ -343,7 +334,7 @@
         });
 
         [dayInput, monthInput, yearInput].forEach(input => {
-            input.addEventListener('input', function() {
+            input.addEventListener('input', function(e) {
                 this.value = this.value.replace(/[^0-9]/g, '');
             });
         });
@@ -375,8 +366,7 @@
             }
         }
 
-        // LÓGICA 1: CÁLCULO TRADICIONAL (Solo desplaza por ferias)
-        function calculateTraditional(startDate, months) {
+        function addMonthsWithFerias(startDate, months) {
             let currentDate = new Date(startDate);
             let details = [];
             let traversedJanuaries = new Set();
@@ -385,66 +375,40 @@
             for (let i = 0; i < months; i++) {
                 const currentDay = currentDate.getDate();
                 currentDate.setMonth(currentDate.getMonth() + 1);
-                if (currentDate.getDate() !== currentDay) currentDate.setDate(0);
+                if (currentDate.getDate() !== currentDay) {
+                    currentDate.setDate(0);
+                }
 
                 if (currentDate.getMonth() === 0) {
                     const year = currentDate.getFullYear();
                     if (!traversedJanuaries.has(year)) {
                         traversedJanuaries.add(year);
-                        details.push(`Se excluyó enero ${year}`);
+                        details.push(`Se excluyó enero ${year} (feria judicial)`);
                     }
                     currentDate.setMonth(1);
                 }
 
                 const year = currentDate.getFullYear();
-                const feriaStart = getThirdMondayOfJuly(year);
+                const thirdMonday = getThirdMondayOfJuly(year);
+                const feriaStart = new Date(thirdMonday);
                 if (currentDate >= feriaStart && !traversedJulyFerias.has(year)) {
                     traversedJulyFerias.add(year);
-                    details.push(`Se atravesó feria de julio ${year}`);
+                    details.push(`Se atravesó la feria de julio ${year}`);
                 }
             }
 
             const julyFeriasCount = traversedJulyFerias.size;
             if (julyFeriasCount > 0) {
                 currentDate.setDate(currentDate.getDate() + (12 * julyFeriasCount));
+                details.push(`Se agregaron ${12 * julyFeriasCount} días por feria de julio`);
             }
+
             return { date: currentDate, details };
-        }
-
-        // LÓGICA 2: CÁLCULO CON INHÁBILES (Suma todos los días inhabiles intermedios)
-        function calculateWithInhabiles(startDate, months) {
-            // Primero obtenemos la fecha base sumando los meses (excluyendo enero)
-            let baseResult = calculateTraditional(startDate, months);
-            let endDate = new Date(baseResult.date);
-            let countInhabiles = 0;
-
-            // Recorremos desde el inicio hasta el final base buscando inhábiles en el JSON
-            let checkDate = new Date(startDate);
-            checkDate.setDate(checkDate.getDate() + 1); // Empezamos el día después
-
-            while (checkDate <= endDate) {
-                // Formato YYYY-MM-DD para comparar con el JSON
-                const dateString = checkDate.toISOString().split('T')[0];
-                
-                // Si el día está en el JSON de inhábiles
-                if (inhabilesData.includes(dateString)) {
-                    countInhabiles++;
-                }
-                checkDate.setDate(checkDate.getDate() + 1);
-            }
-
-            // Sumamos los días inhábiles encontrados al final
-            let finalDate = new Date(endDate);
-            finalDate.setDate(finalDate.getDate() + countInhabiles);
-
-            return { 
-                date: finalDate, 
-                count: countInhabiles 
-            };
         }
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            
             const day = dayInput.value;
             const month = monthInput.value;
             const year = yearInput.value;
@@ -452,36 +416,69 @@
             if (!isValidDate(day, month, year)) {
                 dateError.classList.add('show');
                 return;
+            } else {
+                dateError.classList.remove('show');
             }
-            dateError.classList.remove('show');
 
-            let plazo = (plazoSelect.value === 'custom') ? parseInt(customValue.value) : parseInt(plazoSelect.value);
-            if (!plazo || plazo < 1 || plazo > 6) {
-                alert('Ingrese un plazo válido');
-                return;
+            let plazo;
+            if (plazoSelect.value === 'custom') {
+                plazo = parseInt(customValue.value);
+            } else {
+                plazo = parseInt(plazoSelect.value);
             }
 
             const startDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            
+            // 1. CALCULO ORDINARIO
+            const calculation = addMonthsWithFerias(startDate, plazo);
+            const endDate = calculation.date;
+            resultDate.textContent = `${String(endDate.getDate()).padStart(2, '0')}/${String(endDate.getMonth() + 1).padStart(2, '0')}/${endDate.getFullYear()}`;
+            
+            let detailsHTML = `<strong>Fecha de inicio:</strong> ${day}/${month}/${year}<br>`;
+            detailsHTML += `<strong>Plazo:</strong> ${plazo} ${plazo === 1 ? 'mes' : 'meses'}<br>`;
+            if (calculation.details.length > 0) {
+                detailsHTML += `<br><strong>Observaciones:</strong><br>`;
+                calculation.details.forEach(detail => detailsHTML += `• ${detail}<br>`);
+            }
+            resultDetails.innerHTML = detailsHTML;
 
-            // Ejecutar ambos cálculos
-            const trad = calculateTraditional(startDate, plazo);
-            const inhab = calculateWithInhabiles(startDate, plazo);
+            // 2. CALCULO CON INHABILES
+            let tempDate = new Date(startDate);
+            let finalDateInhabiles = new Date(endDate);
+            let inhabilesCount = 0;
 
-            // Mostrar Tradicional
-            resultDateTrad.textContent = trad.date.toLocaleDateString('es-AR');
-            resultDetailsTrad.innerHTML = `Plazo de ${plazo} meses considerando ferias judiciales ordinarias.`;
+            // Recorremos desde el inicio hasta la fecha final ordinaria
+            let iterDate = new Date(startDate);
+            iterDate.setDate(iterDate.getDate() + 1); // Empezamos el día siguiente al acto
 
-            // Mostrar Con Inhábiles
-            resultDateInhab.textContent = inhab.date.toLocaleDateString('es-AR');
-            resultDetailsInhab.innerHTML = `Se sumaron <strong>${inhab.count} días inhábiles</strong> extra (feriados/asuetos) detectados entre las fechas.`;
+            while (iterDate <= finalDateInhabiles) {
+                // Formatear fecha para comparar con JSON (YYYY-MM-DD)
+                const yyyy = iterDate.getFullYear();
+                const mm = String(iterDate.getMonth() + 1).padStart(2, '0');
+                const dd = String(iterDate.getDate()).padStart(2, '0');
+                const dateKey = `${yyyy}-${mm}-${dd}`;
+
+                if (diasInhabiles.includes(dateKey)) {
+                    inhabilesCount++;
+                }
+                iterDate.setDate(iterDate.getDate() + 1);
+            }
+
+            // Sumamos los días inhabiles al final
+            finalDateInhabiles.setDate(finalDateInhabiles.getDate() + inhabilesCount);
+            
+            resultDateInhabiles.textContent = `${String(finalDateInhabiles.getDate()).padStart(2, '0')}/${String(finalDateInhabiles.getMonth() + 1).padStart(2, '0')}/${finalDateInhabiles.getFullYear()}`;
+            resultDetailsInhabiles.innerHTML = `Se adicionaron <strong>${inhabilesCount} días inhábiles</strong> (feriados y asuetos) al cómputo ordinario.`;
 
             result.classList.add('show');
         });
 
         clearBtn.addEventListener('click', function() {
             form.reset();
-            result.classList.remove('show');
             customMonths.classList.remove('show');
+            dateError.classList.remove('show');
+            result.classList.remove('show');
+            dayInput.focus();
         });
     </script>
 </body>
