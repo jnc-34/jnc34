@@ -206,14 +206,14 @@
             color: #2d3748;
             font-size: 16px;
             font-weight: 700;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .result-date {
             font-size: 32px;
             font-weight: 700;
             color: #667eea;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .result-details {
@@ -315,13 +315,14 @@
         const form = document.getElementById('calculatorForm');
         const clearBtn = document.getElementById('clearBtn');
 
-        let diasInhabiles = [];
+        let listaDeInhabiles = [];
 
-        // Cargar JSON de días inhábiles
+        // Carga el archivo JSON de tu GitHub
         fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json')
             .then(response => response.json())
             .then(data => {
-                diasInhabiles = data;
+                // Aquí corregimos el error: accedemos a la propiedad "dias_inhabiles"
+                listaDeInhabiles = data.dias_inhabiles || [];
             })
             .catch(err => console.error('Error cargando inhábiles:', err));
 
@@ -334,7 +335,7 @@
         });
 
         [dayInput, monthInput, yearInput].forEach(input => {
-            input.addEventListener('input', function(e) {
+            input.addEventListener('input', function() {
                 this.value = this.value.replace(/[^0-9]/g, '');
             });
         });
@@ -375,110 +376,78 @@
             for (let i = 0; i < months; i++) {
                 const currentDay = currentDate.getDate();
                 currentDate.setMonth(currentDate.getMonth() + 1);
-                if (currentDate.getDate() !== currentDay) {
-                    currentDate.setDate(0);
-                }
+                if (currentDate.getDate() !== currentDay) currentDate.setDate(0);
 
                 if (currentDate.getMonth() === 0) {
                     const year = currentDate.getFullYear();
                     if (!traversedJanuaries.has(year)) {
                         traversedJanuaries.add(year);
-                        details.push(`Se excluyó enero ${year} (feria judicial)`);
+                        details.push(`Enero ${year} (Feria)`);
                     }
                     currentDate.setMonth(1);
                 }
 
                 const year = currentDate.getFullYear();
                 const thirdMonday = getThirdMondayOfJuly(year);
-                const feriaStart = new Date(thirdMonday);
-                if (currentDate >= feriaStart && !traversedJulyFerias.has(year)) {
+                if (currentDate >= thirdMonday && !traversedJulyFerias.has(year)) {
                     traversedJulyFerias.add(year);
-                    details.push(`Se atravesó la feria de julio ${year}`);
+                    details.push(`Feria de julio ${year}`);
                 }
             }
 
-            const julyFeriasCount = traversedJulyFerias.size;
-            if (julyFeriasCount > 0) {
-                currentDate.setDate(currentDate.getDate() + (12 * julyFeriasCount));
-                details.push(`Se agregaron ${12 * julyFeriasCount} días por feria de julio`);
+            if (traversedJulyFerias.size > 0) {
+                currentDate.setDate(currentDate.getDate() + (12 * traversedJulyFerias.size));
             }
-
             return { date: currentDate, details };
         }
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const day = dayInput.value;
-            const month = monthInput.value;
-            const year = yearInput.value;
-
-            if (!isValidDate(day, month, year)) {
+            if (!isValidDate(dayInput.value, monthInput.value, yearInput.value)) {
                 dateError.classList.add('show');
                 return;
-            } else {
-                dateError.classList.remove('show');
             }
+            dateError.classList.remove('show');
 
-            let plazo;
-            if (plazoSelect.value === 'custom') {
-                plazo = parseInt(customValue.value);
-            } else {
-                plazo = parseInt(plazoSelect.value);
-            }
-
-            const startDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            let plazo = (plazoSelect.value === 'custom') ? parseInt(customValue.value) : parseInt(plazoSelect.value);
+            const startDate = new Date(parseInt(yearInput.value), parseInt(monthInput.value) - 1, parseInt(dayInput.value));
             
-            // 1. CALCULO ORDINARIO
-            const calculation = addMonthsWithFerias(startDate, plazo);
-            const endDate = calculation.date;
-            resultDate.textContent = `${String(endDate.getDate()).padStart(2, '0')}/${String(endDate.getMonth() + 1).padStart(2, '0')}/${endDate.getFullYear()}`;
-            
-            let detailsHTML = `<strong>Fecha de inicio:</strong> ${day}/${month}/${year}<br>`;
-            detailsHTML += `<strong>Plazo:</strong> ${plazo} ${plazo === 1 ? 'mes' : 'meses'}<br>`;
-            if (calculation.details.length > 0) {
-                detailsHTML += `<br><strong>Observaciones:</strong><br>`;
-                calculation.details.forEach(detail => detailsHTML += `• ${detail}<br>`);
-            }
-            resultDetails.innerHTML = detailsHTML;
+            // Cálculo Ordinario
+            const ord = addMonthsWithFerias(startDate, plazo);
+            resultDate.textContent = `${String(ord.date.getDate()).padStart(2, '0')}/${String(ord.date.getMonth() + 1).padStart(2, '0')}/${ord.date.getFullYear()}`;
+            resultDetails.innerHTML = `<strong>Plazo:</strong> ${plazo} meses. <br>Considerando ferias ordinarias (Enero y Julio).`;
 
-            // 2. CALCULO CON INHABILES
-            let tempDate = new Date(startDate);
-            let finalDateInhabiles = new Date(endDate);
-            let inhabilesCount = 0;
+            // Cálculo con Inhábiles (Suspensión)
+            let contadorInhabiles = 0;
+            let checkDate = new Date(startDate);
+            checkDate.setDate(checkDate.getDate() + 1);
 
-            // Recorremos desde el inicio hasta la fecha final ordinaria
-            let iterDate = new Date(startDate);
-            iterDate.setDate(iterDate.getDate() + 1); // Empezamos el día siguiente al acto
+            while (checkDate <= ord.date) {
+                const yyyy = checkDate.getFullYear();
+                const mm = String(checkDate.getMonth() + 1).padStart(2, '0');
+                const dd = String(checkDate.getDate()).padStart(2, '0');
+                const key = `${yyyy}-${mm}-${dd}`;
 
-            while (iterDate <= finalDateInhabiles) {
-                // Formatear fecha para comparar con JSON (YYYY-MM-DD)
-                const yyyy = iterDate.getFullYear();
-                const mm = String(iterDate.getMonth() + 1).padStart(2, '0');
-                const dd = String(iterDate.getDate()).padStart(2, '0');
-                const dateKey = `${yyyy}-${mm}-${dd}`;
-
-                if (diasInhabiles.includes(dateKey)) {
-                    inhabilesCount++;
+                if (listaDeInhabiles.includes(key)) {
+                    contadorInhabiles++;
                 }
-                iterDate.setDate(iterDate.getDate() + 1);
+                checkDate.setDate(checkDate.getDate() + 1);
             }
 
-            // Sumamos los días inhabiles al final
-            finalDateInhabiles.setDate(finalDateInhabiles.getDate() + inhabilesCount);
+            let finalDateInhabiles = new Date(ord.date);
+            finalDateInhabiles.setDate(finalDateInhabiles.getDate() + contadorInhabiles);
             
             resultDateInhabiles.textContent = `${String(finalDateInhabiles.getDate()).padStart(2, '0')}/${String(finalDateInhabiles.getMonth() + 1).padStart(2, '0')}/${finalDateInhabiles.getFullYear()}`;
-            resultDetailsInhabiles.innerHTML = `Se adicionaron <strong>${inhabilesCount} días inhábiles</strong> (feriados y asuetos) al cómputo ordinario.`;
+            resultDetailsInhabiles.innerHTML = `Se adicionaron <strong>${contadorInhabiles} días inhábiles</strong> (feriados/asuetos) detectados durante el período.`;
 
             result.classList.add('show');
         });
 
         clearBtn.addEventListener('click', function() {
             form.reset();
-            customMonths.classList.remove('show');
-            dateError.classList.remove('show');
             result.classList.remove('show');
-            dayInput.focus();
+            customMonths.classList.remove('show');
         });
     </script>
 </body>
