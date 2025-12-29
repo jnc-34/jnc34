@@ -204,6 +204,28 @@
             border-top: 1px solid #cbd5e0;
         }
 
+        details {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        summary {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 13px;
+        }
+
+        .inhabiles-list {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #4a5568;
+            list-style: none;
+            padding-left: 5px;
+        }
+
         .error-message {
             color: #e53e3e;
             font-size: 13px;
@@ -269,15 +291,16 @@
         const apiStatus = document.getElementById('apiStatus');
         const form = document.getElementById('calculatorForm');
         const result = document.getElementById('result');
-        let inhabilesSet = new Set();
-        let yearsLoaded = [];
+        
+        // Objeto para guardar fecha como clave y nombre del feriado como valor
+        let inhabilesMap = new Map(); 
 
         async function initData() {
             try {
                 // 1. Cargar tu JSON
                 const resJson = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
                 const dataJson = await resJson.json();
-                (dataJson.dias_inhabiles || []).forEach(d => inhabilesSet.add(d));
+                (dataJson.dias_inhabiles || []).forEach(d => inhabilesMap.set(d, "Inhábil/Asueto Judicial"));
 
                 // 2. Cargar API ArgentinaDatos (2021-2026)
                 for (let y = 2021; y <= 2026; y++) {
@@ -285,8 +308,12 @@
                         const resApi = await fetch(`https://api.argentinadatos.com/v1/feriados/${y}`);
                         if (resApi.ok) {
                             const dataApi = await resApi.json();
-                            dataApi.forEach(f => inhabilesSet.add(f.fecha));
-                            yearsLoaded.push(y);
+                            dataApi.forEach(f => {
+                                // No sobreescribir si ya existe (priorizar asuetos específicos del JSON)
+                                if (!inhabilesMap.has(f.fecha)) {
+                                    inhabilesMap.set(f.fecha, f.nombre);
+                                }
+                            });
                         }
                     } catch (e) { console.error(`Error año ${y}:`, e); }
                 }
@@ -359,34 +386,42 @@
             document.getElementById('resultDate').innerText = ordDate.toLocaleDateString('es-AR');
             document.getElementById('resultDetails').innerHTML = `<strong>Inicio:</strong> ${startDate.toLocaleDateString('es-AR')}<br><strong>Observaciones:</strong><br>${ordObs.map(o => `• ${o}`).join('<br>')}`;
 
-            // --- CÁLCULO FULL (SUSPENSIÓN) ---
-            let inhabilesCount = 0;
+            // --- CÁLCULO FULL (SUSPENSIÓN CON LISTADO) ---
+            let inhabilesList = [];
             let iter = new Date(startDate);
             iter.setDate(iter.getDate() + 1);
 
             while (iter <= ordDate) {
-                let iso = iter.toISOString().split('T')[0];
+                // Ajuste de ISO local para evitar desfase de zona horaria
+                let iso = iter.getFullYear() + '-' + String(iter.getMonth() + 1).padStart(2, '0') + '-' + String(iter.getDate()).padStart(2, '0');
+                
                 let inFeriaJan = (iter.getMonth() === 0);
                 let rangeJul = getFeriaJulyRange(iter.getFullYear());
                 let inFeriaJul = (iter >= rangeJul.start && iter <= rangeJul.end);
 
-                // Solo sumar si es inhábil/feriado Y NO está dentro de una feria ya descontada
-                if (inhabilesSet.has(iso) && !inFeriaJan && !inFeriaJul) {
-                    inhabilesCount++;
+                if (inhabilesMap.has(iso) && !inFeriaJan && !inFeriaJul) {
+                    inhabilesList.push({ fecha: iter.toLocaleDateString('es-AR'), nombre: inhabilesMap.get(iso) });
                 }
                 iter.setDate(iter.getDate() + 1);
             }
 
             let fullDate = new Date(ordDate);
-            fullDate.setDate(fullDate.getDate() + inhabilesCount);
+            fullDate.setDate(fullDate.getDate() + inhabilesList.length);
+
+            let listHTML = inhabilesList.length > 0 ? 
+                `<details>
+                    <summary>Ver detalle de los ${inhabilesList.length} días adicionados</summary>
+                    <ul class="inhabiles-list">
+                        ${inhabilesList.map(item => `<li>• ${item.fecha}: ${item.nombre}</li>`).join('')}
+                    </ul>
+                </details>` : '';
 
             document.getElementById('resultDateFull').innerText = fullDate.toLocaleDateString('es-AR');
-            document.getElementById('resultDetailsFull').innerHTML = `Se adicionaron <strong>${inhabilesCount} días inhábiles</strong> extra (feriados y asuetos fuera de ferias) detectados entre las fechas.`;
+            document.getElementById('resultDetailsFull').innerHTML = `Se adicionaron <strong>${inhabilesList.length} días inhábiles</strong> extra (fuera de ferias). ${listHTML}`;
 
             result.classList.add('show');
         });
 
-        // Manejo de UI básica
         document.getElementById('plazo').addEventListener('change', function() {
             document.getElementById('customMonths').classList.toggle('show', this.value === 'custom');
         });
