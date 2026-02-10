@@ -292,24 +292,20 @@
         const form = document.getElementById('calculatorForm');
         const result = document.getElementById('result');
         
-        // Objeto para guardar fecha como clave y nombre del feriado como valor
         let inhabilesMap = new Map(); 
 
         async function initData() {
             try {
-                // 1. Cargar tu JSON
                 const resJson = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
                 const dataJson = await resJson.json();
                 (dataJson.dias_inhabiles || []).forEach(d => inhabilesMap.set(d, "Inhábil/Asueto Judicial"));
 
-                // 2. Cargar API ArgentinaDatos (2021-2026)
                 for (let y = 2021; y <= 2026; y++) {
                     try {
                         const resApi = await fetch(`https://api.argentinadatos.com/v1/feriados/${y}`);
                         if (resApi.ok) {
                             const dataApi = await resApi.json();
                             dataApi.forEach(f => {
-                                // No sobreescribir si ya existe (priorizar asuetos específicos del JSON)
                                 if (!inhabilesMap.has(f.fecha)) {
                                     inhabilesMap.set(f.fecha, f.nombre);
                                 }
@@ -365,7 +361,7 @@
                 ordDate.setMonth(ordDate.getMonth() + 1);
                 if (ordDate.getDate() !== dayRef) ordDate.setDate(0);
 
-                if (ordDate.getMonth() === 0) { // Enero
+                if (ordDate.getMonth() === 0) {
                     ordObs.push(`Se excluyó enero ${ordDate.getFullYear()} (feria)`);
                     ordDate.setMonth(1);
                 }
@@ -392,7 +388,6 @@
             iter.setDate(iter.getDate() + 1);
 
             while (iter <= ordDate) {
-                // Ajuste de ISO local para evitar desfase de zona horaria
                 let iso = iter.getFullYear() + '-' + String(iter.getMonth() + 1).padStart(2, '0') + '-' + String(iter.getDate()).padStart(2, '0');
                 
                 let inFeriaJan = (iter.getMonth() === 0);
@@ -408,6 +403,40 @@
             let fullDate = new Date(ordDate);
             fullDate.setDate(fullDate.getDate() + inhabilesList.length);
 
+            // NUEVA LÓGICA: Ajuste de vencimiento para que no caiga en inhábil/feria
+            let adjusted = true;
+            let adObs = "";
+            while(adjusted) {
+                adjusted = false;
+                let isoFull = fullDate.getFullYear() + '-' + String(fullDate.getMonth() + 1).padStart(2, '0') + '-' + String(fullDate.getDate()).padStart(2, '0');
+                let rangeJulFull = getFeriaJulyRange(fullDate.getFullYear());
+                
+                // 1. Si cae en Feria de Enero
+                if (fullDate.getMonth() === 0) {
+                    fullDate.setMonth(1, 1);
+                    adObs = " (Ajustado al primer día hábil post-feria de enero)";
+                    adjusted = true;
+                }
+                // 2. Si cae en Feria de Julio
+                else if (fullDate >= rangeJulFull.start && fullDate <= rangeJulFull.end) {
+                    fullDate.setDate(rangeJulFull.end.getDate() + 1);
+                    adObs = " (Ajustado al primer día hábil post-feria de julio)";
+                    adjusted = true;
+                }
+                // 3. Si cae en fin de semana
+                else if (fullDate.getDay() === 0 || fullDate.getDay() === 6) {
+                    fullDate.setDate(fullDate.getDate() + 1);
+                    adObs = " (Ajustado al siguiente día hábil por fin de semana)";
+                    adjusted = true;
+                }
+                // 4. Si cae en feriado/inhábil de la lista
+                else if (inhabilesMap.has(isoFull)) {
+                    fullDate.setDate(fullDate.getDate() + 1);
+                    adObs = ` (Ajustado por feriado: ${inhabilesMap.get(isoFull)})`;
+                    adjusted = true;
+                }
+            }
+
             let listHTML = inhabilesList.length > 0 ? 
                 `<details>
                     <summary>Ver detalle de los ${inhabilesList.length} días adicionados</summary>
@@ -417,7 +446,7 @@
                 </details>` : '';
 
             document.getElementById('resultDateFull').innerText = fullDate.toLocaleDateString('es-AR');
-            document.getElementById('resultDetailsFull').innerHTML = `Se adicionaron <strong>${inhabilesList.length} días inhábiles</strong> extra (fuera de ferias). ${listHTML}`;
+            document.getElementById('resultDetailsFull').innerHTML = `Se adicionaron <strong>${inhabilesList.length} días inhábiles</strong> extra (fuera de ferias).<strong>${adObs}</strong>${listHTML}`;
 
             result.classList.add('show');
         });
