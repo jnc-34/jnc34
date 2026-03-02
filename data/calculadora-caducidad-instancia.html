@@ -298,7 +298,12 @@
             try {
                 const resJson = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
                 const dataJson = await resJson.json();
-                (dataJson.dias_inhabiles || []).forEach(d => inhabilesMap.set(d, "Inhábil/Asueto Judicial"));
+                (dataJson.dias_inhabiles || []).forEach(d => {
+                    // Si d es un string lo tratamos directo, si es objeto usamos d.fecha
+                    const fecha = typeof d === 'string' ? d : d.fecha;
+                    const motivo = typeof d === 'string' ? "Inhábil/Asueto Judicial" : d.motivo;
+                    inhabilesMap.set(fecha, motivo);
+                });
 
                 for (let y = 2021; y <= 2026; y++) {
                     try {
@@ -384,26 +389,38 @@
 
             // --- CÁLCULO FULL (SUSPENSIÓN CON LISTADO) ---
             let inhabilesList = [];
-            let iter = new Date(startDate);
-            iter.setDate(iter.getDate() + 1);
-
-            while (iter <= ordDate) {
-                let iso = iter.getFullYear() + '-' + String(iter.getMonth() + 1).padStart(2, '0') + '-' + String(iter.getDate()).padStart(2, '0');
-                
-                let inFeriaJan = (iter.getMonth() === 0);
-                let rangeJul = getFeriaJulyRange(iter.getFullYear());
-                let inFeriaJul = (iter >= rangeJul.start && iter <= rangeJul.end);
-
-                if (inhabilesMap.has(iso) && !inFeriaJan && !inFeriaJul) {
-                    inhabilesList.push({ fecha: iter.toLocaleDateString('es-AR'), nombre: inhabilesMap.get(iso) });
-                }
+            let fullDate = new Date(ordDate);
+            
+            // Función para chequear inhábiles
+            function checkInhabiles(desde, hasta) {
+                let iter = new Date(desde);
                 iter.setDate(iter.getDate() + 1);
+                while (iter <= hasta) {
+                    let iso = iter.getFullYear() + '-' + String(iter.getMonth() + 1).padStart(2, '0') + '-' + String(iter.getDate()).padStart(2, '0');
+                    let inFeriaJan = (iter.getMonth() === 0);
+                    let rangeJul = getFeriaJulyRange(iter.getFullYear());
+                    let inFeriaJul = (iter >= rangeJul.start && iter <= rangeJul.end);
+
+                    if (inhabilesMap.has(iso) && !inFeriaJan && !inFeriaJul) {
+                        // Evitar duplicados en la lista visual
+                        if (!inhabilesList.find(item => item.fecha === iter.toLocaleDateString('es-AR'))) {
+                            inhabilesList.push({ fecha: iter.toLocaleDateString('es-AR'), nombre: inhabilesMap.get(iso) });
+                        }
+                    }
+                    iter.setDate(iter.getDate() + 1);
+                }
             }
 
-            let fullDate = new Date(ordDate);
+            // Primera pasada: del inicio al ordinario
+            checkInhabiles(startDate, ordDate);
+            fullDate.setDate(fullDate.getDate() + inhabilesList.length);
+            
+            // Segunda pasada: si sumamos días, ver si en ese nuevo tramo hay más feriados (ej: 31/12)
+            checkInhabiles(ordDate, fullDate);
+            fullDate = new Date(ordDate);
             fullDate.setDate(fullDate.getDate() + inhabilesList.length);
 
-            // NUEVA LÓGICA: Ajuste de vencimiento para que no caiga en inhábil/feria
+            // AJUSTE FINAL DE VENCIMIENTO
             let adjusted = true;
             let adObs = "";
             while(adjusted) {
@@ -411,26 +428,19 @@
                 let isoFull = fullDate.getFullYear() + '-' + String(fullDate.getMonth() + 1).padStart(2, '0') + '-' + String(fullDate.getDate()).padStart(2, '0');
                 let rangeJulFull = getFeriaJulyRange(fullDate.getFullYear());
                 
-                // 1. Si cae en Feria de Enero
                 if (fullDate.getMonth() === 0) {
                     fullDate.setMonth(1, 1);
                     adObs = " (Ajustado al primer día hábil post-feria de enero)";
                     adjusted = true;
-                }
-                // 2. Si cae en Feria de Julio
-                else if (fullDate >= rangeJulFull.start && fullDate <= rangeJulFull.end) {
+                } else if (fullDate >= rangeJulFull.start && fullDate <= rangeJulFull.end) {
                     fullDate.setDate(rangeJulFull.end.getDate() + 1);
                     adObs = " (Ajustado al primer día hábil post-feria de julio)";
                     adjusted = true;
-                }
-                // 3. Si cae en fin de semana
-                else if (fullDate.getDay() === 0 || fullDate.getDay() === 6) {
+                } else if (fullDate.getDay() === 0 || fullDate.getDay() === 6) {
                     fullDate.setDate(fullDate.getDate() + 1);
                     adObs = " (Ajustado al siguiente día hábil por fin de semana)";
                     adjusted = true;
-                }
-                // 4. Si cae en feriado/inhábil de la lista
-                else if (inhabilesMap.has(isoFull)) {
+                } else if (inhabilesMap.has(isoFull)) {
                     fullDate.setDate(fullDate.getDate() + 1);
                     adObs = ` (Ajustado por feriado: ${inhabilesMap.get(isoFull)})`;
                     adjusted = true;
