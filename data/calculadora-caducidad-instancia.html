@@ -33,7 +33,6 @@
             font-weight: 700;
             margin-bottom: 10px;
             text-align: center;
-            letter-spacing: -0.5px;
         }
 
         .subtitle {
@@ -69,12 +68,7 @@
             padding: 12px 15px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
-            font-family: inherit;
             font-size: 14px;
-            color: #2d3748;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
 
         .custom-months { display: none; margin-top: 15px; }
@@ -91,22 +85,14 @@
         .date-inputs { display: flex; gap: 10px; align-items: center; }
         .date-input-group { flex: 1; }
 
-        .date-input-group label {
-            font-size: 12px;
-            color: #718096;
-            margin-bottom: 5px;
-        }
-
         .date-input-group input {
             width: 100%;
             padding: 12px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
-            font-family: inherit;
             font-size: 16px;
             font-weight: 600;
             text-align: center;
-            color: #2d3748;
         }
 
         .date-separator {
@@ -123,11 +109,9 @@
             padding: 15px;
             border: none;
             border-radius: 10px;
-            font-family: inherit;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
         }
 
         .btn-calculate {
@@ -153,7 +137,6 @@
         .result.show { display: block; }
 
         .result-title {
-            color: #2d3748;
             font-size: 16px;
             font-weight: 700;
             margin-bottom: 10px;
@@ -166,60 +149,129 @@
             margin-bottom: 10px;
         }
 
-        .result-details {
-            color: #4a5568;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .hr-divider {
-            margin: 20px 0;
-            border: 0;
-            border-top: 1px solid #cbd5e0;
-        }
-
-        details {
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        summary {
-            font-weight: 600;
-            color: #2d3748;
-            font-size: 13px;
-        }
-
         .inhabiles-list {
             margin-top: 8px;
             font-size: 12px;
-            color: #4a5568;
             list-style: none;
             padding-left: 5px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Calculadora de Caducidad</h1>
-        <p class="subtitle">Art. 310 del Código Procesal Civil y Comercial de la Nación</p>
-        <div id="apiStatus">Iniciando carga de datos...</div>
 
-        <!-- EL RESTO ES IDÉNTICO A TU VERSIÓN ORIGINAL -->
+<div class="container">
+    <h1>Calculadora de Caducidad v.1</h1>
+    <p class="subtitle">Art. 310 del Código Procesal Civil y Comercial de la Nación</p>
+    <div id="apiStatus">Iniciando carga de datos...</div>
 
+    <form id="calculatorForm">
+        <div class="form-group">
+            <label>Plazo</label>
+            <select id="plazo" required>
+                <option value="">Seleccione...</option>
+                <option value="6">6 meses</option>
+                <option value="3">3 meses</option>
+                <option value="1">1 mes</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Último acto impulsor</label>
+            <div class="date-inputs">
+                <input id="day" maxlength="2" placeholder="DD" required>
+                <span class="date-separator">/</span>
+                <input id="month" maxlength="2" placeholder="MM" required>
+                <span class="date-separator">/</span>
+                <input id="year" maxlength="4" placeholder="AAAA" required>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button type="submit" class="btn-calculate">Calcular</button>
+            <button type="button" class="btn-clear" id="clearBtn">Limpiar</button>
+        </div>
+    </form>
+
+    <div class="result" id="result">
+        <div class="result-title">Cómputo Ordinario</div>
+        <div class="result-date" id="resultDate"></div>
+        <hr>
+        <div class="result-title">Con Feriados</div>
+        <div class="result-date" id="resultDateFull"></div>
+        <div id="resultDetailsFull"></div>
     </div>
+</div>
 
 <script>
+const apiStatus = document.getElementById('apiStatus');
+const form = document.getElementById('calculatorForm');
+const result = document.getElementById('result');
 let inhabilesMap = new Map();
 
+/* FIX REAL */
 function getISODate(date) {
-    const y = date.getUTCFullYear();
-    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const d = String(date.getUTCDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    return y + "-" +
+        (m < 10 ? "0" + m : m) + "-" +
+        (d < 10 ? "0" + d : d);
 }
+
+async function initData() {
+    let añosCargados = [];
+    try {
+        const resJson = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
+        const dataJson = await resJson.json();
+        dataJson.dias_inhabiles.forEach(d => {
+            inhabilesMap.set(d.fecha, d.motivo);
+        });
+        añosCargados.push("JSON");
+    } catch {}
+
+    apiStatus.innerText = "Datos cargados";
+}
+initData();
+
+form.addEventListener('submit', function(e){
+    e.preventDefault();
+    const d = parseInt(day.value);
+    const m = parseInt(month.value);
+    const y = parseInt(year.value);
+    const plazo = parseInt(plazoSelect());
+
+    const startDate = new Date(y, m - 1, d);
+    let ordDate = new Date(startDate);
+    ordDate.setMonth(ordDate.getMonth() + plazo);
+
+    document.getElementById('resultDate').innerText = ordDate.toLocaleDateString('es-AR');
+
+    let fullDate = new Date(ordDate);
+    let inhabilesList = [];
+    let iter = new Date(startDate);
+    iter.setDate(iter.getDate() + 1);
+
+    while (iter <= fullDate) {
+        let iso = getISODate(iter);
+        if (inhabilesMap.has(iso)) {
+            inhabilesList.push({fecha: iter.toLocaleDateString('es-AR'), nombre: inhabilesMap.get(iso)});
+            fullDate.setDate(fullDate.getDate() + 1);
+        }
+        iter.setDate(iter.getDate() + 1);
+    }
+
+    document.getElementById('resultDateFull').innerText = fullDate.toLocaleDateString('es-AR');
+    document.getElementById('resultDetailsFull').innerHTML =
+        `<ul class="inhabiles-list">
+        ${inhabilesList.map(i => `<li>• ${i.fecha}: ${i.nombre}</li>`).join('')}
+        </ul>`;
+
+    result.classList.add('show');
+});
+
+function plazoSelect(){ return plazo.value; }
+clearBtn.addEventListener('click',()=>{form.reset();result.classList.remove('show');});
 </script>
+
 </body>
 </html>
