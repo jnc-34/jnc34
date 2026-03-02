@@ -296,9 +296,14 @@
 
         async function initData() {
             try {
+                // CORRECCIÓN AQUÍ: Leer correctamente el JSON con la estructura real
                 const resJson = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
                 const dataJson = await resJson.json();
-                (dataJson.dias_inhabiles || []).forEach(d => inhabilesMap.set(d, "Inhábil/Asueto Judicial"));
+                
+                // La propiedad correcta es "dias_inhabiles_adicionales" y es un array de objetos
+                (dataJson.dias_inhabiles_adicionales || []).forEach(item => {
+                    inhabilesMap.set(item.fecha, item.motivo);
+                });
 
                 for (let y = 2021; y <= 2026; y++) {
                     try {
