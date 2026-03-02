@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Caducidad de Instancia - Art. 310 CPCCN</title>
+    <title>Calculadora de Caducidad de Instancia - Art. 310 y ss. CPCCN</title>
     <style>
         @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -97,7 +97,6 @@
     <script>
         let inhabilesMap = new Map();
 
-        // Función para formatear fecha a ISO sin errores de zona horaria
         function toISODate(date) {
             let y = date.getFullYear();
             let m = String(date.getMonth() + 1).padStart(2, '0');
@@ -106,20 +105,31 @@
         }
 
         async function initData() {
+            // 1. Cargar primero tus datos de GitHub (Prioridad)
             try {
                 const res = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
                 const data = await res.json();
-                data.dias_inhabiles.forEach(d => inhabilesMap.set(typeof d === 'string' ? d : d.fecha, typeof d === 'string' ? "Inhábil" : d.motivo));
-                
-                for (let y = 2024; y <= 2026; y++) {
+                if (data.dias_inhabiles) {
+                    data.dias_inhabiles.forEach(d => inhabilesMap.set(typeof d === 'string' ? d : d.fecha, typeof d === 'string' ? "Inhábil/Asueto" : d.motivo));
+                }
+                document.getElementById('apiStatus').innerText = "Datos de GitHub cargados...";
+            } catch (e) {
+                console.error("Error GitHub:", e);
+                document.getElementById('apiStatus').innerText = "Error cargando GitHub, intentando feriados...";
+            }
+
+            // 2. Intentar cargar feriados nacionales (Año por año para que uno no rompa el otro)
+            const años = [2024, 2025, 2026];
+            for (const y of años) {
+                try {
                     const resApi = await fetch(`https://api.argentinadatos.com/v1/feriados/${y}`);
                     if (resApi.ok) {
                         const feriados = await resApi.json();
                         feriados.forEach(f => { if(!inhabilesMap.has(f.fecha)) inhabilesMap.set(f.fecha, f.nombre); });
                     }
-                }
-                document.getElementById('apiStatus').innerText = "Base de datos cargada y lista.";
-            } catch (e) { document.getElementById('apiStatus').innerText = "Error cargando datos."; }
+                } catch (e) { console.warn(`No se pudo cargar feriados de ${y}`); }
+            }
+            document.getElementById('apiStatus').innerText = "Base de datos lista (GitHub + Feriados)";
         }
         initData();
 
@@ -129,16 +139,19 @@
                 let dt = new Date(year, 6, d);
                 if (dt.getDay() === 1) { count++; if (count === 3) { start = dt; break; } }
             }
+            if (!start) return {start: new Date(), end: new Date()};
             let end = new Date(start); end.setDate(start.getDate() + 11);
             return { start, end };
         }
 
         document.getElementById('calculatorForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const start = new Date(document.getElementById('year').value, document.getElementById('month').value - 1, document.getElementById('day').value);
+            const startY = parseInt(document.getElementById('year').value);
+            const startM = parseInt(document.getElementById('month').value) - 1;
+            const startD = parseInt(document.getElementById('day').value);
+            const start = new Date(startY, startM, startD);
             const plazo = parseInt(document.getElementById('plazo').value);
             
-            // 1. Cómputo Ordinario
             let ordDate = new Date(start);
             let obs = [];
             for(let i=0; i<plazo; i++) {
@@ -153,12 +166,11 @@
             document.getElementById('resultDate').innerText = ordDate.toLocaleDateString('es-AR');
             document.getElementById('resultDetails').innerText = obs.join(" | ");
 
-            // 2. Cómputo Final (Día por día)
             let inhabilesList = [];
             let fullDate = new Date(ordDate);
             let checkPoint = new Date(start);
-
             let loop = true;
+
             while(loop) {
                 loop = false;
                 let iter = new Date(checkPoint);
@@ -173,8 +185,7 @@
                     if (inhabilesMap.has(iso)) {
                         let already = inhabilesList.find(x => x.fecha === iter.toLocaleDateString('es-AR'));
                         if (!already) {
-                            // SI ESTÁ EN EL JSON/API Y NO ES FERIA AUTOMÁTICA (para no duplicar)
-                            // EXCEPCIÓN: Si es diciembre, lo sumamos siempre porque diciembre no es feria.
+                            // SI ESTÁ EN EL MAPA Y NO ES FERIA AUTOMÁTICA O ES DICIEMBRE
                             if ((!isJan && !isJulyFeria) || iter.getMonth() === 11) {
                                 inhabilesList.push({ fecha: iter.toLocaleDateString('es-AR'), motivo: inhabilesMap.get(iso) });
                                 fullDate.setDate(fullDate.getDate() + 1);
@@ -187,7 +198,6 @@
                 checkPoint = new Date(fullDate);
             }
 
-            // 3. Ajuste de fin de semana / feriado en el día de vencimiento
             let finalObs = "";
             let adjust = true;
             while(adjust) {
