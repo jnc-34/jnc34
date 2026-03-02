@@ -6,9 +6,7 @@
     <title>Calculadora de Caducidad de Instancia - Art. 310 CPCCN</title>
     <style>
         @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -18,7 +16,6 @@
             align-items: center;
             padding: 20px;
         }
-
         .container {
             background: white;
             border-radius: 20px;
@@ -27,7 +24,6 @@
             width: 100%;
             padding: 40px;
         }
-
         h1 {
             color: #2d3748;
             font-size: 28px;
@@ -36,14 +32,12 @@
             text-align: center;
             letter-spacing: -0.5px;
         }
-
         .subtitle {
             color: #718096;
             font-size: 14px;
             text-align: center;
             margin-bottom: 15px;
         }
-
         #apiStatus {
             text-align: center;
             font-size: 12px;
@@ -54,11 +48,7 @@
             color: #475569;
             font-weight: 600;
         }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
+        .form-group { margin-bottom: 25px; }
         label {
             display: block;
             color: #2d3748;
@@ -66,7 +56,6 @@
             font-size: 14px;
             margin-bottom: 10px;
         }
-
         select {
             width: 100%;
             padding: 12px 15px;
@@ -79,16 +68,8 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
-        .custom-months {
-            display: none;
-            margin-top: 15px;
-        }
-
-        .custom-months.show {
-            display: block;
-        }
-
+        .custom-months { display: none; margin-top: 15px; }
+        .custom-months.show { display: block; }
         .custom-months input {
             width: 100px;
             padding: 10px 15px;
@@ -96,23 +77,13 @@
             border-radius: 10px;
             text-align: center;
         }
-
-        .date-inputs {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .date-input-group {
-            flex: 1;
-        }
-
+        .date-inputs { display: flex; gap: 10px; align-items: center; }
+        .date-input-group { flex: 1; }
         .date-input-group label {
             font-size: 12px;
             color: #718096;
             margin-bottom: 5px;
         }
-
         .date-input-group input {
             width: 100%;
             padding: 12px;
@@ -124,20 +95,13 @@
             text-align: center;
             color: #2d3748;
         }
-
         .date-separator {
             font-size: 24px;
             font-weight: 700;
             color: #cbd5e0;
             padding-top: 20px;
         }
-
-        .buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
+        .buttons { display: flex; gap: 15px; margin-top: 30px; }
         button {
             flex: 1;
             padding: 15px;
@@ -149,18 +113,15 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
         .btn-calculate {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-
         .btn-clear {
             background: #f7fafc;
             color: #4a5568;
             border: 2px solid #e2e8f0;
         }
-
         .result {
             display: none;
             margin-top: 30px;
@@ -169,37 +130,29 @@
             border-radius: 15px;
             border-left: 5px solid #667eea;
         }
-
-        .result.show {
-            display: block;
-        }
-
+        .result.show { display: block; }
         .result-title {
             color: #2d3748;
             font-size: 16px;
             font-weight: 700;
             margin-bottom: 10px;
         }
-
         .result-date {
             font-size: 32px;
             font-weight: 700;
             color: #667eea;
             margin-bottom: 10px;
         }
-
         .result-details {
             color: #4a5568;
             font-size: 14px;
             line-height: 1.6;
         }
-
         .hr-divider {
             margin: 20px 0;
             border: 0;
             border-top: 1px solid #cbd5e0;
         }
-
         details {
             margin-top: 10px;
             padding: 10px;
@@ -207,13 +160,11 @@
             border-radius: 8px;
             cursor: pointer;
         }
-
         summary {
             font-weight: 600;
             color: #2d3748;
             font-size: 13px;
         }
-
         .inhabiles-list {
             margin-top: 8px;
             font-size: 12px;
@@ -224,222 +175,233 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Calculadora de Caducidad v.1 </h1>
-        <p class="subtitle">Art. 310 del Código Procesal Civil y Comercial de la Nación</p>
-        <div id="apiStatus">Iniciando carga de datos...</div>
+<div class="container">
+<h1>Calculadora de Caducidad v.1 </h1>
+<p class="subtitle">Art. 310 del Código Procesal Civil y Comercial de la Nación</p>
+<div id="apiStatus">Iniciando carga de datos...</div>
 
-        <form id="calculatorForm">
-            <div class="form-group">
-                <label for="plazo">Plazo a computar (art. 310 CPCCN)</label>
-                <select id="plazo" required>
-                    <option value="">Seleccione un plazo...</option>
-                    <option value="6">6 meses (primera o única instancia)</option>
-                    <option value="3">3 meses (segunda instancia, incidentes, etc.)</option>
-                    <option value="custom">Plazo de prescripción menor</option>
-                    <option value="1">1 mes (incidente de caducidad)</option>
-                </select>
-                <div class="custom-months" id="customMonths">
-                    <label>Meses (1-6):</label>
-                    <input type="number" id="customValue" min="1" max="6">
-                </div>
-            </div>
+<form id="calculatorForm">
+<div class="form-group">
+<label for="plazo">Plazo a computar (art. 310 CPCCN)</label>
+<select id="plazo" required>
+<option value="">Seleccione un plazo...</option>
+<option value="6">6 meses (primera o única instancia)</option>
+<option value="3">3 meses (segunda instancia, incidentes, etc.)</option>
+<option value="custom">Plazo de prescripción menor</option>
+<option value="1">1 mes (incidente de caducidad)</option>
+</select>
+<div class="custom-months" id="customMonths">
+<label>Meses (1-6):</label>
+<input type="number" id="customValue" min="1" max="6">
+</div>
+</div>
 
-            <div class="form-group">
-                <label>Último acto impulsor</label>
-                <div class="date-inputs">
-                    <div class="date-input-group"><label>Día</label><input type="text" id="day" maxlength="2" placeholder="DD" required></div>
-                    <span class="date-separator">/</span>
-                    <div class="date-input-group"><label>Mes</label><input type="text" id="month" maxlength="2" placeholder="MM" required></div>
-                    <span class="date-separator">/</span>
-                    <div class="date-input-group"><label>Año</label><input type="text" id="year" maxlength="4" placeholder="AAAA" required></div>
-                </div>
-            </div>
+<div class="form-group">
+<label>Último acto impulsor</label>
+<div class="date-inputs">
+<div class="date-input-group"><label>Día</label><input type="text" id="day" maxlength="2" placeholder="DD" required></div>
+<span class="date-separator">/</span>
+<div class="date-input-group"><label>Mes</label><input type="text" id="month" maxlength="2" placeholder="MM" required></div>
+<span class="date-separator">/</span>
+<div class="date-input-group"><label>Año</label><input type="text" id="year" maxlength="4" placeholder="AAAA" required></div>
+</div>
+</div>
 
-            <div class="buttons">
-                <button type="submit" class="btn-calculate">Calcular Vencimiento</button>
-                <button type="button" class="btn-clear" id="clearBtn">Limpiar</button>
-            </div>
-        </form>
+<div class="buttons">
+<button type="submit" class="btn-calculate">Calcular Vencimiento</button>
+<button type="button" class="btn-clear" id="clearBtn">Limpiar</button>
+</div>
+</form>
 
-        <div class="result" id="result">
-            <div class="result-title">Cómputo Ordinario (Solo ferias):</div>
-            <div class="result-date" id="resultDate"></div>
-            <div class="result-details" id="resultDetails"></div>
-            <hr class="hr-divider">
-            <div class="result-title">Cómputo con Días Inhábiles y Feriados:</div>
-            <div class="result-date" id="resultDateFull"></div>
-            <div class="result-details" id="resultDetailsFull"></div>
-        </div>
-    </div>
+<div class="result" id="result">
+<div class="result-title">Cómputo Ordinario (Solo ferias):</div>
+<div class="result-date" id="resultDate"></div>
+<div class="result-details" id="resultDetails"></div>
+<hr class="hr-divider">
+<div class="result-title">Cómputo con Días Inhábiles y Feriados:</div>
+<div class="result-date" id="resultDateFull"></div>
+<div class="result-details" id="resultDetailsFull"></div>
+</div>
+</div>
 
-    <script>
-        const apiStatus = document.getElementById('apiStatus');
-        const form = document.getElementById('calculatorForm');
-        const result = document.getElementById('result');
-        let inhabilesMap = new Map(); 
+<script>
 
-        function getISODate(date) {
-            let y = date.getFullYear();
-            let m = String(date.getMonth() + 1).padStart(2, '0');
-            let d = String(date.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
+const apiStatus = document.getElementById('apiStatus');
+const form = document.getElementById('calculatorForm');
+const result = document.getElementById('result');
+let inhabilesMap = new Map();
 
-        async function initData() {
-            let githubCargado = false;
-            let añosCargados = [];
+function getISODate(date){
+let y=date.getFullYear();
+let m=String(date.getMonth()+1).padStart(2,'0');
+let d=String(date.getDate()).padStart(2,'0');
+return `${y}-${m}-${d}`;
+}
 
-            // 1. Carga de GitHub independiente
-            try {
-                const resJson = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
-                if (resJson.ok) {
-                    const dataJson = await resJson.json();
-                    (dataJson.dias_inhabiles || []).forEach(d => {
-                        const fecha = typeof d === 'string' ? d : d.fecha;
-                        const motivo = typeof d === 'string' ? "Inhábil/Asueto Judicial" : d.motivo;
-                        inhabilesMap.set(fecha, motivo);
-                    });
-                    githubCargado = true;
-                }
-            } catch (err) { console.warn("GitHub no disponible, usando solo API."); }
+async function initData(){
+let githubCargado=false;
+let añosCargados=[];
+try{
+const resJson=await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
+if(resJson.ok){
+const dataJson=await resJson.json();
+(dataJson.dias_inhabiles||[]).forEach(d=>{
+const fecha=typeof d==='string'?d:d.fecha;
+const motivo=typeof d==='string'?"Inhábil/Asueto Judicial":d.motivo;
+inhabilesMap.set(fecha,motivo);
+});
+githubCargado=true;
+}
+}catch(e){}
+for(let y=2024;y<=2026;y++){
+try{
+const resApi=await fetch(`https://api.argentinadatos.com/v1/feriados/${y}`);
+if(resApi.ok){
+const dataApi=await resApi.json();
+dataApi.forEach(f=>{
+if(!inhabilesMap.has(f.fecha))
+inhabilesMap.set(f.fecha,f.nombre);
+});
+añosCargados.push(y);
+}
+}catch(e){}
+}
+if(githubCargado||añosCargados.length>0){
+apiStatus.innerText=`Calculadora disponible (Datos: ${añosCargados.join(', ')} cargados ${githubCargado?'+ GitHub':''})`;
+apiStatus.style.color="#059669";
+}else{
+apiStatus.innerText="Error cargando base de datos.";
+apiStatus.style.color="#dc2626";
+}
+}
+initData();
 
-            // 2. Carga de API año por año para evitar bloqueos
-            for (let y = 2024; y <= 2026; y++) {
-                try {
-                    const resApi = await fetch(`https://api.argentinadatos.com/v1/feriados/${y}`);
-                    if (resApi.ok) {
-                        const dataApi = await resApi.json();
-                        dataApi.forEach(f => {
-                            if (!inhabilesMap.has(f.fecha)) inhabilesMap.set(f.fecha, f.nombre);
-                        });
-                        añosCargados.push(y);
-                    }
-                } catch (e) { console.warn(`Error cargando año ${y}`); }
-            }
+function getFeriaJulyRange(year){
+let count=0,start;
+for(let d=1;d<=31;d++){
+let dt=new Date(year,6,d);
+if(dt.getDay()===1){count++;if(count===3){start=dt;break;}}
+}
+let end=new Date(start);
+end.setDate(start.getDate()+11);
+return{start,end};
+}
 
-            // Actualizar mensaje de estado
-            if (githubCargado || añosCargados.length > 0) {
-                apiStatus.innerText = `Calculadora disponible (Datos: ${añosCargados.join(', ')} cargados ${githubCargado ? '+ GitHub' : ''})`;
-                apiStatus.style.color = "#059669";
-            } else {
-                apiStatus.innerText = "Error cargando base de datos.";
-                apiStatus.style.color = "#dc2626";
-            }
-        }
-        initData();
+form.addEventListener('submit',function(e){
+e.preventDefault();
+const d=parseInt(document.getElementById('day').value);
+const m=parseInt(document.getElementById('month').value);
+const y=parseInt(document.getElementById('year').value);
+const pVal=document.getElementById('plazo').value;
+let plazo=pVal==='custom'?parseInt(document.getElementById('customValue').value):parseInt(pVal);
 
-        function getFeriaJulyRange(year) {
-            let count = 0, start;
-            for (let d = 1; d <= 31; d++) {
-                let dt = new Date(year, 6, d);
-                if (dt.getDay() === 1) { count++; if (count === 3) { start = dt; break; } }
-            }
-            let end = new Date(start);
-            end.setDate(start.getDate() + 11);
-            return { start, end };
-        }
+const startDate=new Date(y,m-1,d);
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const d = parseInt(document.getElementById('day').value);
-            const m = parseInt(document.getElementById('month').value);
-            const y = parseInt(document.getElementById('year').value);
-            const pVal = document.getElementById('plazo').value;
-            let plazo = pVal === 'custom' ? parseInt(document.getElementById('customValue').value) : parseInt(pVal);
+// --- CÁLCULO ORDINARIO ---
+let ordDate=new Date(startDate);
+let ordObs=[];
+let feriasJulioVistas=new Set();
 
-            const startDate = new Date(y, m - 1, d);
-            
-            // --- CÁLCULO ORDINARIO ---
-            let ordDate = new Date(startDate);
-            let ordObs = [];
-            let feriasJulioVistas = new Set();
+for(let i=0;i<plazo;i++){
+let dayRef=ordDate.getDate();
+ordDate.setMonth(ordDate.getMonth()+1);
+if(ordDate.getDate()!==dayRef)ordDate.setDate(0);
 
-            for (let i = 0; i < plazo; i++) {
-                let dayRef = ordDate.getDate();
-                ordDate.setMonth(ordDate.getMonth() + 1);
-                if (ordDate.getDate() !== dayRef) ordDate.setDate(0);
+if(ordDate.getMonth()===0){
+ordObs.push(`Se excluyó enero ${ordDate.getFullYear()} (feria)`);
+ordDate.setMonth(1);
+}
+let curY=ordDate.getFullYear();
+let fJul=getFeriaJulyRange(curY);
+if(ordDate>=fJul.start&&!feriasJulioVistas.has(curY))
+feriasJulioVistas.add(curY);
+}
+feriasJulioVistas.forEach(yr=>{
+ordDate.setDate(ordDate.getDate()+12);
+ordObs.push(`Se sumó feria de julio ${yr} (12 días)`);
+});
 
-                if (ordDate.getMonth() === 0) {
-                    ordObs.push(`Se excluyó enero ${ordDate.getFullYear()} (feria)`);
-                    ordDate.setMonth(1);
-                }
-                
-                let curY = ordDate.getFullYear();
-                let fJul = getFeriaJulyRange(curY);
-                if (ordDate >= fJul.start && !feriasJulioVistas.has(curY)) feriasJulioVistas.add(curY);
-            }
+document.getElementById('resultDate').innerText=ordDate.toLocaleDateString('es-AR');
+document.getElementById('resultDetails').innerHTML=`<strong>Inicio:</strong> ${startDate.toLocaleDateString('es-AR')}<br>${ordObs.map(o=>`• ${o}`).join('<br>')}`;
 
-            feriasJulioVistas.forEach(yr => {
-                ordDate.setDate(ordDate.getDate() + 12);
-                ordObs.push(`Se sumó feria de julio ${yr} (12 días)`);
-            });
+// --- CÁLCULO FULL CORREGIDO ---
+let inhabilesList=[];
+let fullDate=new Date(ordDate);
+let diasAgregados;
 
-            document.getElementById('resultDate').innerText = ordDate.toLocaleDateString('es-AR');
-            document.getElementById('resultDetails').innerHTML = `<strong>Inicio:</strong> ${startDate.toLocaleDateString('es-AR')}<br>${ordObs.map(o => `• ${o}`).join('<br>')}`;
+do{
+diasAgregados=0;
+let iter=new Date(startDate);
+iter.setDate(iter.getDate()+1);
 
-            // --- CÁLCULO FULL ---
-            let inhabilesList = [];
-            let fullDate = new Date(ordDate);
-            let checkPoint = new Date(startDate);
+while(iter<=fullDate){
 
-            let loop = true;
-            while (loop) {
-                loop = false;
-                let iter = new Date(checkPoint);
-                iter.setDate(iter.getDate() + 1);
+let iso=getISODate(iter);
+let isJan=(iter.getMonth()===0);
+let rangeJul=getFeriaJulyRange(iter.getFullYear());
+let isJul=(iter>=rangeJul.start&&iter<=rangeJul.end);
 
-                while (iter <= fullDate) {
-                    let iso = getISODate(iter);
-                    let isJan = (iter.getMonth() === 0);
-                    let rangeJul = getFeriaJulyRange(iter.getFullYear());
-                    let isJul = (iter >= rangeJul.start && iter <= rangeJul.end);
+if(inhabilesMap.has(iso)){
 
-                    if (inhabilesMap.has(iso)) {
-                        let yaSumado = inhabilesList.find(item => item.fecha === iter.toLocaleDateString('es-AR'));
-                        if (!yaSumado) {
-                            // Sumamos si NO es feria o si es Diciembre (24/31 del JSON)
-                            if ((!isJan && !isJul) || iter.getMonth() === 11) {
-                                inhabilesList.push({ fecha: iter.toLocaleDateString('es-AR'), nombre: inhabilesMap.get(iso) });
-                                fullDate.setDate(fullDate.getDate() + 1);
-                                loop = true;
-                            }
-                        }
-                    }
-                    iter.setDate(iter.getDate() + 1);
-                }
-                checkPoint = new Date(fullDate);
-            }
+let yaSumado=inhabilesList.find(item=>
+item.fecha===iter.toLocaleDateString('es-AR')
+);
 
-            // Ajuste final si cae en día no hábil
-            let adjustObs = "";
-            let adjust = true;
-            while(adjust) {
-                adjust = false;
-                let isoF = getISODate(fullDate);
-                let rJulF = getFeriaJulyRange(fullDate.getFullYear());
+if(!yaSumado&&!isJan&&!isJul){
 
-                if (fullDate.getMonth() === 0) {
-                    fullDate.setMonth(1, 1); adjustObs = " (Ajustado post-feria enero)"; adjust = true;
-                } else if (fullDate >= rJulF.start && fullDate <= rJulF.end) {
-                    fullDate.setDate(rJulF.end.getDate() + 1); adjustObs = " (Ajustado post-feria julio)"; adjust = true;
-                } else if (fullDate.getDay() === 0 || fullDate.getDay() === 6) {
-                    fullDate.setDate(fullDate.getDate() + 1); adjustObs = " (Ajustado por fin de semana)"; adjust = true;
-                } else if (inhabilesMap.has(isoF)) {
-                    fullDate.setDate(fullDate.getDate() + 1); adjustObs = ` (Ajustado por feriado: ${inhabilesMap.get(isoF)})`; adjust = true;
-                }
-            }
+inhabilesList.push({
+fecha:iter.toLocaleDateString('es-AR'),
+nombre:inhabilesMap.get(iso)
+});
 
-            document.getElementById('resultDateFull').innerText = fullDate.toLocaleDateString('es-AR');
-            document.getElementById('resultDetailsFull').innerHTML = `Se adicionaron <strong>${inhabilesList.length} días</strong> extra.${adjustObs}
-                <details><summary>Ver detalle</summary><ul class="inhabiles-list">
-                ${inhabilesList.map(i => `<li>• ${i.fecha}: ${i.nombre}</li>`).join('')}</ul></details>`;
+fullDate.setDate(fullDate.getDate()+1);
+diasAgregados++;
+}
+}
+iter.setDate(iter.getDate()+1);
+}
 
-            result.classList.add('show');
-        });
+}while(diasAgregados>0);
 
-        document.getElementById('clearBtn').addEventListener('click', () => { form.reset(); result.classList.remove('show'); });
-        document.getElementById('plazo').addEventListener('change', function() { document.getElementById('customMonths').classList.toggle('show', this.value === 'custom'); });
-    </script>
+// Ajuste final si cae en día no hábil
+let adjustObs="";
+let adjust=true;
+while(adjust){
+adjust=false;
+let isoF=getISODate(fullDate);
+let rJulF=getFeriaJulyRange(fullDate.getFullYear());
+
+if(fullDate.getMonth()===0){
+fullDate.setMonth(1,1);
+adjustObs=" (Ajustado post-feria enero)";
+adjust=true;
+}else if(fullDate>=rJulF.start&&fullDate<=rJulF.end){
+fullDate.setDate(rJulF.end.getDate()+1);
+adjustObs=" (Ajustado post-feria julio)";
+adjust=true;
+}else if(fullDate.getDay()===0||fullDate.getDay()===6){
+fullDate.setDate(fullDate.getDate()+1);
+adjustObs=" (Ajustado por fin de semana)";
+adjust=true;
+}else if(inhabilesMap.has(isoF)){
+fullDate.setDate(fullDate.getDate()+1);
+adjustObs=` (Ajustado por feriado: ${inhabilesMap.get(isoF)})`;
+adjust=true;
+}
+}
+
+document.getElementById('resultDateFull').innerText=fullDate.toLocaleDateString('es-AR');
+document.getElementById('resultDetailsFull').innerHTML=`Se adicionaron <strong>${inhabilesList.length} días</strong> extra.${adjustObs}
+<details><summary>Ver detalle</summary><ul class="inhabiles-list">
+${inhabilesList.map(i=>`<li>• ${i.fecha}: ${i.nombre}</li>`).join('')}</ul></details>`;
+
+result.classList.add('show');
+});
+
+document.getElementById('clearBtn').addEventListener('click',()=>{form.reset();result.classList.remove('show');});
+document.getElementById('plazo').addEventListener('change',function(){
+document.getElementById('customMonths').classList.toggle('show',this.value==='custom');
+});
+</script>
 </body>
 </html>
