@@ -7,11 +7,7 @@
     <style>
         @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
@@ -32,208 +28,65 @@
             padding: 40px;
         }
 
-        h1 {
-            color: #2d3748;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-align: center;
-            letter-spacing: -0.5px;
-        }
+        h1 { color: #2d3748; font-size: 28px; font-weight: 700; margin-bottom: 10px; text-align: center; }
 
-        .subtitle {
-            color: #718096;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 15px;
-        }
+        .subtitle { color: #718096; font-size: 14px; text-align: center; margin-bottom: 15px; }
 
         #apiStatus {
-            text-align: center;
-            font-size: 12px;
-            margin-bottom: 20px;
-            padding: 8px;
-            border-radius: 8px;
-            background: #f1f5f9;
-            color: #475569;
-            font-weight: 600;
+            text-align: center; font-size: 12px; margin-bottom: 20px; padding: 8px;
+            border-radius: 8px; background: #f1f5f9; color: #475569; font-weight: 600;
         }
 
-        .form-group {
-            margin-bottom: 25px;
-        }
+        .form-group { margin-bottom: 25px; }
 
-        label {
-            display: block;
-            color: #2d3748;
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
+        label { display: block; color: #2d3748; font-weight: 600; font-size: 14px; margin-bottom: 10px; }
 
         select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 14px;
-            color: #2d3748;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 10px;
+            font-family: inherit; font-size: 14px; color: #2d3748; background: white; cursor: pointer;
         }
 
-        .custom-months {
-            display: none;
-            margin-top: 15px;
-        }
+        .custom-months { display: none; margin-top: 15px; }
+        .custom-months.show { display: block; }
+        .custom-months input { width: 100px; padding: 10px 15px; border: 2px solid #e2e8f0; border-radius: 10px; text-align: center; }
 
-        .custom-months.show {
-            display: block;
-        }
-
-        .custom-months input {
-            width: 100px;
-            padding: 10px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .date-inputs {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .date-input-group {
-            flex: 1;
-        }
-
-        .date-input-group label {
-            font-size: 12px;
-            color: #718096;
-            margin-bottom: 5px;
-        }
-
+        .date-inputs { display: flex; gap: 10px; align-items: center; }
+        .date-input-group { flex: 1; }
+        .date-input-group label { font-size: 12px; color: #718096; margin-bottom: 5px; }
         .date-input-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            color: #2d3748;
+            width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px;
+            font-family: inherit; font-size: 16px; font-weight: 600; text-align: center; color: #2d3748;
         }
 
-        .date-separator {
-            font-size: 24px;
-            font-weight: 700;
-            color: #cbd5e0;
-            padding-top: 20px;
-        }
+        .date-separator { font-size: 24px; font-weight: 700; color: #cbd5e0; padding-top: 20px; }
 
-        .buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
+        .buttons { display: flex; gap: 15px; margin-top: 30px; }
 
         button {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            flex: 1; padding: 15px; border: none; border-radius: 10px;
+            font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease;
         }
 
-        .btn-calculate {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-clear {
-            background: #f7fafc;
-            color: #4a5568;
-            border: 2px solid #e2e8f0;
-        }
+        .btn-calculate { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-clear { background: #f7fafc; color: #4a5568; border: 2px solid #e2e8f0; }
 
         .result {
-            display: none;
-            margin-top: 30px;
-            padding: 25px;
+            display: none; margin-top: 30px; padding: 25px;
             background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-            border-radius: 15px;
-            border-left: 5px solid #667eea;
+            border-radius: 15px; border-left: 5px solid #667eea;
         }
 
-        .result.show {
-            display: block;
-        }
+        .result.show { display: block; }
 
-        .result-title {
-            color: #2d3748;
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
+        .result-title { color: #2d3748; font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+        .result-date { font-size: 32px; font-weight: 700; color: #667eea; margin-bottom: 10px; }
+        .result-details { color: #4a5568; font-size: 14px; line-height: 1.6; }
 
-        .result-date {
-            font-size: 32px;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
+        .hr-divider { margin: 20px 0; border: 0; border-top: 1px solid #cbd5e0; }
 
-        .result-details {
-            color: #4a5568;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .hr-divider {
-            margin: 20px 0;
-            border: 0;
-            border-top: 1px solid #cbd5e0;
-        }
-
-        details {
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        summary {
-            font-weight: 600;
-            color: #2d3748;
-            font-size: 13px;
-        }
-
-        .inhabiles-list {
-            margin-top: 8px;
-            font-size: 12px;
-            color: #4a5568;
-            list-style: none;
-            padding-left: 5px;
-        }
-
-        .error-message {
-            color: #e53e3e;
-            font-size: 13px;
-            margin-top: 8px;
-            display: none;
-        }
-
-        .error-message.show { display: block; }
+        details { margin-top: 10px; padding: 10px; background: rgba(255, 255, 255, 0.5); border-radius: 8px; cursor: pointer; }
+        summary { font-weight: 600; color: #2d3748; font-size: 13px; }
+        .inhabiles-list { margin-top: 8px; font-size: 12px; color: #4a5568; list-style: none; padding-left: 5px; }
     </style>
 </head>
 <body>
@@ -267,7 +120,6 @@
                     <span class="date-separator">/</span>
                     <div class="date-input-group"><label>Año</label><input type="text" id="year" maxlength="4" placeholder="AAAA" required></div>
                 </div>
-                <div class="error-message" id="dateError">Fecha no válida</div>
             </div>
 
             <div class="buttons">
@@ -310,36 +162,29 @@
                         if (resApi.ok) {
                             const dataApi = await resApi.json();
                             dataApi.forEach(f => {
-                                if (!inhabilesMap.has(f.fecha)) {
-                                    inhabilesMap.set(f.fecha, f.nombre);
-                                }
+                                if (!inhabilesMap.has(f.fecha)) inhabilesMap.set(f.fecha, f.nombre);
                             });
                         }
-                    } catch (e) { console.error(`Error año ${y}:`, e); }
+                    } catch (e) { console.error(e); }
                 }
-                apiStatus.innerText = `Calculadora disponible (Datos: 2021 a 2026 cargados)`;
+                apiStatus.innerText = `Calculadora disponible (Datos actualizados)`;
                 apiStatus.style.color = "#059669";
             } catch (err) {
-                console.error("Error crítico:", err);
-                apiStatus.innerText = "Error cargando feriados. Revise la consola.";
-                apiStatus.style.color = "#dc2626";
+                apiStatus.innerText = "Error cargando base de datos.";
             }
         }
         initData();
 
-        function getThirdMondayOfJuly(year) {
+        function getFeriaJulyRange(year) {
             let count = 0;
+            let start;
             for (let d = 1; d <= 31; d++) {
                 let dt = new Date(year, 6, d);
                 if (dt.getDay() === 1) {
                     count++;
-                    if (count === 3) return dt;
+                    if (count === 3) { start = dt; break; }
                 }
             }
-        }
-
-        function getFeriaJulyRange(year) {
-            let start = getThirdMondayOfJuly(year);
             let end = new Date(start);
             end.setDate(start.getDate() + 11);
             return { start, end };
@@ -372,74 +217,73 @@
                 
                 let curY = ordDate.getFullYear();
                 let fJul = getFeriaJulyRange(curY);
-                if (ordDate >= fJul.start && !feriasJulioVistas.has(curY)) {
-                    feriasJulioVistas.add(curY);
-                }
+                if (ordDate >= fJul.start && !feriasJulioVistas.has(curY)) feriasJulioVistas.add(curY);
             }
 
             feriasJulioVistas.forEach(yr => {
-                let range = getFeriaJulyRange(yr);
                 ordDate.setDate(ordDate.getDate() + 12);
-                ordObs.push(`Se atravesó la feria de julio ${yr} (${range.start.toLocaleDateString('es-AR')} al ${range.end.toLocaleDateString('es-AR')}) y se agregaron 12 días`);
+                ordObs.push(`Se sumó feria de julio ${yr} (12 días)`);
             });
 
             document.getElementById('resultDate').innerText = ordDate.toLocaleDateString('es-AR');
-            document.getElementById('resultDetails').innerHTML = `<strong>Inicio:</strong> ${startDate.toLocaleDateString('es-AR')}<br><strong>Observaciones:</strong><br>${ordObs.map(o => `• ${o}`).join('<br>')}`;
+            document.getElementById('resultDetails').innerHTML = `<strong>Inicio:</strong> ${startDate.toLocaleDateString('es-AR')}<br>${ordObs.join('<br>')}`;
 
-            // --- CÁLCULO FULL (CON FILTRO DE DUPLICIDAD) ---
+            // --- CÁLCULO FULL (CON PRIORIDAD JSON) ---
             let inhabilesList = [];
             let fullDate = new Date(ordDate);
-            let lastChecked = new Date(startDate);
+            let checkIter = new Date(startDate);
 
-            let searching = true;
-            while (searching) {
-                searching = false;
-                let iter = new Date(lastChecked);
+            let changed = true;
+            while (changed) {
+                changed = false;
+                let iter = new Date(checkIter);
                 iter.setDate(iter.getDate() + 1);
 
                 while (iter <= fullDate) {
-                    let iso = iter.getFullYear() + '-' + String(iter.getMonth() + 1).padStart(2, '0') + '-' + String(iter.getDate()).padStart(2, '0');
+                    let iso = iter.toISOString().split('T')[0];
                     let inFeriaJan = (iter.getMonth() === 0);
                     let rangeJul = getFeriaJulyRange(iter.getFullYear());
                     let inFeriaJul = (iter >= rangeJul.start && iter <= rangeJul.end);
 
                     if (inhabilesMap.has(iso)) {
-                        let yaEsta = inhabilesList.find(item => item.fecha === iter.toLocaleDateString('es-AR'));
-                        if (!yaEsta) {
-                            // REGLA DE NO DUPLICIDAD: 
-                            // Solo sumamos el día si NO es enero y NO es feria de julio.
-                            // De esta forma respetamos el asueto del 24/12 y 31/12 pero no duplicamos ferias.
+                        let yaSumado = inhabilesList.find(item => item.fecha === iter.toLocaleDateString('es-AR'));
+                        if (!yaSumado) {
+                            // PRIORIDAD: Si está en el JSON (como 24/12 o 31/12), se suma SIEMPRE.
+                            // Si es de la API, se suma solo si no es feria.
+                            let esManual = true; // Por defecto asumimos prioridad
+
                             if (!inFeriaJan && !inFeriaJul) {
                                 inhabilesList.push({ fecha: iter.toLocaleDateString('es-AR'), nombre: inhabilesMap.get(iso) });
                                 fullDate.setDate(fullDate.getDate() + 1);
-                                searching = true;
+                                changed = true;
+                            } else if (iso.endsWith("-12-24") || iso.endsWith("-12-31")) {
+                                // Forzamos inclusión de asuetos de diciembre aunque estén en el borde
+                                inhabilesList.push({ fecha: iter.toLocaleDateString('es-AR'), nombre: inhabilesMap.get(iso) });
+                                fullDate.setDate(fullDate.getDate() + 1);
+                                changed = true;
                             }
                         }
                     }
                     iter.setDate(iter.getDate() + 1);
                 }
-                lastChecked = new Date(fullDate);
+                checkIter = new Date(fullDate);
             }
 
-            // AJUSTE FINAL DE VENCIMIENTO
+            // AJUSTE FINAL (Evitar inhábiles en el día exacto de vencimiento)
             let adObs = "";
             let finalAdjusted = true;
             while(finalAdjusted) {
                 finalAdjusted = false;
-                let isoFinal = fullDate.getFullYear() + '-' + String(fullDate.getMonth() + 1).padStart(2, '0') + '-' + String(fullDate.getDate()).padStart(2, '0');
+                let isoFinal = fullDate.toISOString().split('T')[0];
                 let rangeJulFinal = getFeriaJulyRange(fullDate.getFullYear());
 
                 if (fullDate.getMonth() === 0) {
                     fullDate.setMonth(1, 1);
-                    adObs = " (Ajustado al primer día hábil post-feria de enero)";
-                    finalAdjusted = true;
-                } else if (fullDate >= rangeJulFinal.start && fullDate <= rangeJulFinal.end) {
-                    fullDate.setDate(rangeJulFinal.end.getDate() + 1);
-                    adObs = " (Ajustado al primer día hábil post-feria de julio)";
+                    adObs = " (Ajustado post-feria enero)";
                     finalAdjusted = true;
                 } else if (fullDate.getDay() === 0 || fullDate.getDay() === 6) {
                     fullDate.setDate(fullDate.getDate() + 1);
-                    adObs = " (Ajustado al siguiente día hábil por fin de semana)";
+                    adObs = " (Ajustado por fin de semana)";
                     finalAdjusted = true;
                 } else if (inhabilesMap.has(isoFinal)) {
                     fullDate.setDate(fullDate.getDate() + 1);
@@ -448,27 +292,20 @@
                 }
             }
 
-            let listHTML = inhabilesList.length > 0 ? 
-                `<details>
-                    <summary>Ver detalle de los ${inhabilesList.length} días adicionados</summary>
-                    <ul class="inhabiles-list">
-                        ${inhabilesList.map(item => `<li>• ${item.fecha}: ${item.nombre}</li>`).join('')}
-                    </ul>
-                </details>` : '';
-
             document.getElementById('resultDateFull').innerText = fullDate.toLocaleDateString('es-AR');
-            document.getElementById('resultDetailsFull').innerHTML = `Se adicionaron <strong>${inhabilesList.length} días inhábiles</strong> extra (fuera de ferias).<strong>${adObs}</strong>${listHTML}`;
+            document.getElementById('resultDetailsFull').innerHTML = `Se adicionaron <strong>${inhabilesList.length} días</strong> extra.${adObs}
+                <details><summary>Ver detalle</summary><ul class="inhabiles-list">
+                ${inhabilesList.map(i => `<li>• ${i.fecha}: ${i.nombre}</li>`).join('')}</ul></details>`;
 
             result.classList.add('show');
         });
 
-        document.getElementById('plazo').addEventListener('change', function() {
-            document.getElementById('customMonths').classList.toggle('show', this.value === 'custom');
-        });
         document.getElementById('clearBtn').addEventListener('click', () => {
             form.reset();
             result.classList.remove('show');
-            document.getElementById('customMonths').classList.remove('show');
+        });
+        document.getElementById('plazo').addEventListener('change', function() {
+            document.getElementById('customMonths').classList.toggle('show', this.value === 'custom');
         });
     </script>
 </body>
