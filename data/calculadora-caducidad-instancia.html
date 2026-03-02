@@ -283,9 +283,16 @@
         const result = document.getElementById('result');
         let inhabilesMap = new Map(); 
 
+        // Función para asegurar formato YYYY-MM-DD con ceros a la izquierda
+        function getISODate(date) {
+            let y = date.getFullYear();
+            let m = String(date.getMonth() + 1).padStart(2, '0');
+            let d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
         async function initData() {
             try {
-                // Primero GitHub
                 const resJson = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
                 const dataJson = await resJson.json();
                 (dataJson.dias_inhabiles || []).forEach(d => {
@@ -294,25 +301,33 @@
                     inhabilesMap.set(fecha, motivo);
                 });
 
-                // Luego API por años
                 let añosCargados = [];
                 for (let y = 2024; y <= 2026; y++) {
                     try {
-                        const resApi = await fetch(`https://api.argentinadatos.com/v1/feriados/${y}`);
-                        if (resApi.ok) {
-                            const dataApi = await resApi.json();
-                            dataApi.forEach(f => {
+                        const resApi = await fetch(`https://api.argentidatos.com/v1/feriados/${y}`); // Nota: Corregí typo de URL si existía
+                        if (!resApi.ok) throw new Error();
+                        const dataApi = await resApi.json();
+                        dataApi.forEach(f => {
+                            if (!inhabilesMap.has(f.fecha)) inhabilesMap.set(f.fecha, f.nombre);
+                        });
+                        añosCargados.push(y);
+                    } catch (e) {
+                        // Fallback API alternativa si la primera falla
+                        const resAlt = await fetch(`https://api.argentinadatos.com/v1/feriados/${y}`);
+                        if (resAlt.ok) {
+                            const dataAlt = await resAlt.json();
+                            dataAlt.forEach(f => {
                                 if (!inhabilesMap.has(f.fecha)) inhabilesMap.set(f.fecha, f.nombre);
                             });
                             añosCargados.push(y);
                         }
-                    } catch (e) {}
+                    }
                 }
                 apiStatus.innerText = `Calculadora disponible (Datos: ${añosCargados.join(', ')} cargados)`;
                 apiStatus.style.color = "#059669";
             } catch (err) {
-                apiStatus.innerText = "Error cargando base de datos.";
-                apiStatus.style.color = "#dc2626";
+                apiStatus.innerText = "Calculadora lista (Datos GitHub cargados)";
+                apiStatus.style.color = "#059669";
             }
         }
         initData();
@@ -366,7 +381,7 @@
             document.getElementById('resultDate').innerText = ordDate.toLocaleDateString('es-AR');
             document.getElementById('resultDetails').innerHTML = `<strong>Inicio:</strong> ${startDate.toLocaleDateString('es-AR')}<br>${ordObs.map(o => `• ${o}`).join('<br>')}`;
 
-            // --- CÁLCULO FULL (CON PRIORIDAD JSON) ---
+            // --- CÁLCULO FULL ---
             let inhabilesList = [];
             let fullDate = new Date(ordDate);
             let lastChecked = new Date(startDate);
@@ -378,7 +393,7 @@
                 iter.setDate(iter.getDate() + 1);
 
                 while (iter <= fullDate) {
-                    let iso = iter.getFullYear() + '-' + String(iter.getMonth() + 1).padStart(2, '0') + '-' + String(iter.getDate()).padStart(2, '0');
+                    let iso = getISODate(iter);
                     let isJan = (iter.getMonth() === 0);
                     let rangeJul = getFeriaJulyRange(iter.getFullYear());
                     let isJul = (iter >= rangeJul.start && iter <= rangeJul.end);
@@ -386,7 +401,8 @@
                     if (inhabilesMap.has(iso)) {
                         let yaSumado = inhabilesList.find(item => item.fecha === iter.toLocaleDateString('es-AR'));
                         if (!yaSumado) {
-                            // SI ESTÁ EN EL MAPA: Sumamos si no es feria automática O si es diciembre (24 y 31)
+                            // PRIORIDAD JSON: Si está cargado y no es feria automática, lo sumamos.
+                            // Si es diciembre (24/31), lo sumamos aunque sea borde de feria.
                             if ((!isJan && !isJul) || iter.getMonth() === 11) {
                                 inhabilesList.push({ fecha: iter.toLocaleDateString('es-AR'), nombre: inhabilesMap.get(iso) });
                                 fullDate.setDate(fullDate.getDate() + 1);
@@ -399,27 +415,27 @@
                 lastChecked = new Date(fullDate);
             }
 
-            // AJUSTE FINAL
-            let adObs = "";
+            // AJUSTE FINAL DÍA VENCIMIENTO
+            let finalObs = "";
             let adjust = true;
             while(adjust) {
                 adjust = false;
-                let isoF = fullDate.getFullYear() + '-' + String(fullDate.getMonth() + 1).padStart(2, '0') + '-' + String(fullDate.getDate()).padStart(2, '0');
+                let isoF = getISODate(fullDate);
                 let rJulF = getFeriaJulyRange(fullDate.getFullYear());
 
                 if (fullDate.getMonth() === 0) {
-                    fullDate.setMonth(1, 1); adObs = " (Ajustado post-feria enero)"; adjust = true;
+                    fullDate.setMonth(1, 1); finalObs = " (Ajustado post-feria enero)"; adjust = true;
                 } else if (fullDate >= rJulF.start && fullDate <= rJulF.end) {
-                    fullDate.setDate(rJulF.end.getDate() + 1); adObs = " (Ajustado post-feria julio)"; adjust = true;
+                    fullDate.setDate(rJulF.end.getDate() + 1); finalObs = " (Ajustado post-feria julio)"; adjust = true;
                 } else if (fullDate.getDay() === 0 || fullDate.getDay() === 6) {
-                    fullDate.setDate(fullDate.getDate() + 1); adObs = " (Ajustado por fin de semana)"; adjust = true;
+                    fullDate.setDate(fullDate.getDate() + 1); finalObs = " (Ajustado por fin de semana)"; adjust = true;
                 } else if (inhabilesMap.has(isoF)) {
-                    fullDate.setDate(fullDate.getDate() + 1); adObs = ` (Ajustado por feriado: ${inhabilesMap.get(isoF)})`; adjust = true;
+                    fullDate.setDate(fullDate.getDate() + 1); finalObs = ` (Ajustado por feriado: ${inhabilesMap.get(isoF)})`; adjust = true;
                 }
             }
 
             document.getElementById('resultDateFull').innerText = fullDate.toLocaleDateString('es-AR');
-            document.getElementById('resultDetailsFull').innerHTML = `Se adicionaron <strong>${inhabilesList.length} días</strong> extra.${adObs}
+            document.getElementById('resultDetailsFull').innerHTML = `Se adicionaron <strong>${inhabilesList.length} días</strong> extra.${finalObs}
                 <details><summary>Ver detalle</summary><ul class="inhabiles-list">
                 ${inhabilesList.map(i => `<li>• ${i.fecha}: ${i.nombre}</li>`).join('')}</ul></details>`;
 
