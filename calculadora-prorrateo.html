@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora Art. 730 - Prorrateo de Honorarios</title>
     <style>
-        /* Estilos CSS (se mantienen igual, con pequeñas adaptaciones) */
+        /* Estilos CSS (se mantienen igual) */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             max-width: 1300px;
@@ -347,8 +347,7 @@
         const honorarioBody = document.getElementById('honorario-body');
 
         // --- Funciones auxiliares de números ---
-        // Convierte un string a número, aceptando coma o punto decimal, y eliminando puntos de miles.
-        // Para el valor UMA, queremos eliminar todos los puntos (separadores de miles) antes de parsear.
+        // Convierte un string a número, aceptando coma o punto decimal, y eliminando puntos de miles si se indica.
         function parseNumber(value, removeThousandsSeparator = false) {
             if (typeof value !== 'string') value = String(value);
             if (removeThousandsSeparator) {
@@ -372,7 +371,7 @@
         function getValorUMA() {
             const umaInput = document.getElementById('umaInput');
             // Al obtener el valor, quitamos puntos (por si el usuario escribió con ellos)
-            return parseNumber(umaInput.value, true); // true = eliminar puntos de miles
+            return parseNumber(umaInput.value, true);
         }
 
         // --- Función para obtener el monto efectivo de una fila (considera UMA e IVA) ---
@@ -469,23 +468,20 @@
             try {
                 const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8tumvxptTGBCfScMwWxK7r6ATnGfMw061GKGdzfIVyThcSGzUqjI-vcpME1AtykPmjqTq0xdjgc7D/pub?output=csv');
                 const csvText = await response.text();
-                // Dividir en líneas y tomar la primera línea de datos (asumimos que la primera fila es encabezado)
                 const lines = csvText.split('\n');
-                if (lines.length >= 2) {
-                    // La segunda línea (índice 1) debería contener los valores de la fila 2 del sheet
-                    const secondLine = lines[1]; // Fila 2: "UMA,89.875" o similar
-                    const columns = secondLine.split(',');
+                // La primera línea (fila 1 del sheet) contiene "UMA,89.875"
+                if (lines.length >= 1) {
+                    const firstLine = lines[0];
+                    const columns = firstLine.split(',');
                     if (columns.length >= 2) {
-                        // La segunda columna (B1) debería ser el valor de UMA
-                        let rawValue = columns[1].trim().replace(/"/g, ''); // quitar comillas si existen
+                        let rawValue = columns[1].trim().replace(/"/g, '');
                         // Eliminar puntos (separador de miles) para obtener el número entero
                         rawValue = rawValue.replace(/\./g, '');
                         const umaValor = parseFloat(rawValue);
                         if (!isNaN(umaValor) && umaValor > 0) {
                             umaInput.value = umaValor; // asignar como número sin formato
                         } else {
-                            // No se encontró un número válido, dejar el input vacío
-                            umaInput.value = '';
+                            umaInput.value = ''; // No válido, dejar vacío
                         }
                     } else {
                         umaInput.value = '';
@@ -607,7 +603,7 @@
 
         // --- Inicialización ---
         document.addEventListener('DOMContentLoaded', function() {
-            cargarUMA(); // Intenta cargar UMA y lo deja en el input
+            cargarUMA(); // Intenta cargar UMA desde B1 y lo deja en el input
             // Crear 5 filas iniciales
             resetCalculator(); // esto llama a addHonorario 5 veces y calculate()
         });
