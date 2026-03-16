@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Caducidad de Instancia - Art. 310 CPCC</title>
+    <title>Calculadora de Caducidad de Instancia - Art. 310 CPCCN</title>
     <style>
         @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
         
@@ -296,15 +296,14 @@
 
         async function initData() {
             try {
-                // CORRECCIÓN AQUÍ: Leer correctamente el JSON con la estructura real
+                // Cargar JSON de días inhábiles adicionales
                 const resJson = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
                 const dataJson = await resJson.json();
-                
-                // La propiedad correcta es "dias_inhabiles_adicionales" y es un array de objetos
                 (dataJson.dias_inhabiles_adicionales || []).forEach(item => {
                     inhabilesMap.set(item.fecha, item.motivo);
                 });
 
+                // Cargar feriados de la API
                 for (let y = 2021; y <= 2026; y++) {
                     try {
                         const resApi = await fetch(`https://api.argentinadatos.com/v1/feriados/${y}`);
@@ -318,7 +317,16 @@
                         }
                     } catch (e) { console.error(`Error año ${y}:`, e); }
                 }
-                apiStatus.innerText = `Calculadora disponible (Datos: 2021 a 2026 cargados)`;
+
+                // --- Agregar 16 de noviembre de cada año (2021-2026) como día inhábil fijo ---
+                for (let y = 2021; y <= 2026; y++) {
+                    const fecha = `${y}-11-16`;
+                    if (!inhabilesMap.has(fecha)) {
+                        inhabilesMap.set(fecha, "16 de noviembre (Ley 26.674)");
+                    }
+                }
+
+                apiStatus.innerText = `Calculadora disponible (Datos: 2021 a 2026 cargados + 16/11 fijo)`;
                 apiStatus.style.color = "#059669";
             } catch (err) {
                 console.error("Error crítico:", err);
