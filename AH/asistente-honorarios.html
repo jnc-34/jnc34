@@ -1,125 +1,223 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Asistente Honorarios</title>
-
-<style>
-body { font-family: Arial; max-width: 900px; margin: auto; padding: 20px; }
-.pantalla { display: none; }
-.activa { display: block; }
-button { margin-top: 15px; padding: 8px 15px; }
-.box { margin-top: 10px; }
-small { color: gray; }
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente de Honorarios Profesionales</title>
+    <style>
+        /* Estilos combinados: Asistente + Calculadora */
+        body { font-family: Arial, sans-serif; max-width: 850px; margin: auto; padding: 20px; line-height: 1.6; }
+        .pantalla { display: none; background: #fff; padding: 20px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .activa { display: block; }
+        
+        /* Estilos de la calculadora (calc.txt) */
+        .container { background-color: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-top: 20px; }
+        .warning { background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ffeeba; font-size: 0.85em; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input, .input-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-next { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        .btn-next:hover { background-color: #0056b3; }
+        .results-container { margin-top: 20px; border-top: 2px solid #ccc; padding-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .note { font-size: 0.9em; font-style: italic; color: #555; margin-bottom: 15px; }
+        #resultado-asistente { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; }
+    </style>
 </head>
 <body>
 
-<h2>Asistente de Honorarios</h2>
+    <h2>Asistente de Honorarios Judiciales</h2>
 
-<!-- P1 -->
-<div id="p1" class="pantalla activa">
-  <button onclick="next(2)">Comenzar</button>
-</div>
+    <div id="p1" class="pantalla activa">
+        <h3>Bienvenido</h3>
+        <p>Este asistente lo guiará a través de las variables de la Ley 27.423 para determinar la base y el grupo de cálculo correspondiente.</p>
+        <button class="btn-next" onclick="next(2)">Comenzar</button>
+    </div>
 
-<!-- P2 -->
-<div id="p2" class="pantalla">
-  <h3>Observaciones</h3>
-  <p>
-    Este asistente no contempla:
-    <br>- Familia
-    <br>- Penal
-    <br>- Laboral
-    <br>- Administrador judicial / interventor
-  </p>
-  <button onclick="next(3)">Continuar</button>
-</div>
+    <div id="p2" class="pantalla">
+        <h3>Observaciones y Exclusiones</h3>
+        <div class="warning">
+            Este asistente está orientado a procesos civiles y comerciales. No contempla:
+            <ul>
+                <li>Asuntos de Familia, Penal o Laboral. [cite: 16]</li>
+                <li>Actuaciones de administradores judiciales o interventores.</li>
+            </ul>
+        </div>
+        <button class="btn-next" onclick="next(3)">Entendido, continuar</button>
+    </div>
 
-<!-- P3 -->
-<div id="p3" class="pantalla">
-  <h3>Tipo de honorarios</h3>
-  <select id="tipoHonorario">
-    <option value="definitivos">Definitivos</option>
-    <option value="provisorios">Provisorios</option>
-  </select>
-  <button onclick="guardarTipoHonorario()">Continuar</button>
-</div>
+    <div id="p3" class="pantalla">
+        <h3>Tipo de honorarios</h3>
+        <div class="input-group">
+            <label>¿Qué tipo de regulación se busca?</label>
+            <select id="tipoHonorario">
+                <option value="definitivos">Definitivos</option>
+                <option value="provisorios">Provisorios (art. 12)</option>
+            </select>
+        </div>
+        <button class="btn-next" onclick="guardarTipoHonorario()">Continuar</button>
+    </div>
 
-<!-- P4 -->
-<div id="p4" class="pantalla">
-  <h3>Tipo de proceso</h3>
-  <select id="tipoProceso">
-    <option value="ordinario">Ordinario</option>
-    <option value="sumarisimo">Sumarísimo</option>
-    <option value="ejecutivo">Ejecutivo</option>
-  </select>
-  <button onclick="guardarProceso()">Continuar</button>
-</div>
+    <div id="p4" class="pantalla">
+        <h3>Tipo de proceso</h3>
+        <div class="input-group">
+            <label>Seleccione la vía procesal:</label>
+            <select id="tipoProceso">
+                <option value="ordinario">Ordinario</option>
+                <option value="sumarisimo">Sumarísimo</option>
+                <option value="ejecutivo">Ejecutivo</option>
+            </select>
+        </div>
+        <button class="btn-next" onclick="guardarProceso()">Continuar</button>
+    </div>
 
-<!-- P5 -->
-<div id="p5" class="pantalla">
-  <h3>Variables</h3>
+    <div id="p5" class="pantalla">
+        <h3>Variables del proceso</h3>
+        <div class="input-group">
+            <label><input type="checkbox" id="hayPrueba"> Hubo apertura a prueba (sustanciación)</label>
+        </div>
+        <div id="reconvencionBox" class="input-group" style="display:none;">
+            <label><input type="checkbox" id="reconvencion"> Hubo reconvención (art. 28)</label>
+        </div>
+        <button class="btn-next" onclick="guardarVariables()">Continuar</button>
+    </div>
 
-  <label><input type="checkbox" id="hayPrueba"> Hubo apertura a prueba</label><br>
+    <div id="p6" class="pantalla">
+        <h3>Modo de terminación</h3>
+        <div class="input-group">
+            <label>El proceso finalizó por:</label>
+            <select id="terminacion">
+                <option value="sentencia">Sentencia definitiva</option>
+                <option value="desistimiento">Desistimiento (art. 25)</option>
+                <option value="transaccion">Transacción / Conciliación</option>
+                <option value="allanamiento">Allanamiento</option>
+                <option value="caducidad">Caducidad de instancia</option>
+            </select>
+        </div>
+        <button class="btn-next" onclick="guardarTerminacion()">Continuar</button>
+    </div>
 
-  <div id="reconvencionBox" style="display:none;">
-    <label><input type="checkbox" id="reconvencion"> Hubo reconvención</label>
-  </div>
+    <div id="p7" class="pantalla">
+        <h3>Cálculo de la Base</h3>
+        <div class="input-group">
+            <label>Naturaleza del asunto:</label>
+            <select id="tipoBase">
+                <option value="monto">Monto de condena/liquidación (art. 24)</option>
+                <option value="inmueble">Inmuebles / Muebles</option>
+                <option value="establecimiento">Establecimientos comerciales (art. 23)</option>
+                <option value="uso">Derecho de uso y habitación</option>
+                <option value="escrituracion">Escrituración</option>
+                <option value="posesorias">Acciones posesorias / División de bienes (80%)</option>
+                <option value="colectiva">Procesos de incidencia colectiva (75%)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Monto o valor de referencia ($):</label>
+            <input type="number" id="baseMonto" placeholder="Ej: 500000">
+        </div>
+        <div id="warnings-base"></div>
+        <button class="btn-next" onclick="guardarBase()">Generar Liquidación</button>
+    </div>
 
-  <button onclick="guardarVariables()">Continuar</button>
-</div>
+    <div id="p9" class="pantalla">
+        <h3>Liquidación Final Sugerida</h3>
+        <div id="resultado-asistente"></div>
 
-<!-- P6 -->
-<div id="p6" class="pantalla">
-  <h3>Terminación</h3>
-  <select id="terminacion">
-    <option value="sentencia">Sentencia</option>
-    <option value="desistimiento">Desistimiento</option>
-    <option value="transaccion">Transacción</option>
-    <option value="allanamiento">Allanamiento</option>
-    <option value="caducidad">Caducidad</option>
-  </select>
-  <button onclick="guardarTerminacion()">Continuar</button>
-</div>
+        <div class="container">
+            <div class="warning">
+                <p>Verifique los datos antes de emitir la regulación. Esta herramienta es de referencia profesional. [cite: 18]</p>
+            </div>
 
-<!-- P7 -->
-<div id="p7" class="pantalla">
-  <h3>Base regulatoria</h3>
+            <div class="input-group">
+                <label for="baseRegulatoria">Base regulatoria ($):</label>
+                <input type="text" id="baseRegulatoria">
+            </div>
 
-  <select id="tipoBase">
-    <option value="monto">Monto libre</option>
-    <option value="inmueble">Inmueble / mueble</option>
-    <option value="credito">Derecho crediticio</option>
-    <option value="acciones">Acciones / títulos</option>
-    <option value="establecimiento">Establecimiento</option>
-    <option value="uso">Uso y habitación</option>
-    <option value="escrituracion">Escrituración</option>
-    <option value="posesorias">Posesorias / división</option>
-    <option value="colectiva">Incidencia colectiva</option>
-  </select>
+            <div class="input-group">
+                <label for="valorUMA">Valor UMA (actualizado):</label>
+                <input type="text" id="valorUMA" placeholder="Cargando...">
+            </div>
 
-  <input type="number" id="baseMonto" placeholder="Monto">
+            <div class="input-group">
+                <label for="grupoProceso">Grupo de cálculo aplicado:</label>
+                <select id="grupoProceso">
+                    <option value="grupo1">Grupo 1 - Escala plena (100%)</option>
+                    <option value="grupo2">Grupo 2 - Reducción del 50%</option>
+                    <option value="grupo3">Grupo 3 - Reducción del 25% (Cautelares)</option>
+                    <option value="grupo4">Grupo 4 - Reducción del 30% (Rechazo/Caducidad)</option>
+                    <option value="grupo5">Grupo 5 - Ejecución sin excepciones (90%)</option>
+                    <option value="grupo6">Grupo 6 - Ejecución de honorarios (45%)</option>
+                </select>
+            </div>
 
-  <div id="warnings"></div>
+            <button class="btn-next" style="background-color: #28a745;" onclick="calcular()">Recalcular Tabla</button>
 
-  <button onclick="guardarBase()">Continuar</button>
-</div>
+            <div id="resultados" class="results-container"></div>
+        </div>
+        <button class="btn-next" onclick="location.reload()">Nuevo Cálculo</button>
+    </div>
 
-<!-- P8 -->
-<div id="p8" class="pantalla">
-  <h3>Resumen</h3>
-  <pre id="resumen"></pre>
-  <button onclick="calcularFinal()">Calcular</button>
-</div>
+    <script>
+        async function cargarUMA() {
+            const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8tumvxptTGBCfScMwWxK7r6ATnGfMw061GKGdzfIVyThcSGzUqjI-vcpME1AtykPmjqTq0xdjgc7D/pub?output=csv';
+            try {
+                const response = await fetch(url);
+                const data = await response.text();
+                const filas = data.split('\n');
+                const columnas = filas[0].split(',');
+                let valorB1 = columnas[1].replace(/"/g, '').trim();
+                if (valorB1) document.getElementById('valorUMA').value = valorB1;
+            } catch (error) {
+                document.getElementById('valorUMA').placeholder = "Ingrese manual.";
+            }
+        }
+        window.addEventListener('DOMContentLoaded', cargarUMA);
 
-<!-- P9 -->
-<div id="p9" class="pantalla">
-  <h3>Resultado</h3>
-  <div id="resultado"></div>
-</div>
+        function parseNumber(str) { return parseFloat(str.replace(/\./g, '').replace(',', '.')); }
+        function formatNumber(num) { 
+            if (isNaN(num)) return '0,00';
+            return num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
+        }
 
-<script src="app.js"></script>
+        function calcular() {
+            const baseReg = parseNumber(document.getElementById('baseRegulatoria').value);
+            const uma = parseNumber(document.getElementById('valorUMA').value);
+            const grupo = document.getElementById('grupoProceso').value;
 
+            if (!baseReg || !uma) return;
+
+            let baseEnUMA = baseReg / uma;
+            let calcMin, calcMax, escalaInfo = "";
+
+            // Lógica de escalas (art. 21) [cite: 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65]
+            if (baseEnUMA <= 15) { calcMin = baseEnUMA * 0.22; calcMax = baseEnUMA * 0.33; escalaInfo = "22% a 33%"; }
+            else if (baseEnUMA <= 45) { calcMin = (baseEnUMA - 15) * 0.20 + 4.95; calcMax = (baseEnUMA - 15) * 0.26 + 4.95; escalaInfo = "20% a 26%"; }
+            else if (baseEnUMA <= 90) { calcMin = (baseEnUMA - 45) * 0.18 + 11.7; calcMax = (baseEnUMA - 45) * 0.24 + 11.7; escalaInfo = "18% a 24%"; }
+            else if (baseEnUMA <= 150) { calcMin = (baseEnUMA - 90) * 0.17 + 21.6; calcMax = (baseEnUMA - 90) * 0.22 + 21.6; escalaInfo = "17% a 22%"; }
+            else if (baseEnUMA <= 450) { calcMin = (baseEnUMA - 150) * 0.15 + 33; calcMax = (baseEnUMA - 150) * 0.20 + 33; escalaInfo = "15% a 20%"; }
+            else if (baseEnUMA <= 750) { calcMin = (baseEnUMA - 450) * 0.13 + 90; calcMax = (baseEnUMA - 450) * 0.17 + 90; escalaInfo = "13% a 17%"; }
+            else { calcMin = (baseEnUMA - 750) * 0.12 + 127.5; calcMax = (baseEnUMA - 750) * 0.15 + 127.5; escalaInfo = "12% a 15%"; }
+
+            // Aplicación de Grupos [cite: 69, 70, 71, 72, 73]
+            if (grupo === 'grupo2') { calcMin *= 0.5; calcMax *= 0.5; }
+            else if (grupo === 'grupo3') { calcMin *= 0.75; calcMax *= 0.75; }
+            else if (grupo === 'grupo4') { calcMin *= 0.7; calcMax *= 0.7; }
+            else if (grupo === 'grupo5') { calcMin *= 0.9; calcMax *= 0.9; }
+            else if (grupo === 'grupo6') { calcMin *= 0.45; calcMax *= 0.45; }
+
+            let html = `<h3>Cálculo en UMA</h3>
+            <table>
+                <tr><td>Escala Aplicada</td><td>${escalaInfo}</td></tr>
+                <tr><th>Rol</th><th>Mínimo (UMA)</th><th>Máximo (UMA)</th></tr>
+                <tr><td>Patrocinante</td><td>${formatNumber(calcMin)}</td><td>${formatNumber(calcMax)}</td></tr>
+                <tr><td>Apoderado (+40%)</td><td>${formatNumber(calcMin * 1.4)}</td><td>${formatNumber(calcMax * 1.4)}</td></tr>
+            </table>`;
+            
+            document.getElementById('resultados').innerHTML = html;
+        }
+    </script>
+    <script src="app.js"></script>
 </body>
 </html>
