@@ -3,43 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistente Legal 27.423</title>
+    <title>Asistente para la regulación de Honorarios Profesionales según la ley 27.423</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --success: #27ae60; --warning: #f39c12; --bg: #f4f7f6; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--primary); margin: 0; padding: 20px; line-height: 1.6; }
-        .app-container { max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #e1e8ed; }
-        
-        /* Header & Progress */
+        .app-container { max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #e1e8ed; }
         .header { background: var(--primary); color: white; padding: 25px; text-align: center; }
         .progress-bar { display: flex; justify-content: space-between; background: #ebedef; padding: 10px 20px; font-size: 0.8rem; text-transform: uppercase; }
         .step-dot { color: #95a5a6; }
         .step-dot.active { color: var(--accent); font-weight: bold; }
-
-        /* Pantallas */
-        .pantalla { display: none; padding: 30px; animation: fadeIn 0.4s ease; }
+        .pantalla { display: none; padding: 30px; }
         .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Componentes UI */
-        .card-info { background: #e8f4fd; border-left: 5px solid var(--accent); padding: 15px; margin-bottom: 20px; font-size: 0.95rem; }
-        .legal-box { background: #fdfefe; border: 1px solid #d1d8dd; padding: 15px; border-radius: 6px; margin: 15px 0; font-size: 0.9rem; font-style: italic; color: #555; }
-        .warning-box { background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 6px; color: #856404; font-size: 0.9rem; }
-        
+        .card-info, .warning-box { background: #fdfefe; border: 1px solid #d1d8dd; padding: 15px; border-radius: 6px; margin: 15px 0; font-size: 0.9rem; }
+        .warning-box { background: #fff3cd; border-color: #ffeeba; color: #856404; }
+        .legal-box { background: #e8f4fd; border-left: 5px solid var(--accent); padding: 15px; margin: 15px 0; font-size: 0.9rem; }
         .btn-group { display: flex; gap: 10px; margin-top: 25px; }
         button { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
         .btn-primary { background: var(--accent); color: white; }
-        .btn-primary:hover { background: #2980b9; }
         .btn-outline { background: transparent; border: 1px solid #bdc3c7; color: var(--secondary); }
-        
         .input-ui { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; margin-top: 8px; box-sizing: border-box; }
-        select.input-ui { cursor: pointer; background: white; }
-
-        /* Resultados */
-        .resumen-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
-        .resumen-legal { font-size: 0.8rem; color: #7f8c8d; display: block; }
-        .badge { background: #eee; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; }
-        
+        .resumen-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; }
         .iva-box { margin-top: 20px; font-size: 0.85rem; color: #666; border-top: 1px dashed #ccc; padding-top: 15px; }
     </style>
 </head>
@@ -47,116 +31,113 @@
 
 <div class="app-container">
     <div class="header">
-        <h1 style="margin:0; font-size: 1.5rem;">Asistente de Honorarios Profesionales</h1>
-        <p style="margin:5px 0 0; opacity: 0.8;">Ley Nacional 27.423 - Ámbito Civil y Comercial</p>
+        <h1 style="margin:0; font-size: 1.3rem;">Asistente para la regulación de Honorarios Profesionales según la ley 27.423</h1>
     </div>
 
-    <div class="progress-bar" id="progressBar">
+    <div class="progress-bar">
         <span class="step-dot active" id="dot1">Inicio</span>
-        <span class="step-dot" id="dot2">Proceso</span>
-        <span class="step-dot" id="dot3">Terminación</span>
-        <span class="step-dot" id="dot4">Base</span>
-        <span class="step-dot" id="dot5">Cálculo</span>
+        <span class="step-dot" id="dot2">Uso</span>
+        <span class="step-dot" id="dot3">Modo</span>
+        <span class="step-dot" id="dot4">Proceso</span>
+        <span class="step-dot" id="dot5">Terminación</span>
+        <span class="step-dot" id="dot6">Base</span>
+        <span class="step-dot" id="dot7">Resultado</span>
     </div>
 
     <div id="p1" class="pantalla active">
-        <h3>Bienvenida y Orientación</h3>
-        <p>Este asistente guía el proceso de regulación conforme la Ley 27.423. Las soluciones propuestas son interpretaciones normativas y no sustituyen el criterio judicial.</p>
-        <div class="card-info">
-            <i class="fa-solid fa-scale-balanced"></i> Cada paso explicará el fundamento legal y su impacto matemático.
+        <h3>Asistente de regulación de honorarios – Ley 27.423</h3>
+        <p>Este asistente tiene por objeto orientar en el proceso de regulación de honorarios conforme la ley 27.423.</p>
+        <p>Las soluciones propuestas se basan en interpretaciones posibles de la normativa vigente, que pueden diferir de los criterios aplicados por los tribunales en cada caso concreto. En cada paso se explicará brevemente el fundamento legal de la opción elegida y su impacto en el cálculo.</p>
+        <div class="warning-box">
+            <strong>Advertencia:</strong> No es posible contemplar la totalidad de situaciones que pueden presentarse en la práctica profesional. Esta herramienta no sustituye el criterio del juez natural de la causa ni constituye un dictamen profesional. Ante dudas, consulte con un profesional.
         </div>
-        <button class="btn-primary" onclick="next(2)">Comenzar Asistente</button>
+        <button class="btn-primary" onclick="next(2)">Siguiente</button>
     </div>
 
     <div id="p2" class="pantalla">
-        <h3>Observaciones de Uso</h3>
-        <div class="warning-box">
-            <ul>
-                <li>Vigencia: Juicios desde 22/12/17 o etapas con ejecución bajo nueva ley (Fallo "Las Marías").</li>
-                <li>No contempla: Familia, Penal ni Laboral.</li>
-                <li>Mínimos: Si el cálculo es menor a los arts. 58 o 61, prevalece el mínimo legal.</li>
-            </ul>
+        <h3>Cualquiera sea el caso, tené en cuenta:</h3>
+        <div class="card-info" style="max-height: 400px; overflow-y: auto; font-size: 0.85rem;">
+            1. Sirve para los juicios iniciados a partir de su entrada en vigencia (B.O.: 22/12/17). También sirve si seguís el criterio respecto a que se aplica a cualquier juicio en trámite incluso iniciado antes de su entrada en vigencia o bien si seguís el precedente “Establecimiento Las Marías” (CSJN 04/09/2018, ver) para las etapas que tuvieron principio de ejecución con la nueva ley.<br><br>
+            2. Mínimos arancelarios: si consideras que son aplicables a tu caso los mínimos de los arts. 58, 61, etc. desestima el cálculo si arroja un resultado menor.<br><br>
+            3. Reducciones: no vamos a contemplar limitaciones como las que puedan corresponder a los arts. 730 (prorrateo), 1255 (reajuste de precio) del Cód. Civ. y Com.; al art. 60 ley 24.441 (ejecución hipotecaria especial) o art. 48 ley Ley 14.394 / art. 254 Cód. Civ. y Com. (régimen de vivienda, ex bien de familia).<br><br>
+            4. Auxiliares de justicia: tenes que considerar lo dispuesto en las leyes especiales de reglamentación específica de cada actividad o profesión (art. 1, párrafo segundo, ley 27423). En este asistente solo vamos a guiarnos por la ley 27.423. También tené en cuenta que la Ley 27802 de Modernización Laboral introdujo modificaciones (ver).<br><br>
+            5. Mediadores: tienen su propia ley que define sus pautas arancelarias diferenciadas (ley 26.589; decretos reglamentario (actual 696/2025) y 2536/15 podes ver el valor del UHOM aca). Te dejo una calculadora web aparte (ver), pero vamos a incluir los cálculos del caso más común (mediador único y misma base que para el resto) para que tengas una referencia completa.<br><br>
+            6. Asuntos no susceptibles de apreciación pecuniaria: no se puede ejecutar un cálculo numèrico matemático. Recurrir a las pautas del art. 16 (a salvo mínimos arancelarios si aplican)<br><br>
+            7. No contemplamos los juicios de familia (alimentos, disolución de sociedad conyugal,etc.) ni tampoco penales ni laborales.
         </div>
         <div class="btn-group">
             <button class="btn-outline" onclick="next(1)">Atrás</button>
-            <button class="btn-primary" onclick="mostrarSeleccionModo()">Entendido, Continuar</button>
+            <button class="btn-primary" onclick="next(3)">Siguiente</button>
         </div>
     </div>
 
     <div id="p3" class="pantalla">
-        <h3>¿Cómo desea proceder?</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div onclick="configurarModo('asistente')" style="border: 2px solid var(--accent); padding: 20px; border-radius: 10px; cursor: pointer; text-align: center;">
-                <i class="fa-solid fa-compass fa-2x" style="color: var(--accent);"></i>
-                <h4>Asistente Guiado</h4>
-                <p style="font-size: 0.8rem;">Paso a paso con fundamentos legales.</p>
-            </div>
-            <div onclick="configurarModo('rapido')" style="border: 1px solid #ddd; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center;">
-                <i class="fa-solid fa-bolt fa-2x" style="color: var(--warning);"></i>
-                <h4>Modo Rápido</h4>
-                <p style="font-size: 0.8rem;">Entrada directa para usuarios expertos.</p>
-            </div>
+        <h3>Elegir modo:</h3>
+        <div style="display: grid; gap: 15px;">
+            <button class="btn-outline" style="text-align: left; padding: 20px;" onclick="configurarModo('asistente')">
+                <strong>🧭 Asistente guiado</strong><br><small>Flujo paso a paso con fundamentos legales.</small>
+            </button>
+            <button class="btn-outline" style="text-align: left; padding: 20px;" onclick="configurarModo('rapido')">
+                <strong>⚡ Modo rápido (cálculo directo)</strong><br><small>Ya sé lo que hago, ir directo al cálculo.</small>
+            </button>
         </div>
     </div>
 
     <div id="p4" class="pantalla">
-        <h3 id="tituloP4">Parámetros del Proceso</h3>
-        <div class="legal-box" id="fundamentoProceso">Seleccione un proceso para ver su impacto legal.</div>
-        
-        <label>Tipo de Regulación:</label>
-        <select id="tipoRegulacion" class="input-ui" onchange="actualizarFundamento()">
-            <option value="definitivos">Honorarios Definitivos</option>
-            <option value="provisorios">Honorarios Provisorios (Art. 12)</option>
+        <h3>Paso 4: Honorarios provisorios vs. definitivos</h3>
+        <div id="fundamentoP4" class="legal-box">Seleccioná una opción para ver su fundamento.</div>
+        <select id="tipoRegulacion" class="input-ui" onchange="actualizarP4()">
+            <option value="">Seleccione...</option>
+            <option value="definitivos">Honorarios definitivos</option>
+            <option value="provisorios">Honorarios provisorios</option>
         </select>
 
-        <label style="margin-top:15px; display:block;">Vía Procesal / Objeto:</label>
-        <select id="tipoProceso" class="input-ui" onchange="actualizarFundamento()">
-            <option value="ordinario">Juicio Ordinario</option>
-            <option value="sumarisimo">Juicio Sumarísimo</option>
-            <option value="ejecutivo">Juicio Ejecutivo / Especial</option>
-            <option value="sucesion">Sucesión</option>
+        <h3 style="margin-top:25px;">Paso 5: Elección del tipo de proceso</h3>
+        <p style="font-size: 0.9rem;">En los siguientes pasos vamos a definir algunos parámetros que determinan las bases del cálculo. Elegí una de las siguientes opciones.</p>
+        <select id="tipoProceso" class="input-ui" onchange="actualizarP4()">
+            <option value="ordinario">Ordinario</option>
+            <option value="sumarisimo">Sumarísimo</option>
             <option value="desalojo">Desalojo (Art. 40)</option>
-            <option value="ejec_sentencia">Ejecución de Sentencia / Honorarios</option>
-            <option value="cautelar">Medida Cautelar (Art. 37)</option>
-            <option value="incidente">Incidente / BLSG</option>
+            <option value="ejecutivo">Ejecutivo (expensas, alquileres, etc.)</option>
+            <option value="sucesion">Sucesión</option>
+            <option value="ejec_sentencia">Ejecución de sentencia</option>
+            <option value="cautelar">Medida cautelar</option>
+            <option value="exhorto">Exhorto (Art. 50)</option>
+            <option value="incidente">Incidente (incluye BLSG)</option>
+            <option value="homologacion">Homologación de convenio de desocupación</option>
+            <option value="posesorias">Interdicto, acciones posesorias o división de bienes comunes</option>
         </select>
 
-        <div id="subOpciones" style="margin-top:15px;"></div>
+        <div id="subOpcionesP4" style="margin-top:15px;"></div>
 
         <div class="btn-group">
             <button class="btn-outline" onclick="next(3)">Atrás</button>
-            <button class="btn-primary" onclick="validarP4()">Continuar</button>
+            <button class="btn-primary" onclick="validarP4()">Siguiente</button>
         </div>
     </div>
 
     <div id="p5" class="pantalla">
-        <h3>Forma de Terminación</h3>
-        <div class="legal-box" id="fundamentoTerminacion">El modo en que finaliza el pleito determina si se aplica la escala plena o reducciones.</div>
-        
-        <select id="modoTerminacion" class="input-ui" onchange="actualizarFundamentoTerminacion()">
-            <option value="sentencia_admitida">Sentencia (Demanda Admitida)</option>
-            <option value="sentencia_rechazada">Sentencia (Demanda Rechazada)</option>
-            <option value="allanamiento">Allanamiento</option>
-            <option value="transaccion">Transacción / Conciliación</option>
+        <h3>Paso 6: Forma de terminación</h3>
+        <div id="fundamentoP5" class="legal-box"></div>
+        <select id="modoTerminacion" class="input-ui" onchange="actualizarP5()">
+            <option value="sentencia_admitida">Sentencia (demanda admitida)</option>
+            <option value="sentencia_desestimada">Sentencia (demanda desestimada)</option>
+            <option value="caducidad">Caducidad</option>
             <option value="desistimiento">Desistimiento</option>
-            <option value="caducidad">Caducidad de Instancia</option>
+            <option value="transaccion">Transacción</option>
+            <option value="allanamiento">Allanamiento</option>
         </select>
-
-        <div id="zonaCriticaTerminacion"></div>
-
+        <div id="zonaCaducidad" style="margin-top:15px;"></div>
         <div class="btn-group">
             <button class="btn-outline" onclick="next(4)">Atrás</button>
-            <button class="btn-primary" onclick="validarP5()">Continuar</button>
+            <button class="btn-primary" onclick="validarP5()">Siguiente</button>
         </div>
     </div>
 
     <div id="p6" class="pantalla">
-        <h3>Determinación de la Base</h3>
-        <div class="legal-box" id="fundamentoBase">Defina el monto sobre el cual se aplicará el porcentaje.</div>
-        
-        <div id="inputsBaseContainer">
-            </div>
-
+        <h3>Paso 8: Elección de la base regulatoria</h3>
+        <div id="fundamentoP6" class="legal-box"></div>
+        <div id="inputsBase"></div>
         <div class="btn-group">
             <button class="btn-outline" onclick="next(5)">Atrás</button>
             <button class="btn-primary" onclick="calcularFinal()">Generar Liquidación</button>
@@ -164,19 +145,15 @@
     </div>
 
     <div id="p7" class="pantalla">
-        <h3><i class="fa-solid fa-file-invoice-dollar"></i> Liquidación Final</h3>
+        <h3 id="resumenTitulo">Resumen del Cálculo</h3>
+        <div id="resumenLogico" class="card-info"></div>
         
-        <div id="resumenLogico" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            </div>
-
-        <div id="calculosMotor" class="container">
-            </div>
+        <div id="tablaResultados"></div>
 
         <div class="iva-box">
-            <strong>Nota sobre IVA:</strong> La regulación de honorarios no contiene la alícuota que establece ese impuesto. En consecuencia el beneficiario que se encuentre inscripto deberá acreditar su condición y el obligado al pago adicionarle el monto correspondiente (conf. CSJN, 16/06/1993, “Cía. General de Combustibles SA”).
+            La regulación de honorarios no contiene la alícuota que establece ese impuesto. En consecuencia el beneficiario que se encuentre inscripto deberá acreditar su condición y el obligado al pago adicionarle el monto correspondiente (conf. CSJN, 16/06/1993, “Cía. General de Combustibles SA”).
         </div>
-
-        <button class="btn-outline" style="margin-top:20px;" onclick="location.reload()">Reiniciar Asistente</button>
+        <button class="btn-outline" onclick="location.reload()">Nuevo Cálculo</button>
     </div>
 </div>
 
