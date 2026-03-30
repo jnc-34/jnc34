@@ -3,221 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistente de Honorarios Profesionales</title>
+    <title>Asistente Legal 27.423</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Estilos combinados: Asistente + Calculadora */
-        body { font-family: Arial, sans-serif; max-width: 850px; margin: auto; padding: 20px; line-height: 1.6; }
-        .pantalla { display: none; background: #fff; padding: 20px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .activa { display: block; }
+        :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --success: #27ae60; --warning: #f39c12; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--primary); margin: 0; padding: 20px; line-height: 1.6; }
+        .app-container { max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #e1e8ed; }
         
-        /* Estilos de la calculadora (calc.txt) */
-        .container { background-color: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-top: 20px; }
-        .warning { background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #ffeeba; font-size: 0.85em; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .input-group input, .input-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        .btn-next { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
-        .btn-next:hover { background-color: #0056b3; }
-        .results-container { margin-top: 20px; border-top: 2px solid #ccc; padding-top: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: white; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .note { font-size: 0.9em; font-style: italic; color: #555; margin-bottom: 15px; }
-        #resultado-asistente { background: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; }
+        /* Header & Progress */
+        .header { background: var(--primary); color: white; padding: 25px; text-align: center; }
+        .progress-bar { display: flex; justify-content: space-between; background: #ebedef; padding: 10px 20px; font-size: 0.8rem; text-transform: uppercase; }
+        .step-dot { color: #95a5a6; }
+        .step-dot.active { color: var(--accent); font-weight: bold; }
+
+        /* Pantallas */
+        .pantalla { display: none; padding: 30px; animation: fadeIn 0.4s ease; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Componentes UI */
+        .card-info { background: #e8f4fd; border-left: 5px solid var(--accent); padding: 15px; margin-bottom: 20px; font-size: 0.95rem; }
+        .legal-box { background: #fdfefe; border: 1px solid #d1d8dd; padding: 15px; border-radius: 6px; margin: 15px 0; font-size: 0.9rem; font-style: italic; color: #555; }
+        .warning-box { background: #fff3cd; border: 1px solid #ffeeba; padding: 15px; border-radius: 6px; color: #856404; font-size: 0.9rem; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
+        button { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #2980b9; }
+        .btn-outline { background: transparent; border: 1px solid #bdc3c7; color: var(--secondary); }
+        
+        .input-ui { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; margin-top: 8px; box-sizing: border-box; }
+        select.input-ui { cursor: pointer; background: white; }
+
+        /* Resultados */
+        .resumen-item { border-bottom: 1px solid #eee; padding: 10px 0; display: flex; justify-content: space-between; align-items: center; }
+        .resumen-legal { font-size: 0.8rem; color: #7f8c8d; display: block; }
+        .badge { background: #eee; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; }
+        
+        .iva-box { margin-top: 20px; font-size: 0.85rem; color: #666; border-top: 1px dashed #ccc; padding-top: 15px; }
     </style>
 </head>
 <body>
 
-    <h2>Asistente de Honorarios Judiciales</h2>
+<div class="app-container">
+    <div class="header">
+        <h1 style="margin:0; font-size: 1.5rem;">Asistente de Honorarios Profesionales</h1>
+        <p style="margin:5px 0 0; opacity: 0.8;">Ley Nacional 27.423 - Ámbito Civil y Comercial</p>
+    </div>
 
-    <div id="p1" class="pantalla activa">
-        <h3>Bienvenido</h3>
-        <p>Este asistente lo guiará a través de las variables de la Ley 27.423 para determinar la base y el grupo de cálculo correspondiente.</p>
-        <button class="btn-next" onclick="next(2)">Comenzar</button>
+    <div class="progress-bar" id="progressBar">
+        <span class="step-dot active" id="dot1">Inicio</span>
+        <span class="step-dot" id="dot2">Proceso</span>
+        <span class="step-dot" id="dot3">Terminación</span>
+        <span class="step-dot" id="dot4">Base</span>
+        <span class="step-dot" id="dot5">Cálculo</span>
+    </div>
+
+    <div id="p1" class="pantalla active">
+        <h3>Bienvenida y Orientación</h3>
+        <p>Este asistente guía el proceso de regulación conforme la Ley 27.423. Las soluciones propuestas son interpretaciones normativas y no sustituyen el criterio judicial.</p>
+        <div class="card-info">
+            <i class="fa-solid fa-scale-balanced"></i> Cada paso explicará el fundamento legal y su impacto matemático.
+        </div>
+        <button class="btn-primary" onclick="next(2)">Comenzar Asistente</button>
     </div>
 
     <div id="p2" class="pantalla">
-        <h3>Observaciones y Exclusiones</h3>
-        <div class="warning">
-            Este asistente está orientado a procesos civiles y comerciales. No contempla:
+        <h3>Observaciones de Uso</h3>
+        <div class="warning-box">
             <ul>
-                <li>Asuntos de Familia, Penal o Laboral. [cite: 16]</li>
-                <li>Actuaciones de administradores judiciales o interventores.</li>
+                <li>Vigencia: Juicios desde 22/12/17 o etapas con ejecución bajo nueva ley (Fallo "Las Marías").</li>
+                <li>No contempla: Familia, Penal ni Laboral.</li>
+                <li>Mínimos: Si el cálculo es menor a los arts. 58 o 61, prevalece el mínimo legal.</li>
             </ul>
         </div>
-        <button class="btn-next" onclick="next(3)">Entendido, continuar</button>
+        <div class="btn-group">
+            <button class="btn-outline" onclick="next(1)">Atrás</button>
+            <button class="btn-primary" onclick="mostrarSeleccionModo()">Entendido, Continuar</button>
+        </div>
     </div>
 
     <div id="p3" class="pantalla">
-        <h3>Tipo de honorarios</h3>
-        <div class="input-group">
-            <label>¿Qué tipo de regulación se busca?</label>
-            <select id="tipoHonorario">
-                <option value="definitivos">Definitivos</option>
-                <option value="provisorios">Provisorios (art. 12)</option>
-            </select>
+        <h3>¿Cómo desea proceder?</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div onclick="configurarModo('asistente')" style="border: 2px solid var(--accent); padding: 20px; border-radius: 10px; cursor: pointer; text-align: center;">
+                <i class="fa-solid fa-compass fa-2x" style="color: var(--accent);"></i>
+                <h4>Asistente Guiado</h4>
+                <p style="font-size: 0.8rem;">Paso a paso con fundamentos legales.</p>
+            </div>
+            <div onclick="configurarModo('rapido')" style="border: 1px solid #ddd; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center;">
+                <i class="fa-solid fa-bolt fa-2x" style="color: var(--warning);"></i>
+                <h4>Modo Rápido</h4>
+                <p style="font-size: 0.8rem;">Entrada directa para usuarios expertos.</p>
+            </div>
         </div>
-        <button class="btn-next" onclick="guardarTipoHonorario()">Continuar</button>
     </div>
 
     <div id="p4" class="pantalla">
-        <h3>Tipo de proceso</h3>
-        <div class="input-group">
-            <label>Seleccione la vía procesal:</label>
-            <select id="tipoProceso">
-                <option value="ordinario">Ordinario</option>
-                <option value="sumarisimo">Sumarísimo</option>
-                <option value="ejecutivo">Ejecutivo</option>
-            </select>
+        <h3 id="tituloP4">Parámetros del Proceso</h3>
+        <div class="legal-box" id="fundamentoProceso">Seleccione un proceso para ver su impacto legal.</div>
+        
+        <label>Tipo de Regulación:</label>
+        <select id="tipoRegulacion" class="input-ui" onchange="actualizarFundamento()">
+            <option value="definitivos">Honorarios Definitivos</option>
+            <option value="provisorios">Honorarios Provisorios (Art. 12)</option>
+        </select>
+
+        <label style="margin-top:15px; display:block;">Vía Procesal / Objeto:</label>
+        <select id="tipoProceso" class="input-ui" onchange="actualizarFundamento()">
+            <option value="ordinario">Juicio Ordinario</option>
+            <option value="sumarisimo">Juicio Sumarísimo</option>
+            <option value="ejecutivo">Juicio Ejecutivo / Especial</option>
+            <option value="sucesion">Sucesión</option>
+            <option value="desalojo">Desalojo (Art. 40)</option>
+            <option value="ejec_sentencia">Ejecución de Sentencia / Honorarios</option>
+            <option value="cautelar">Medida Cautelar (Art. 37)</option>
+            <option value="incidente">Incidente / BLSG</option>
+        </select>
+
+        <div id="subOpciones" style="margin-top:15px;"></div>
+
+        <div class="btn-group">
+            <button class="btn-outline" onclick="next(3)">Atrás</button>
+            <button class="btn-primary" onclick="validarP4()">Continuar</button>
         </div>
-        <button class="btn-next" onclick="guardarProceso()">Continuar</button>
     </div>
 
     <div id="p5" class="pantalla">
-        <h3>Variables del proceso</h3>
-        <div class="input-group">
-            <label><input type="checkbox" id="hayPrueba"> Hubo apertura a prueba (sustanciación)</label>
+        <h3>Forma de Terminación</h3>
+        <div class="legal-box" id="fundamentoTerminacion">El modo en que finaliza el pleito determina si se aplica la escala plena o reducciones.</div>
+        
+        <select id="modoTerminacion" class="input-ui" onchange="actualizarFundamentoTerminacion()">
+            <option value="sentencia_admitida">Sentencia (Demanda Admitida)</option>
+            <option value="sentencia_rechazada">Sentencia (Demanda Rechazada)</option>
+            <option value="allanamiento">Allanamiento</option>
+            <option value="transaccion">Transacción / Conciliación</option>
+            <option value="desistimiento">Desistimiento</option>
+            <option value="caducidad">Caducidad de Instancia</option>
+        </select>
+
+        <div id="zonaCriticaTerminacion"></div>
+
+        <div class="btn-group">
+            <button class="btn-outline" onclick="next(4)">Atrás</button>
+            <button class="btn-primary" onclick="validarP5()">Continuar</button>
         </div>
-        <div id="reconvencionBox" class="input-group" style="display:none;">
-            <label><input type="checkbox" id="reconvencion"> Hubo reconvención (art. 28)</label>
-        </div>
-        <button class="btn-next" onclick="guardarVariables()">Continuar</button>
     </div>
 
     <div id="p6" class="pantalla">
-        <h3>Modo de terminación</h3>
-        <div class="input-group">
-            <label>El proceso finalizó por:</label>
-            <select id="terminacion">
-                <option value="sentencia">Sentencia definitiva</option>
-                <option value="desistimiento">Desistimiento (art. 25)</option>
-                <option value="transaccion">Transacción / Conciliación</option>
-                <option value="allanamiento">Allanamiento</option>
-                <option value="caducidad">Caducidad de instancia</option>
-            </select>
+        <h3>Determinación de la Base</h3>
+        <div class="legal-box" id="fundamentoBase">Defina el monto sobre el cual se aplicará el porcentaje.</div>
+        
+        <div id="inputsBaseContainer">
+            </div>
+
+        <div class="btn-group">
+            <button class="btn-outline" onclick="next(5)">Atrás</button>
+            <button class="btn-primary" onclick="calcularFinal()">Generar Liquidación</button>
         </div>
-        <button class="btn-next" onclick="guardarTerminacion()">Continuar</button>
     </div>
 
     <div id="p7" class="pantalla">
-        <h3>Cálculo de la Base</h3>
-        <div class="input-group">
-            <label>Naturaleza del asunto:</label>
-            <select id="tipoBase">
-                <option value="monto">Monto de condena/liquidación (art. 24)</option>
-                <option value="inmueble">Inmuebles / Muebles</option>
-                <option value="establecimiento">Establecimientos comerciales (art. 23)</option>
-                <option value="uso">Derecho de uso y habitación</option>
-                <option value="escrituracion">Escrituración</option>
-                <option value="posesorias">Acciones posesorias / División de bienes (80%)</option>
-                <option value="colectiva">Procesos de incidencia colectiva (75%)</option>
-            </select>
+        <h3><i class="fa-solid fa-file-invoice-dollar"></i> Liquidación Final</h3>
+        
+        <div id="resumenLogico" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            </div>
+
+        <div id="calculosMotor" class="container">
+            </div>
+
+        <div class="iva-box">
+            <strong>Nota sobre IVA:</strong> La regulación de honorarios no contiene la alícuota que establece ese impuesto. En consecuencia el beneficiario que se encuentre inscripto deberá acreditar su condición y el obligado al pago adicionarle el monto correspondiente (conf. CSJN, 16/06/1993, “Cía. General de Combustibles SA”).
         </div>
-        <div class="input-group">
-            <label>Monto o valor de referencia ($):</label>
-            <input type="number" id="baseMonto" placeholder="Ej: 500000">
-        </div>
-        <div id="warnings-base"></div>
-        <button class="btn-next" onclick="guardarBase()">Generar Liquidación</button>
+
+        <button class="btn-outline" style="margin-top:20px;" onclick="location.reload()">Reiniciar Asistente</button>
     </div>
+</div>
 
-    <div id="p9" class="pantalla">
-        <h3>Liquidación Final Sugerida</h3>
-        <div id="resultado-asistente"></div>
-
-        <div class="container">
-            <div class="warning">
-                <p>Verifique los datos antes de emitir la regulación. Esta herramienta es de referencia profesional. [cite: 18]</p>
-            </div>
-
-            <div class="input-group">
-                <label for="baseRegulatoria">Base regulatoria ($):</label>
-                <input type="text" id="baseRegulatoria">
-            </div>
-
-            <div class="input-group">
-                <label for="valorUMA">Valor UMA (actualizado):</label>
-                <input type="text" id="valorUMA" placeholder="Cargando...">
-            </div>
-
-            <div class="input-group">
-                <label for="grupoProceso">Grupo de cálculo aplicado:</label>
-                <select id="grupoProceso">
-                    <option value="grupo1">Grupo 1 - Escala plena (100%)</option>
-                    <option value="grupo2">Grupo 2 - Reducción del 50%</option>
-                    <option value="grupo3">Grupo 3 - Reducción del 25% (Cautelares)</option>
-                    <option value="grupo4">Grupo 4 - Reducción del 30% (Rechazo/Caducidad)</option>
-                    <option value="grupo5">Grupo 5 - Ejecución sin excepciones (90%)</option>
-                    <option value="grupo6">Grupo 6 - Ejecución de honorarios (45%)</option>
-                </select>
-            </div>
-
-            <button class="btn-next" style="background-color: #28a745;" onclick="calcular()">Recalcular Tabla</button>
-
-            <div id="resultados" class="results-container"></div>
-        </div>
-        <button class="btn-next" onclick="location.reload()">Nuevo Cálculo</button>
-    </div>
-
-    <script>
-        async function cargarUMA() {
-            const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8tumvxptTGBCfScMwWxK7r6ATnGfMw061GKGdzfIVyThcSGzUqjI-vcpME1AtykPmjqTq0xdjgc7D/pub?output=csv';
-            try {
-                const response = await fetch(url);
-                const data = await response.text();
-                const filas = data.split('\n');
-                const columnas = filas[0].split(',');
-                let valorB1 = columnas[1].replace(/"/g, '').trim();
-                if (valorB1) document.getElementById('valorUMA').value = valorB1;
-            } catch (error) {
-                document.getElementById('valorUMA').placeholder = "Ingrese manual.";
-            }
-        }
-        window.addEventListener('DOMContentLoaded', cargarUMA);
-
-        function parseNumber(str) { return parseFloat(str.replace(/\./g, '').replace(',', '.')); }
-        function formatNumber(num) { 
-            if (isNaN(num)) return '0,00';
-            return num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
-        }
-
-        function calcular() {
-            const baseReg = parseNumber(document.getElementById('baseRegulatoria').value);
-            const uma = parseNumber(document.getElementById('valorUMA').value);
-            const grupo = document.getElementById('grupoProceso').value;
-
-            if (!baseReg || !uma) return;
-
-            let baseEnUMA = baseReg / uma;
-            let calcMin, calcMax, escalaInfo = "";
-
-            // Lógica de escalas (art. 21) [cite: 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65]
-            if (baseEnUMA <= 15) { calcMin = baseEnUMA * 0.22; calcMax = baseEnUMA * 0.33; escalaInfo = "22% a 33%"; }
-            else if (baseEnUMA <= 45) { calcMin = (baseEnUMA - 15) * 0.20 + 4.95; calcMax = (baseEnUMA - 15) * 0.26 + 4.95; escalaInfo = "20% a 26%"; }
-            else if (baseEnUMA <= 90) { calcMin = (baseEnUMA - 45) * 0.18 + 11.7; calcMax = (baseEnUMA - 45) * 0.24 + 11.7; escalaInfo = "18% a 24%"; }
-            else if (baseEnUMA <= 150) { calcMin = (baseEnUMA - 90) * 0.17 + 21.6; calcMax = (baseEnUMA - 90) * 0.22 + 21.6; escalaInfo = "17% a 22%"; }
-            else if (baseEnUMA <= 450) { calcMin = (baseEnUMA - 150) * 0.15 + 33; calcMax = (baseEnUMA - 150) * 0.20 + 33; escalaInfo = "15% a 20%"; }
-            else if (baseEnUMA <= 750) { calcMin = (baseEnUMA - 450) * 0.13 + 90; calcMax = (baseEnUMA - 450) * 0.17 + 90; escalaInfo = "13% a 17%"; }
-            else { calcMin = (baseEnUMA - 750) * 0.12 + 127.5; calcMax = (baseEnUMA - 750) * 0.15 + 127.5; escalaInfo = "12% a 15%"; }
-
-            // Aplicación de Grupos [cite: 69, 70, 71, 72, 73]
-            if (grupo === 'grupo2') { calcMin *= 0.5; calcMax *= 0.5; }
-            else if (grupo === 'grupo3') { calcMin *= 0.75; calcMax *= 0.75; }
-            else if (grupo === 'grupo4') { calcMin *= 0.7; calcMax *= 0.7; }
-            else if (grupo === 'grupo5') { calcMin *= 0.9; calcMax *= 0.9; }
-            else if (grupo === 'grupo6') { calcMin *= 0.45; calcMax *= 0.45; }
-
-            let html = `<h3>Cálculo en UMA</h3>
-            <table>
-                <tr><td>Escala Aplicada</td><td>${escalaInfo}</td></tr>
-                <tr><th>Rol</th><th>Mínimo (UMA)</th><th>Máximo (UMA)</th></tr>
-                <tr><td>Patrocinante</td><td>${formatNumber(calcMin)}</td><td>${formatNumber(calcMax)}</td></tr>
-                <tr><td>Apoderado (+40%)</td><td>${formatNumber(calcMin * 1.4)}</td><td>${formatNumber(calcMax * 1.4)}</td></tr>
-            </table>`;
-            
-            document.getElementById('resultados').innerHTML = html;
-        }
-    </script>
-    <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
