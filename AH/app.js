@@ -10,157 +10,101 @@ const state = {
   grupo: null
 };
 
-// navegación
+// Navegación entre pantallas
 function next(n) {
   document.querySelectorAll(".pantalla").forEach(p => p.classList.remove("activa"));
   document.getElementById("p" + n).classList.add("activa");
 }
 
-// tipo honorario
 function guardarTipoHonorario() {
   state.tipoHonorario = document.getElementById("tipoHonorario").value;
   next(4);
 }
 
-// proceso
 function guardarProceso() {
   state.tipoProceso = document.getElementById("tipoProceso").value;
-
-  // reconvención SOLO ordinario
-  if (state.tipoProceso === "ordinario") {
-    document.getElementById("reconvencionBox").style.display = "block";
-  }
-
+  // Reconvención solo visible en ordinarios [cite: 24]
+  document.getElementById("reconvencionBox").style.display = (state.tipoProceso === "ordinario") ? "block" : "none";
   next(5);
 }
 
-// variables
 function guardarVariables() {
   state.hayPrueba = document.getElementById("hayPrueba").checked;
   state.reconvencion = document.getElementById("reconvencion").checked;
   next(6);
 }
 
-// terminación
 function guardarTerminacion() {
   state.terminacion = document.getElementById("terminacion").value;
   next(7);
 }
 
-// base
 function guardarBase() {
   state.base = parseFloat(document.getElementById("baseMonto").value || 0);
   state.baseTipo = document.getElementById("tipoBase").value;
 
   aplicarReglasBase();
   determinarGrupo();
-  mostrarResumen();
-
-  next(8);
+  calcularFinal(); // Salto automático al resultado
 }
 
-// reglas base
+// Lógica de reducciones de base según objeto del juicio
 function aplicarReglasBase() {
   state.reducciones = [];
-  let w = "";
-
   switch(state.baseTipo) {
-
-    case "establecimiento":
-      w = "Puede corresponder +10% valor llave";
-      break;
-
-    case "uso":
-      w = "10% anual del valor x años (tope 100%)";
-      break;
-
-    case "escrituracion":
-      w = "Base art. 23 salvo monto mayor del boleto";
-      break;
-
     case "posesorias":
-      state.base *= 0.8;
-      state.reducciones.push("Reducción 20%");
+      state.base *= 0.8; // Art. 23: 80% del valor [cite: 29]
+      state.reducciones.push("Reducción 20% (Acc. Posesorias)");
       break;
-
     case "colectiva":
-      state.base *= 0.75;
-      state.reducciones.push("Reducción 25%");
+      state.base *= 0.75; // Reducción por incidencia colectiva
+      state.reducciones.push("Reducción 25% (Inc. Colectiva)");
       break;
   }
-
-  document.getElementById("warnings").innerHTML = "<small>"+w+"</small>";
 }
 
-// lógica grupos COMPLETA
+// Determina el Grupo (mapeado a calc.txt)
 function determinarGrupo() {
-
-  // caducidad
+  // Caducidad o Demanda Rechazada [cite: 37]
   if (state.terminacion === "caducidad") {
-    state.grupo = 4;
+    state.grupo = "grupo4";
     return;
   }
 
-  // sin prueba
-  if (!state.hayPrueba) {
-    state.grupo = 2;
-    return;
-  }
-
-  // ejecutivo sin excepciones
+  // Ejecutivo sin excepciones [cite: 37]
   if (state.tipoProceso === "ejecutivo" && !state.hayPrueba) {
-    state.grupo = 5;
+    state.grupo = "grupo5";
     return;
   }
 
-  // default
-  state.grupo = 1;
+  // Medios anormales antes de prueba [cite: 33]
+  if (!state.hayPrueba && (state.terminacion !== "sentencia")) {
+    state.grupo = "grupo2";
+    return;
+  }
+
+  // Por defecto: Grupo 1 (Escala Plena) [cite: 31]
+  state.grupo = "grupo1";
 }
 
-// resumen
-function mostrarResumen() {
-  document.getElementById("resumen").innerText = `
-Base inicial: ${state.base}
-
-Reducciones:
-${state.reducciones.join("\n")}
-
-Grupo: ${state.grupo}
-`;
-}
-
-// cálculo final
+// Inyecta los datos en el motor de cálculo
 function calcularFinal() {
+  const inputBase = document.getElementById("baseRegulatoria");
+  const selectGrupo = document.getElementById("grupoProceso");
+  const resAsistente = document.getElementById("resultado-asistente");
 
-  let baseFinal = state.base;
+  if (inputBase && selectGrupo) {
+    // Seteamos la base formateada para el motor
+    inputBase.value = state.base.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+    selectGrupo.value = state.grupo;
 
-  switch(state.grupo) {
-    case 1: baseFinal *= 1; break;
-    case 2: baseFinal *= 0.5; break;
-    case 3: baseFinal *= 0.75; break; // ✔ FIX
-    case 4: baseFinal *= 0.7; break;
-    case 5: baseFinal *= 0.9; break;
-    case 6: baseFinal *= 0.45; break;
+    // Resumen visual rápido
+    resAsistente.innerText = `Asistente: Base de $${state.base.toLocaleString('es-AR')} y asignación a ${state.grupo.toUpperCase()}`;
+
+    // Disparamos el cálculo de la calculadora
+    if (typeof calcular === "function") {
+      calcular();
+    }
   }
-
-  // 🔌 INTEGRACIÓN REAL
-  if (typeof calcular === "function") {
-    document.getElementById("baseRegulatoria").value = baseFinal;
-    document.getElementById("grupoProceso").value = state.grupo;
-    calcular();
-  }
-
-  let texto = `Base final: ${baseFinal}\nGrupo: ${state.grupo}`;
-
-  // provisorios
-  if (state.tipoHonorario === "provisorios") {
-    texto += "\n⚠️ Honorarios provisorios: se muestra mínimo (art. 12)";
-  }
-
-  // gestor
-  texto += "\nℹ️ Posible adicional 4% por gestor (art. 42)";
-
-  document.getElementById("resultado").innerText = texto;
-
   next(9);
 }
