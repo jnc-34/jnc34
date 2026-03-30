@@ -1,141 +1,157 @@
-/**
- * APP CORE - LEY 27.423
+/** * MOTOR DE CÁLCULO (Basado en calc.txt) e INTERFAZ
  */
 
 const state = {
-    paso: 1,
-    honorarios: '',
-    proceso: '',
-    terminacion: '',
+    honorarios: 'definitivos',
+    proceso: 'ordinario',
+    terminacion: 'sentencia_admitida',
     base: 0,
-    grupo: 'grupo1',
-    explicaciones: []
+    grupo: 1, // 1 a 6
+    exhortoTipo: null,
+    valorUMA: 78500 // Actualiza este valor según corresponda
 };
 
 function next(n) {
-    state.paso = n;
     document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('active'));
     document.getElementById('p' + n).classList.add('active');
-    
-    // Actualizar barra de progreso visual
-    document.querySelectorAll('.step-dot').forEach((dot, i) => {
-        dot.classList.toggle('active', (i + 1) <= n);
-    });
+    window.scrollTo(0,0);
 }
 
 function configurarModo(m) {
-    if (m === 'rapido') {
-        alert("Modo rápido: Ingrese los datos directamente en los selectores.");
-    }
+    state.honorarios = document.getElementById('tipoRegulacion').value;
     next(4);
 }
 
 function actualizarP4() {
-    const reg = document.getElementById('tipoRegulacion').value;
     const proc = document.getElementById('tipoProceso').value;
-    const fund = document.getElementById('fundamentoP4');
     const sub = document.getElementById('subOpcionesP4');
     sub.innerHTML = '';
 
-    // Fundamento Tipo Honorarios
-    if (reg === 'provisorios') {
-        fund.innerHTML = "Los honorarios provisorios (art. 12) se regulan cuando el profesional se aparta antes de la finalización del proceso. En estos casos, se consideran únicamente las actuaciones cumplidas y corresponde aplicar el mínimo de la escala.";
-    } else if (reg === 'definitivos') {
-        fund.innerHTML = "Regulación de honorarios definitivos por finalización de etapa o proceso.";
-    }
-
-    // Fundamentos Procesos (Tus palabras exactas)
     if (proc === 'sucesion') {
         sub.innerHTML = `
             <select id="subSucesion" class="input-ui">
-                <option value="unico">Intervino un único letrado</option>
-                <option value="varios">Intervino más de un letrado</option>
-            </select>
-            <p style="font-size:0.8rem; color:#666; margin-top:5px;">ARTÍCULO 35.- En el proceso sucesorio si 1 solo abogado patrocina o representa a todos los herederos o interesados, sus honorarios se regularán en la mitad del mínimo y del máximo de la escala establecida en el artículo 21.</p>
-        `;
-    } else if (proc === 'posesorias') {
-        sub.innerHTML = '<p style="font-size:0.8rem; color:#666;">ARTÍCULO 38.- El monto de los honorarios se reducirá en un veinte por ciento (20%) atendiendo al valor de los bienes conforme a lo dispuesto en el artículo 23.</p>';
-    } else if (proc === 'ejecutivo' || proc === 'ejec_sentencia') {
-        sub.innerHTML = '<label><input type="checkbox" id="chkExcepciones"> ¿Hubo excepciones?</label><br><small>Si no hay excepciones, los honorarios se reducen un 10% (Art. 34/41).</small>';
+                <option value="varios">Varios Letrados</option>
+                <option value="unico">Letrado Único (Art. 35 - Reducción 50%)</option>
+            </select>`;
+    } else if (proc === 'exhorto') {
+        sub.innerHTML = `
+            <select id="tipoExhorto" class="input-ui">
+                <option value="a">Exhorto para notificar (inc. a). Mínimo 3 UMA</option>
+                <option value="b">Exhorto para inscripciones y actos registrales (inc. b). Mínimo 10 / Máximo 20 UMA</option>
+                <option value="c">Exhorto sobre diligencias de prueba (Inc. c). Mínimo 7 / Máximo 30 UMA</option>
+            </select>`;
     }
 }
 
 function validarP4() {
-    state.honorarios = document.getElementById('tipoRegulacion').value;
     state.proceso = document.getElementById('tipoProceso').value;
-    if (!state.honorarios) return alert("Por favor seleccione el tipo de honorarios.");
-    next(5);
+    if (state.proceso === 'exhorto') {
+        state.exhortoTipo = document.getElementById('tipoExhorto').value;
+        return mostrarExhortoDirecto();
+    }
+    const conTerminacion = ['ordinario', 'sumarisimo', 'desalojo', 'ejecutivo', 'ejec_sentencia'];
+    conTerminacion.includes(state.proceso) ? next(5) : (configurarInputsBase(), next(6));
 }
 
 function actualizarP5() {
     const modo = document.getElementById('modoTerminacion').value;
     const zona = document.getElementById('zonaCaducidad');
-    const fund = document.getElementById('fundamentoP5');
     zona.innerHTML = '';
-
     if (modo === 'caducidad') {
-        fund.innerHTML = "La caducidad de la instancia no está específicamente prevista en la ley. Elegí según tu criterio:";
         zona.innerHTML = `
             <select id="critCaducidad" class="input-ui">
-                <option value="desestimada">Como demanda desestimada (art. 22 → -30%)</option>
-                <option value="anormal">Como modo anormal (art. 25, 50 % o 100%)</option>
-            </select>
-        `;
+                <option value="art22">Como Rechazo de Demanda (Art. 22: -30%)</option>
+                <option value="art25">Como Modo Anormal (Art. 25: 50% o 100%)</option>
+            </select>`;
     } else if (['allanamiento', 'transaccion', 'desistimiento'].includes(modo)) {
-        fund.innerHTML = "ARTÍCULO 25 - En caso de allanamiento, desistimiento y transacción, antes de decretarse la apertura a prueba, los honorarios serán del 50% de la escala del artículo 21. En los demás casos, se aplica el 100%.";
-        zona.innerHTML = '<label><input type="checkbox" id="chkPrueba"> ¿Se decretó apertura a prueba?</label>';
-    } else {
-        fund.innerHTML = "Se aplica escala según resultado del pleito.";
+        zona.innerHTML = '<label><input type="checkbox" id="chkPrueba"> ¿Hubo apertura a prueba?</label>';
     }
 }
 
 function validarP5() {
     state.terminacion = document.getElementById('modoTerminacion').value;
-    next(6);
     configurarInputsBase();
+    next(6);
 }
 
 function configurarInputsBase() {
     const container = document.getElementById('inputsBase');
     const fund = document.getElementById('fundamentoP6');
-    let html = '';
-
-    if (state.proceso === 'ordinario' || state.proceso === 'sumarisimo') {
-        fund.innerHTML = "ARTÍCULO 22/24/52.- Se tendrá en cuenta el monto de la sentencia o liquidación (capital + intereses).";
-        html = '<input type="number" id="baseVal" class="input-ui" placeholder="Ingresar monto capital + intereses">';
-    } else if (state.proceso === 'desalojo') {
-        fund.innerHTML = "ARTÍCULO 40: En los procesos de desalojo se fijarán los honorarios tomando como base el total de los alquileres del contrato. Si es para vivienda, se reduce un 20%.";
-        html = '<input type="number" id="baseVal" class="input-ui" placeholder="Monto total del contrato"><br><label><input type="checkbox" id="chkVivienda"> ¿Es vivienda?</label>';
+    let html = '<label>Monto de la Base:</label>';
+    
+    if (state.proceso === 'desalojo') {
+        fund.innerHTML = "Art. 40: Base s/ total alquileres. Si es vivienda, reducción 20%.";
+        html += '<input type="number" id="baseVal" class="input-ui" placeholder="Monto Total Contrato"><br><label><input type="checkbox" id="chkVivienda"> ¿Es Vivienda?</label>';
     } else {
-        fund.innerHTML = "Ingrese la base pecuniaria del proceso.";
-        html = '<input type="number" id="baseVal" class="input-ui" placeholder="Monto base">';
+        fund.innerHTML = "Art. 22/24/52: Capital + Intereses.";
+        html += '<input type="number" id="baseVal" class="input-ui" placeholder="Ingrese monto">';
     }
     container.innerHTML = html;
 }
 
+/**
+ * MOTOR FINAL (Aquí está la lógica de calc.txt integrada)
+ */
 function calcularFinal() {
-    const baseRaw = document.getElementById('baseVal').value;
-    state.base = parseFloat(baseRaw || 0);
+    state.base = parseFloat(document.getElementById('baseVal').value || 0);
+    
+    // Asignación de GRUPO según el Asistente
+    if (state.proceso === 'interdicto') state.grupo = 6; // 45% s/ el 80% (o similar segun tu formula)
+    else if (state.terminacion === 'sentencia_desestimada' || document.getElementById('critCaducidad')?.value === 'art22') state.grupo = 4; // 70%
+    else if (state.proceso === 'sucesion' && document.getElementById('subSucesion')?.value === 'unico') state.grupo = 2; // 50%
+    else if (document.getElementById('chkPrueba') && !document.getElementById('chkPrueba').checked) state.grupo = 2; // 50%
+    else state.grupo = 1;
 
-    // Lógica de Grupos (Tus grupos definidos)
-    let resumen = `👉 <strong>Así vamos a calcular:</strong><br>`;
-    resumen += `Honorarios: ${state.honorarios}<br>Proceso: ${state.proceso}<br>Terminación: ${state.terminacion}<br>`;
+    mostrarResultados();
+}
 
-    // Determinación del Grupo Interno
-    if (state.terminacion === 'sentencia_desestimada' || (document.getElementById('critCaducidad')?.value === 'desestimada')) {
-        state.grupo = 'grupo4';
-        resumen += `Reducción por rechazo de demanda (art. 22 ley 27.423): -30%<br>`;
-    } else if (state.proceso === 'posesorias') {
-        state.grupo = 'grupo6'; // Tu grupo para reducción del 20%
-        resumen += `Reducción por acciones posesorias/división (art. 38): -20%<br>`;
-    } else {
-        state.grupo = 'grupo1';
+function mostrarResultados() {
+    next(7);
+    const res = document.getElementById('resultado');
+    const u = state.valorUMA;
+    const b = state.base;
+    
+    // Factor de corrección según grupo
+    let factor = 1;
+    if (state.grupo === 2) factor = 0.5;
+    if (state.grupo === 4) factor = 0.7;
+    if (state.grupo === 5) factor = 0.9;
+    if (state.grupo === 6) factor = 0.45;
+
+    const baseFinal = b * factor;
+    const baseUMA = baseFinal / u;
+
+    let html = `<h3>Cálculo Art. 21 (Escala General)</h3>`;
+    html += `<table>
+        <tr><th>Concepto</th><th>Mínimo (11%)</th><th>Máximo (25%)</th></tr>
+        <tr><td>Pesos ($)</td><td>$${(baseFinal * 0.11).toLocaleString()}</td><td>$${(baseFinal * 0.25).toLocaleString()}</td></tr>
+        <tr><td>UMA</td><td>${(baseUMA * 0.11).toFixed(2)}</td><td>${(baseUMA * 0.25).toFixed(2)}</td></tr>
+    </table>`;
+
+    if (state.proceso === 'incidente') {
+        html += `<h3>Incidente / BLSG (2% a 10%)</h3>
+        <table>
+            <tr><th>Concepto</th><th>Mínimo (2%)</th><th>Máximo (10%)</th></tr>
+            <tr><td>UMA</td><td>${(baseUMA * 0.02).toFixed(2)}</td><td>${(baseUMA * 0.10).toFixed(2)}</td></tr>
+        </table>`;
     }
 
-    document.getElementById('resumenLogico').innerHTML = resumen;
-    
-    // Aquí inyectamos la tabla final (puedes llamar a tu función calcular() de calc.txt)
-    document.getElementById('tablaResultados').innerHTML = `<p>Base Regulatoria Final: $${state.base.toLocaleString('es-AR')}</p><p>Grupo Aplicado: ${state.grupo}</p>`;
-    
+    res.innerHTML = html;
+}
+
+function mostrarExhortoDirecto() {
     next(7);
+    const u = state.valorUMA;
+    let min, max;
+    if (state.exhortoTipo === 'a') { min = 3; max = 3; }
+    if (state.exhortoTipo === 'b') { min = 10; max = 20; }
+    if (state.exhortoTipo === 'c') { min = 7; max = 30; }
+
+    document.getElementById('resultado').innerHTML = `
+        <h3>Exhorto Ley 27.423 - Art. 50</h3>
+        <table>
+            <tr><th>Rango</th><th>UMA</th><th>Pesos ($)</th></tr>
+            <tr><td>Mínimo</td><td>${min}</td><td>$${(min * u).toLocaleString()}</td></tr>
+            <tr><td>Máximo</td><td>${max}</td><td>$${(max * u).toLocaleString()}</td></tr>
+        </table>`;
 }
