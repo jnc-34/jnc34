@@ -1,35 +1,42 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Asistente Honorarios</title>
-  <style>
-    body { font-family: Arial; max-width: 800px; margin: auto; padding: 20px; }
-    .pantalla { display: none; }
-    .activa { display: block; }
-    button { margin-top: 15px; }
-  </style>
+<meta charset="UTF-8">
+<title>Asistente Honorarios</title>
+
+<style>
+body { font-family: Arial; max-width: 900px; margin: auto; padding: 20px; }
+.pantalla { display: none; }
+.activa { display: block; }
+button { margin-top: 15px; padding: 8px 15px; }
+.box { margin-top: 10px; }
+small { color: gray; }
+</style>
+
 </head>
 <body>
 
 <h2>Asistente de Honorarios</h2>
 
-<!-- PANTALLA 1 -->
+<!-- P1 -->
 <div id="p1" class="pantalla activa">
-  <h3>Inicio</h3>
   <button onclick="next(2)">Comenzar</button>
 </div>
 
-<!-- PANTALLA 2 -->
+<!-- P2 -->
 <div id="p2" class="pantalla">
   <h3>Observaciones</h3>
   <p>
-    No contempla procesos de familia, penales, laborales ni administrador judicial/interventor.
+    Este asistente no contempla:
+    <br>- Familia
+    <br>- Penal
+    <br>- Laboral
+    <br>- Administrador judicial / interventor
   </p>
   <button onclick="next(3)">Continuar</button>
 </div>
 
-<!-- PANTALLA 3 -->
+<!-- P3 -->
 <div id="p3" class="pantalla">
   <h3>Tipo de honorarios</h3>
   <select id="tipoHonorario">
@@ -39,7 +46,7 @@
   <button onclick="guardarTipoHonorario()">Continuar</button>
 </div>
 
-<!-- PANTALLA 4 -->
+<!-- P4 -->
 <div id="p4" class="pantalla">
   <h3>Tipo de proceso</h3>
   <select id="tipoProceso">
@@ -50,7 +57,7 @@
   <button onclick="guardarProceso()">Continuar</button>
 </div>
 
-<!-- PANTALLA 5 -->
+<!-- P5 -->
 <div id="p5" class="pantalla">
   <h3>Variables</h3>
 
@@ -63,9 +70,9 @@
   <button onclick="guardarVariables()">Continuar</button>
 </div>
 
-<!-- PANTALLA 6 -->
+<!-- P6 -->
 <div id="p6" class="pantalla">
-  <h3>Forma de terminación</h3>
+  <h3>Terminación</h3>
   <select id="terminacion">
     <option value="sentencia">Sentencia</option>
     <option value="desistimiento">Desistimiento</option>
@@ -76,25 +83,37 @@
   <button onclick="guardarTerminacion()">Continuar</button>
 </div>
 
-<!-- PANTALLA 7 -->
+<!-- P7 -->
 <div id="p7" class="pantalla">
   <h3>Base regulatoria</h3>
 
-  <input type="number" id="baseMonto" placeholder="Monto base">
+  <select id="tipoBase">
+    <option value="monto">Monto libre</option>
+    <option value="inmueble">Inmueble / mueble</option>
+    <option value="credito">Derecho crediticio</option>
+    <option value="acciones">Acciones / títulos</option>
+    <option value="establecimiento">Establecimiento</option>
+    <option value="uso">Uso y habitación</option>
+    <option value="escrituracion">Escrituración</option>
+    <option value="posesorias">Posesorias / división</option>
+    <option value="colectiva">Incidencia colectiva</option>
+  </select>
 
-  <p><small>⚠️ En establecimientos comerciales puede corresponder +10% valor llave.</small></p>
+  <input type="number" id="baseMonto" placeholder="Monto">
+
+  <div id="warnings"></div>
 
   <button onclick="guardarBase()">Continuar</button>
 </div>
 
-<!-- PANTALLA 8 -->
+<!-- P8 -->
 <div id="p8" class="pantalla">
-  <h3>Resultado previo</h3>
+  <h3>Resumen</h3>
   <pre id="resumen"></pre>
   <button onclick="calcularFinal()">Calcular</button>
 </div>
 
-<!-- RESULTADO -->
+<!-- P9 -->
 <div id="p9" class="pantalla">
   <h3>Resultado</h3>
   <div id="resultado"></div>
