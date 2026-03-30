@@ -1,591 +1,745 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Asistente Legal · Honorarios Ley 27.423</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: #f0f4f8;
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
-      padding: 24px 20px;
-    }
-
-    .app-container {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    /* Breadcrumb */
-    .breadcrumb {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      background: white;
-      padding: 14px 24px;
-      border-radius: 60px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-      margin-bottom: 28px;
-      font-weight: 500;
-    }
-
-    .breadcrumb-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #4b5563;
-      font-size: 0.85rem;
-    }
-
-    .breadcrumb-item.active {
-      color: #1e4a76;
-      font-weight: 700;
-      background: #e6f0fa;
-      padding: 5px 12px;
-      border-radius: 40px;
-    }
-
-    .breadcrumb-sep {
-      color: #9ca3af;
-      font-size: 1rem;
-    }
-
-    /* Two columns */
-    .dashboard {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 28px;
-    }
-
-    .wizard-col {
-      flex: 2;
-      min-width: 280px;
-    }
-
-    .sidebar-col {
-      flex: 1.2;
-      min-width: 260px;
-    }
-
-    /* Cards */
-    .card {
-      background: white;
-      border-radius: 32px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-      overflow: hidden;
-      transition: all 0.2s;
-    }
-
-    .card-header {
-      padding: 20px 28px 8px 28px;
-      font-weight: 700;
-      font-size: 1.3rem;
-      border-bottom: 1px solid #eef2ff;
-      color: #0f3b5c;
-    }
-
-    .card-content {
-      padding: 20px 28px 28px 28px;
-    }
-
-    /* Fundamento sidecar */
-    .fundamento-card {
-      background: #fefdf7;
-      border-left: 5px solid #eab308;
-      border-radius: 28px;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.05);
-      position: sticky;
-      top: 20px;
-    }
-
-    .fundamento-title {
-      font-weight: 700;
-      font-size: 1.1rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 14px;
-      color: #92400e;
-    }
-
-    .fundamento-text {
-      font-size: 0.9rem;
-      line-height: 1.5;
-      color: #2d3e2b;
-      background: #fff9e8;
-      padding: 16px;
-      border-radius: 20px;
-      margin-top: 8px;
-    }
-
-    /* Opciones */
-    .options-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin: 16px 0 12px;
-    }
-
-    .opt-btn {
-      background: #f1f5f9;
-      border: 1px solid #cbd5e1;
-      padding: 8px 20px;
-      border-radius: 40px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
-      font-size: 0.9rem;
-    }
-
-    .opt-btn.selected {
-      background: #1e4a76;
-      color: white;
-      border-color: #1e4a76;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .numeric-input {
-      width: 100%;
-      max-width: 100%;
-      padding: 12px 16px;
-      font-size: 1rem;
-      border: 1px solid #cbd5e1;
-      border-radius: 48px;
-      margin: 12px 0 8px;
-      background: white;
-    }
-
-    .info-note, .legal-note {
-      background: #f8fafc;
-      border-left: 4px solid #3b82f6;
-      padding: 10px 16px;
-      font-size: 0.8rem;
-      border-radius: 16px;
-      margin: 12px 0;
-    }
-
-    .warning-box {
-      background: #fff0f0;
-      border-left: 5px solid #dc2626;
-      padding: 14px 18px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-      font-size: 0.85rem;
-    }
-
-    .btn-nav {
-      background: #1e4a76;
-      border: none;
-      padding: 10px 24px;
-      border-radius: 40px;
-      font-weight: 600;
-      color: white;
-      cursor: pointer;
-      transition: 0.2s;
-      margin-right: 12px;
-    }
-
-    .btn-nav.secondary {
-      background: #475569;
-    }
-
-    .btn-nav.danger {
-      background: #b91c1c;
-    }
-
-    .results-box {
-      background: #f8fafc;
-      border-radius: 24px;
-      padding: 20px;
-      margin-top: 24px;
-      border: 1px solid #e2e8f0;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-    }
-
-    th, td {
-      border: 1px solid #cbd5e1;
-      padding: 8px 10px;
-      text-align: left;
-    }
-
-    th {
-      background: #eef2ff;
-    }
-
-    @media (max-width: 800px) {
-      .dashboard { flex-direction: column; }
-      .breadcrumb { justify-content: center; }
-      .card-content { padding: 18px; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Asistente para la regulación de Honorarios · Ley 27.423</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        :root {
+            --primary: #1e466e;
+            --secondary: #2c3e50;
+            --accent: #2c7da0;
+            --bg: #f4f7f9;
+            --border: #dce4ec;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+        .app-container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px 24px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        /* Barra de progreso */
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #fff;
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .step-dot {
+            color: #7f8c8d;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: #ecf0f1;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: 0.2s;
+        }
+        .step-dot.active {
+            background: var(--accent);
+            color: white;
+        }
+        .pantalla {
+            display: none;
+            padding: 28px 32px;
+        }
+        .active {
+            display: block;
+        }
+        .card-info {
+            background: #fef9e3;
+            border-left: 4px solid #f1c40f;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+        .warning-box {
+            background: #fff0f0;
+            border-left: 4px solid #e74c3c;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+        .legal-box {
+            background: #e8f0fe;
+            border-left: 4px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+        .input-ui {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            font-size: 1rem;
+            margin-top: 8px;
+            background: white;
+        }
+        select.input-ui {
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1f6392;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #bdc3c7;
+            color: var(--secondary);
+        }
+        .btn-outline:hover {
+            background: #ecf0f1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            font-size: 0.85rem;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background: #f1f5f9;
+            font-weight: 700;
+        }
+        .highlight {
+            background: #f1f9ff;
+            font-weight: 600;
+        }
+        .iva-box {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #5d6d7e;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 14px;
+        }
+        hr {
+            margin: 20px 0;
+        }
+        @media (max-width: 600px) {
+            .pantalla { padding: 20px; }
+            .progress-bar { padding: 8px 16px; }
+        }
+    </style>
 </head>
 <body>
 <div class="app-container">
-  <!-- Breadcrumb dinámico -->
-  <div class="breadcrumb" id="breadcrumbContainer"></div>
-
-  <div class="dashboard">
-    <!-- Columna principal del asistente -->
-    <div class="wizard-col">
-      <div class="card">
-        <div class="card-header">⚖️ Asistente de regulación · Ley 27.423</div>
-        <div class="card-content" id="wizardContent">
-          <!-- Aquí se renderiza el paso actual -->
-        </div>
-        <div style="padding: 8px 28px 28px 28px; display: flex; gap: 12px; flex-wrap: wrap;">
-          <button id="prevWizBtn" class="btn-nav secondary" style="display: none;">◀ Anterior</button>
-          <button id="nextWizBtn" class="btn-nav">Siguiente ▶</button>
-          <button id="resetWizBtn" class="btn-nav danger">Reiniciar asistente</button>
-        </div>
-        <div id="wizardResults" class="results-box" style="margin: 0 28px 28px 28px; display: none;"></div>
-      </div>
+    <div class="header">
+        <h1>Asistente para la regulación de Honorarios Profesionales<br><span style="font-size:0.85rem;">Ley 27.423</span></h1>
     </div>
 
-    <!-- Sidebar: fundamentos en tiempo real -->
-    <div class="sidebar-col">
-      <div class="fundamento-card card">
-        <div class="card-content">
-          <div class="fundamento-title">
-            <span>📖 Fundamento legal</span>
-          </div>
-          <div id="dynamicFundamento" class="fundamento-text">
-            Seleccioná una opción para ver el artículo y la explicación correspondiente.
-          </div>
-          <div class="info-note" style="margin-top: 20px;">
-            ⚡ Esta herramienta respeta la escala del art. 21 y las reducciones de la Ley 27.423. No sustituye criterio judicial.
-          </div>
-        </div>
-      </div>
+    <div class="progress-bar">
+        <span class="step-dot active" id="dot1">Inicio</span>
+        <span class="step-dot" id="dot2">Observaciones</span>
+        <span class="step-dot" id="dot3">Modalidad</span>
+        <span class="step-dot" id="dot4">Proceso</span>
+        <span class="step-dot" id="dot5">Terminación</span>
+        <span class="step-dot" id="dot6">Base</span>
+        <span class="step-dot" id="dot7">Resultado</span>
     </div>
-  </div>
+
+    <!-- PANTALLA 1: INTRO Y ADVERTENCIA -->
+    <div id="p1" class="pantalla active">
+        <p>Este asistente tiene por objeto orientar en el proceso de regulación de honorarios conforme la ley 27.423.</p>
+        <p>Las soluciones propuestas se basan en interpretaciones posibles de la normativa vigente, que pueden diferir de los criterios aplicados por los tribunales. En cada paso se explicará brevemente el fundamento legal de la opción elegida y su impacto en el cálculo.</p>
+        <div class="warning-box">
+            <strong>⚠️ Advertencia:</strong> No es posible contemplar la totalidad de situaciones que pueden presentarse en la práctica profesional. Esta herramienta no sustituye el criterio del juez natural de la causa ni constituye un dictamen profesional. Ante la duda, consulte con un profesional.
+        </div>
+        <div class="btn-group">
+            <button class="btn-primary" onclick="next(2)">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 2: OBSERVACIONES DE USO -->
+    <div id="p2" class="pantalla">
+        <h3>📋 Observaciones de uso</h3>
+        <div class="card-info" style="max-height: 400px; overflow-y: auto;">
+            <p><strong>1.</strong> Sirve para los juicios iniciados a partir de su entrada en vigencia (B.O.: 22/12/17). También si se sigue el criterio “Establecimiento Las Marías” (CSJN 04/09/2018, <a href="#" target="_blank">ver</a>) para etapas posteriores.</p>
+            <p><strong>2.</strong> Mínimos arancelarios: si consideras aplicables los mínimos de los arts. 58, 61, etc., desestima este cálculo si arroja un resultado menor.</p>
+            <p><strong>3.</strong> Reducciones: no se contemplan limitaciones como arts. 730 (prorrateo), 1255 (reajuste), art. 60 ley 24.441 (ejecución hipotecaria), art. 48 ley 14.394 (bien de familia).</p>
+            <p><strong>4.</strong> Auxiliares de justicia: considerar leyes especiales (art. 1 párrafo segundo). Este asistente solo sigue la ley 27.423. La ley 27802 de Modernización Laboral introdujo modificaciones (<a href="#" target="_blank">ver</a>).</p>
+            <p><strong>5.</strong> Mediadores: ley 26.589, decretos reglamentarios. Valor UHOM <a href="#" target="_blank">acá</a>. Calculadora aparte <a href="#" target="_blank">ver</a>.</p>
+            <p><strong>6.</strong> Asuntos no susceptibles de apreciación pecuniaria: no hay cálculo numérico. Recurrir a pautas del art. 16.</p>
+            <p><strong>7.</strong> No se contemplan juicios de familia (alimentos, disolución conyugal, etc.), penales ni laborales.</p>
+        </div>
+        <div class="btn-group">
+            <button class="btn-outline" onclick="next(1)">Atrás</button>
+            <button class="btn-primary" onclick="next(3)">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 3: HONORARIOS DEFINITIVOS / PROVISORIOS -->
+    <div id="p3" class="pantalla">
+        <h3>⚖️ Modalidad de regulación</h3>
+        <div class="legal-box">
+            <strong>Art. 12:</strong> Los honorarios provisorios corresponden cuando el profesional se aparta antes de la conclusión normal o la causa está paralizada más de un año por causas ajenas. En ese caso, solo se abona el <strong>mínimo de las etapas cumplidas</strong>.
+        </div>
+        <select id="tipoRegulacion" class="input-ui">
+            <option value="definitivos">Honorarios definitivos (proceso concluido o regulación final)</option>
+            <option value="provisorios">Honorarios provisorios (art. 12)</option>
+        </select>
+        <div class="btn-group">
+            <button class="btn-outline" onclick="next(2)">Atrás</button>
+            <button class="btn-primary" onclick="next(4)">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 4: TIPO DE PROCESO -->
+    <div id="p4" class="pantalla">
+        <h3>📌 Tipo de juicio o proceso</h3>
+        <select id="tipoProceso" class="input-ui" onchange="actualizarSubOpcionesP4()">
+            <option value="ordinario">Ordinario / Sumarísimo</option>
+            <option value="desalojo">Desalojo (art. 40)</option>
+            <option value="ejecutivo">Ejecutivo (expensas, alquileres, etc.)</option>
+            <option value="sucesion">Sucesión</option>
+            <option value="ejecucion_sentencia">Ejecución de sentencia / honorarios / acuerdo homologado (art. 41)</option>
+            <option value="medida_cautelar">Medida cautelar (art. 37)</option>
+            <option value="homologacion_desocupacion">Homologación de convenio de desocupación y su ejecución</option>
+            <option value="exhorto">Exhorto (art. 50)</option>
+            <option value="incidente">Incidente (incluye BLSG) (art. 33 ley 21839)</option>
+        </select>
+        <div id="subOpcionesP4" style="margin-top: 20px;"></div>
+        <div class="btn-group">
+            <button class="btn-outline" onclick="next(3)">Atrás</button>
+            <button class="btn-primary" onclick="validarP4()">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 5: TERMINACIÓN (dinámica) -->
+    <div id="p5" class="pantalla">
+        <h3>🏁 Forma de terminación del juicio</h3>
+        <div id="fundamentoP5" class="legal-box"></div>
+        <select id="modoTerminacion" class="input-ui" onchange="actualizarTerminacion()">
+            <option value="sentencia_admitida">Sentencia – hace lugar a la demanda</option>
+            <option value="sentencia_desestimada">Sentencia – desestima la demanda</option>
+            <option value="caducidad">Caducidad de instancia</option>
+            <option value="desistimiento">Desistimiento</option>
+            <option value="transaccion">Transacción</option>
+        </select>
+        <div id="zonaTerminacionExtra" style="margin-top: 20px;"></div>
+        <div class="btn-group">
+            <button class="btn-outline" onclick="next(4)">Atrás</button>
+            <button class="btn-primary" onclick="validarP5()">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 6: BASE REGULATORIA Y VALOR UMA -->
+    <div id="p6" class="pantalla">
+        <h3>💰 Base regulatoria y valor UMA</h3>
+        <div id="fundamentoP6" class="legal-box"></div>
+        
+        <label>Valor de la UMA ($):</label>
+        <input type="number" id="valorUMA" class="input-ui" step="1" placeholder="Cargando automáticamente...">
+        
+        <div style="margin-top: 20px;">
+            <label>Monto de la Base ($):</label>
+            <div id="extraAjustesBase" style="margin-bottom: 12px;"></div>
+            <input type="number" id="baseVal" class="input-ui" placeholder="Ingrese el monto en pesos">
+            <div class="legal-box" style="margin-top: 12px; font-size:0.8rem;">
+                <strong>Nota:</strong> Según el objeto del juicio, ingrese: sumas de dinero → monto de liquidación; sucesiones → valor del patrimonio; desalojo → total de alquileres o suma estimada; medidas cautelares → monto asegurado; incidente → valor de la incidencia.
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn-outline" onclick="retrocederP6()">Atrás</button>
+            <button class="btn-primary" onclick="calcularFinal()">Calcular honorarios</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 7: RESULTADOS -->
+    <div id="p7" class="pantalla">
+        <div id="resultado"></div>
+        <div class="iva-box">
+            La regulación de honorarios no contiene la alícuota de IVA. El beneficiario inscripto deberá acreditar su condición y el obligado al pago deberá adicionar el monto correspondiente (conf. CSJN, “Cía. General de Combustibles SA”).
+        </div>
+        <div class="btn-group">
+            <button class="btn-outline" onclick="location.reload()">Nuevo cálculo</button>
+        </div>
+    </div>
 </div>
 
 <script>
-  // ---------- CARGA UMA ----------
-  let valorUMA = 0;
-  async function cargarUMA() {
-    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8tumvxptTGBCfScMwWxK7r6ATnGfMw061GKGdzfIVyThcSGzUqjI-vcpME1AtykPmjqTq0xdjgc7D/pub?output=csv';
-    try {
-      const response = await fetch(url);
-      const data = await response.text();
-      const filas = data.split('\n');
-      const columnas = filas[0].split(',');
-      let valor = columnas[1]?.replace(/"/g, '').trim();
-      if (valor && !isNaN(parseFloat(valor))) {
-        valorUMA = parseFloat(valor);
-      } else throw new Error();
-    } catch(e) {
-      valorUMA = 0;
+    // --------------------------------------------------------------
+    // 1. CARGA AUTOMÁTICA DEL VALOR UMA (misma fuente que calc.txt)
+    // --------------------------------------------------------------
+    async function cargarUMA() {
+        const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8tumvxptTGBCfScMwWxK7r6ATnGfMw061GKGdzfIVyThcSGzUqjI-vcpME1AtykPmjqTq0xdjgc7D/pub?output=csv';
+        try {
+            const response = await fetch(url);
+            const data = await response.text();
+            const filas = data.split('\n');
+            const columnas = filas[0].split(',');
+            let valor = columnas[1]?.replace(/"/g, '').trim();
+            if (valor && !isNaN(parseFloat(valor))) {
+                document.getElementById('valorUMA').value = parseFloat(valor);
+            } else throw new Error();
+        } catch(e) {
+            document.getElementById('valorUMA').placeholder = "Error, ingrese manual";
+        }
     }
-  }
 
-  // ---------- NÚCLEO DE CÁLCULO (grupos exactos de la calculadora original) ----------
-  function parseNumber(str) { return parseFloat(String(str).replace(/\./g, '').replace(',', '.')); }
-  function formatNumber(num) { if (isNaN(num)) return 'N/A'; return num.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-
-  function calcularHonorariosPorGrupo(basePesos, valorUMA, grupo) {
-    if (!basePesos || !valorUMA || valorUMA <= 0) return null;
-    let baseEnUMA = basePesos / valorUMA;
-    let minComp, maxComp, tituloEscala;
-    if (baseEnUMA <= 15) { tituloEscala = "1ª escala (hasta 15 UMA): 22% a 33%"; minComp = baseEnUMA * 0.22; maxComp = baseEnUMA * 0.33; }
-    else if (baseEnUMA <= 45) { tituloEscala = "2ª escala (16-45 UMA): 20% a 26%"; minComp = (baseEnUMA-15)*0.20 + 4.95; maxComp = (baseEnUMA-15)*0.26 + 4.95; }
-    else if (baseEnUMA <= 90) { tituloEscala = "3ª escala (46-90 UMA): 18% a 24%"; minComp = (baseEnUMA-45)*0.18 + 11.7; maxComp = (baseEnUMA-45)*0.24 + 11.7; }
-    else if (baseEnUMA <= 150) { tituloEscala = "4ª escala (91-150 UMA): 17% a 22%"; minComp = (baseEnUMA-90)*0.17 + 21.6; maxComp = (baseEnUMA-90)*0.22 + 21.6; }
-    else if (baseEnUMA <= 450) { tituloEscala = "5ª escala (151-450 UMA): 15% a 20%"; minComp = (baseEnUMA-150)*0.15 + 33; maxComp = (baseEnUMA-150)*0.20 + 33; }
-    else if (baseEnUMA <= 750) { tituloEscala = "6ª escala (451-750 UMA): 13% a 17%"; minComp = (baseEnUMA-450)*0.13 + 90; maxComp = (baseEnUMA-450)*0.17 + 90; }
-    else { tituloEscala = "7ª escala (+750 UMA): 12% a 15%"; minComp = (baseEnUMA-750)*0.12 + 127.5; maxComp = (baseEnUMA-750)*0.15 + 127.5; }
-
-    if (grupo === 'grupo2') { minComp /= 2; maxComp /= 2; }
-    else if (grupo === 'grupo3') { minComp /= 4; maxComp /= 4; }
-    else if (grupo === 'grupo4') { minComp *= 0.7; maxComp *= 0.7; }
-    else if (grupo === 'grupo5') { minComp *= 0.9; maxComp *= 0.9; }
-    else if (grupo === 'grupo6') { minComp *= 0.45; maxComp *= 0.45; }
-
-    const auxMin = baseEnUMA * 0.05;
-    const auxMax = baseEnUMA * 0.10;
-    const etapaUnMin = minComp / 3;
-    const etapaUnMax = maxComp / 3;
-    const etapaDosMin = etapaUnMin * 2;
-    const etapaDosMax = etapaUnMax * 2;
-
-    return {
-      tituloEscala, baseEnUMA,
-      patrocinante: { full: { min: minComp, max: maxComp }, uno: { min: etapaUnMin, max: etapaUnMax }, dos: { min: etapaDosMin, max: etapaDosMax } },
-      apoderado: { full: { min: minComp * 1.4, max: maxComp * 1.4 }, uno: { min: etapaUnMin * 1.4, max: etapaUnMax * 1.4 }, dos: { min: etapaDosMin * 1.4, max: etapaDosMax * 1.4 } },
-      auxMin, auxMax
+    // --------------------------------------------------------------
+    // 2. ESTADO GLOBAL DEL ASISTENTE
+    // --------------------------------------------------------------
+    let wizardState = {
+        provisional: false,
+        tipoProceso: '',
+        // subopciones
+        sucesionUnicoLetrado: false,
+        exhortoTipo: null,      // 'a','b','c'
+        ejecutivoSinExcepciones: false,
+        desalojoVivienda: false,
+        medidaCautelarOposicion: null, // true=con oposición, false=sin
+        ejecucionSentenciaSinExcepciones: false,
+        homologacionVivienda: false,
+        // terminación
+        terminacion: '',
+        sentenciaResultado: '',  // 'admitida' o 'desestimada'
+        caducidadModo: '',       // 'desestimada' o 'art25'
+        aperturaPrueba: null,    // true/false para desistimiento/transaccion/caducidad art25
+        // base
+        baseValor: 0,
+        // provisorio
+        etapasRealizadas: 'completo'   // 'uno','dos','completo'
     };
-  }
 
-  function calcularExhortoIncidente(tipo, valorUMA, baseIngresada = 0) {
-    if (tipo === 'exhorto_notif') return { tipo: "Exhorto - notificaciones (art.50 inc.a)", minUMA: 3, maxUMA: 3, minPesos: valorUMA * 3, maxPesos: valorUMA * 3 };
-    if (tipo === 'exhorto_inscrip') return { tipo: "Exhorto - inscripciones/actos registrales (inc.b)", minUMA: 10, maxUMA: 20, minPesos: valorUMA * 10, maxPesos: valorUMA * 20 };
-    if (tipo === 'exhorto_prueba') return { tipo: "Exhorto - diligencias de prueba (inc.c)", minUMA: 7, maxUMA: 30, minPesos: valorUMA * 7, maxPesos: valorUMA * 30 };
-    if (tipo === 'incidente') {
-      const baseUMA = baseIngresada / valorUMA;
-      const minUMA = baseUMA * 0.02;
-      const maxUMA = baseUMA * 0.20;
-      return { tipo: "Incidente / BLSG (art.33 ley 21839)", minUMA, maxUMA, minPesos: minUMA * valorUMA, maxPesos: maxUMA * valorUMA };
+    // --------------------------------------------------------------
+    // 3. FUNCIONES DE NAVEGACIÓN Y RENDERIZADO
+    // --------------------------------------------------------------
+    function next(n) {
+        document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('active'));
+        document.getElementById('p' + n).classList.add('active');
+        document.querySelectorAll('.step-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', (i + 1) <= n);
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    return null;
-  }
 
-  // ---------- ASISTENTE CON BREADCRUMB Y SIDECAR ----------
-  let wizardState = {
-    step: 0,
-    provisional: false,
-    etapasRealizadas: 'completo',
-    tipoJuicio: null,
-    hayReconvencion: false,
-    principal: {
-      base: 0,
-      resultado: null,
-      aperturaPrueba: null,
-      caducidadModo: null,
-      sentenciaResultado: null,
-      tieneExcepciones: false,
-      sucesionUnicoLetrado: false,
-      medidaOposicion: null,
-      desalojoVivienda: false,
-      ejecucionSinExcepciones: false,
-      homologacionVivienda: false,
-      tipoExhorto: null
-    },
-    reconvencionData: null,
-    valorUMA: 0
-  };
-
-  // Mapeo de pasos a breadcrumb
-  const breadcrumbMap = [
-    { label: "Observaciones", steps: [0, 1] },
-    { label: "Tipo de juicio", steps: [2, 3] },
-    { label: "Base regulatoria", steps: [4] },
-    { label: "Terminación", steps: [5, 6] },
-    { label: "Resultado final", steps: [7, 8] }
-  ];
-
-  function updateBreadcrumb() {
-    const currentStep = wizardState.step;
-    const container = document.getElementById('breadcrumbContainer');
-    if (!container) return;
-    let html = '';
-    breadcrumbMap.forEach((crumb, idx) => {
-      const isActive = crumb.steps.includes(currentStep);
-      const isPast = crumb.steps.some(s => s < currentStep);
-      html += `<div class="breadcrumb-item ${isActive ? 'active' : ''}">${isPast ? '✓' : ''} ${crumb.label}</div>`;
-      if (idx < breadcrumbMap.length - 1) html += `<span class="breadcrumb-sep">›</span>`;
-    });
-    container.innerHTML = html;
-  }
-
-  // Mapa de fundamentos dinámicos (por elección)
-  function updateFundamento(optionKey, extra = '') {
-    const container = document.getElementById('dynamicFundamento');
-    if (!container) return;
-    const textos = {
-      provisorio: "📘 <strong>Art. 12</strong> — Honorarios provisorios: cuando el profesional se aparta antes de la conclusión normal o la causa está paralizada >1 año por causas ajenas. Solo se abona el <strong>mínimo de las etapas cumplidas</strong>.",
-      definitivo: "📘 <strong>Art. 12 in fine</strong> — Honorarios definitivos: corresponden cuando el proceso ha concluido o se regula en sentencia firme. Se aplica la escala completa con sus mínimos y máximos.",
-      desalojo_vivienda: "🏠 <strong>Art. 40</strong> — Si la locación es para vivienda, la base regulatoria (total de alquileres) se reduce en un <strong>20%</strong>. Fundamento: protección de la vivienda única.",
-      ejecutivo_sin_excepciones: "⚡ <strong>Art. 34</strong> — En juicio ejecutivo sin oposición de excepciones, los honorarios se reducen en un <strong>10%</strong> de la escala ordinaria.",
-      medida_cautelar_sin_oposicion: "🛡️ <strong>Art. 37</strong> — Medida cautelar sin oposición: la base se reduce al <strong>25%</strong> de la escala. Si hay oposición → 50%.",
-      ejecucion_sentencia_sin_excepciones: "📜 <strong>Art. 41 + 34</strong> — Ejecución de sentencia: base = 50% de la escala. Si no hay excepciones, adicional -10% → total 45%.",
-      sucesion_unico_letrado: "👥 <strong>Art. 35</strong> — Sucesión con un solo letrado para todos los herederos: los honorarios se reducen a la <strong>mitad</strong> de la escala.",
-      sentencia_desestimada: "⚖️ <strong>Art. 22</strong> — Si la demanda es íntegramente desestimada, la base regulatoria se reduce en un <strong>30%</strong>.",
-      caducidad_como_desestimada: "⏳ <strong>Art. 22 (analogía)</strong> — Tratando la caducidad como demanda desestimada, se aplica reducción del 30% sobre la base.",
-      terminacion_anormal_sin_prueba: "📉 <strong>Art. 25</strong> — Desistimiento, transacción o caducidad (modo anormal) antes de apertura a prueba: honorarios = <strong>50%</strong> de la escala.",
-      homologacion_desocupacion: "🏢 <strong>Art. 40 2° párrafo</strong> — Homologación de convenio de desocupación y su ejecución: honorarios = <strong>50%</strong> de la escala (ya calculada con posible reducción por vivienda).",
-      exhorto_notificaciones: "📬 <strong>Art. 50 inc. a</strong> — Diligenciamiento de exhortos por notificaciones: mínimo 3 UMA.",
-      exhorto_inscripciones: "📝 <strong>Art. 50 inc. b</strong> — Inscripciones registrales: entre 10 y 20 UMA.",
-      exhorto_prueba: "🔍 <strong>Art. 50 inc. c</strong> — Diligencias de prueba: entre 7 y 30 UMA.",
-      incidente: "⚙️ <strong>Art. 33 ley 21839</strong> — Incidentes: entre el 2% y el 20% del valor de la incidencia o del juicio principal."
-    };
-    let text = textos[optionKey] || "Seleccioná una opción para ver el fundamento legal detallado.";
-    if (extra) text += `<br><br><small>${extra}</small>`;
-    container.innerHTML = text;
-  }
-
-  // render del paso actual (simplificado pero con eventos)
-  let currentStepRender = 0;
-  function renderWizardStep() {
-    const step = wizardState.step;
-    const container = document.getElementById('wizardContent');
-    if (!container) return;
-    let html = '';
-    if (step === 0) { // Intro + advertencias
-      html = `<div class="warning-box">⚠️ <strong>Herramienta de referencia</strong> — basada en Ley 27.423. No reemplaza el criterio judicial. Se aplica a juicios desde el 22/12/2017 o por precedente "Las Marías".<br>No contempla mínimos arancelarios (arts.58,61) ni reducciones especiales (art.730 CCyC, etc.).</div>
-      <div class="legal-note">📌 Este asistente lo guiará paso a paso. Cada elección actualiza el cuadro de fundamentos.</div>`;
-      updateFundamento('definitivo', 'Bienvenida: defina la modalidad de honorarios en el siguiente paso.');
-    } else if (step === 1) {
-      html = `<div><strong>¿Honorarios definitivos o provisorios?</strong></div>
-      <div class="options-group"><div class="opt-btn ${!wizardState.provisional ? 'selected' : ''}" data-choice="definitivo">✅ Honorarios definitivos</div>
-      <div class="opt-btn ${wizardState.provisional ? 'selected' : ''}" data-choice="provisorio">⏳ Honorarios provisorios (art.12)</div></div>
-      <div class="legal-note">Art.12: provisorios solo por el mínimo de las etapas efectivamente cumplidas.</div>`;
-    } else if (step === 2) {
-      const tipos = ['ordinario','sumarísimo','desalojo','ejecutivo','sucesion','ejecucion_sentencia','medida_cautelar','homologacion_desocupacion','exhorto','incidente'];
-      html = `<div><strong>Tipo de juicio</strong> (determina reducciones específicas)</div>
-      <div class="options-group" id="tipoGroup">${tipos.map(t => `<div class="opt-btn ${wizardState.tipoJuicio===t?'selected':''}" data-tipo="${t}">${t.replace(/_/g,' ').toUpperCase()}</div>`).join('')}</div>`;
-    } else if (step === 3) {
-      if (wizardState.tipoJuicio !== 'ordinario') {
-        html = `<p>No aplica reconvención (solo procesos ordinarios).</p><button id="skipReconBtn" class="btn-nav secondary">Continuar</button>`;
-      } else {
-        html = `<div><strong>¿Existe reconvención?</strong> (art.28)</div>
-        <div class="options-group"><div class="opt-btn ${wizardState.hayReconvencion===true?'selected':''}" data-recon="si">Sí, regular por separado</div>
-        <div class="opt-btn ${wizardState.hayReconvencion===false?'selected':''}" data-recon="no">No</div></div>`;
-      }
-    } else if (step === 4) { // Base y ajustes específicos
-      html = `<div><strong>Base regulatoria y ajustes</strong><br><input type="text" id="baseInputDynamic" class="numeric-input" placeholder="Ingrese el monto en pesos"></div>`;
-      const t = wizardState.tipoJuicio;
-      if (t === 'desalojo') html += `<div class="options-group"><div class="opt-btn" data-ajuste="desalojo_vivienda">📍 Locación vivienda → -20%</div><div class="opt-btn" data-ajuste="desalojo_no_vivienda">Otros destinos → 100%</div></div>`;
-      if (t === 'ejecutivo') html += `<div class="options-group"><div class="opt-btn" data-ajuste="ejecutivo_sin_excepciones">Sin excepciones → -10%</div><div class="opt-btn" data-ajuste="ejecutivo_con_excepciones">Con excepciones → escala normal</div></div>`;
-      if (t === 'medida_cautelar') html += `<div class="options-group"><div class="opt-btn" data-ajuste="medida_con_oposicion">Con oposición → 50% escala</div><div class="opt-btn" data-ajuste="medida_sin_oposicion">Sin oposición → 25% escala</div></div>`;
-      if (t === 'sucesion') html += `<div class="options-group"><div class="opt-btn" data-ajuste="sucesion_unico">Un solo letrado → 50%</div><div class="opt-btn" data-ajuste="sucesion_varios">Varios letrados → escala completa</div></div>`;
-      if (t === 'ejecucion_sentencia') html += `<div class="options-group"><div class="opt-btn" data-ajuste="ejecucion_con_excepciones">Con excepciones → 50%</div><div class="opt-btn" data-ajuste="ejecucion_sin_excepciones">Sin excepciones → 45%</div></div>`;
-      if (t === 'homologacion_desocupacion') html += `<div class="options-group"><div class="opt-btn" data-ajuste="homologacion_vivienda">Es vivienda → -20% + homologación 50%</div><div class="opt-btn" data-ajuste="homologacion_no_vivienda">No vivienda → solo homologación 50%</div></div>`;
-      if (t === 'exhorto') html += `<div class="options-group"><div class="opt-btn" data-ajuste="exhorto_notif">Notificaciones (3 UMA)</div><div class="opt-btn" data-ajuste="exhorto_inscrip">Inscripciones (10-20 UMA)</div><div class="opt-btn" data-ajuste="exhorto_prueba">Diligencias prueba (7-30 UMA)</div></div>`;
-      if (t === 'incidente') html += `<div class="legal-note">Incidente: se calculará entre 2% y 20% del valor ingresado (art.33 ley 21839).</div>`;
-      html += `<div class="info-note">Si hay múltiples pretensiones, sume los montos en un único valor.</div>`;
-    } else if (step === 5) { // Resultado / terminación
-      html = `<div><strong>¿Cómo terminó el juicio?</strong></div>
-      <div class="options-group"><div class="opt-btn" data-terminacion="sentencia">Sentencia</div><div class="opt-btn" data-terminacion="caducidad">Caducidad</div><div class="opt-btn" data-terminacion="desistimiento">Desistimiento</div><div class="opt-btn" data-terminacion="transaccion">Transacción</div></div>`;
-      if (wizardState.principal.resultado === 'sentencia') {
-        html += `<div class="options-group" style="margin-top:12px;"><div class="opt-btn" data-sentencia="acoge">Hace lugar a demanda</div><div class="opt-btn" data-sentencia="rechaza">Desestima demanda (art.22 -30% base)</div></div>`;
-      }
-      if (wizardState.principal.resultado === 'caducidad') {
-        html += `<div class="options-group"><div class="opt-btn" data-caducidad="desestimada">Como demanda desestimada (-30%)</div><div class="opt-btn" data-caducidad="art25">Modo anormal (art.25)</div></div>`;
-      }
-    } else if (step === 6) { // Apertura a prueba
-      if (['desistimiento','transaccion'].includes(wizardState.principal.resultado) || (wizardState.principal.resultado === 'caducidad' && wizardState.principal.caducidadModo === 'art25')) {
-        html = `<div><strong>¿Se abrió a prueba antes de la terminación?</strong></div>
-        <div class="options-group"><div class="opt-btn" data-prueba="si">Sí → 100% escala</div><div class="opt-btn" data-prueba="no">No → 50% escala (art.25)</div></div>`;
-      } else { html = `<p>No aplica apertura a prueba para esta terminación.</p><button id="skipAperturaBtn" class="btn-nav secondary">Continuar</button>`; }
-    } else if (step === 7) {
-      if (!wizardState.provisional) {
-        html = `<p>Honorarios definitivos → se mostrarán todas las etapas.</p><button id="skipEtapasBtn" class="btn-nav secondary">Continuar</button>`;
-      } else {
-        html = `<div><strong>Etapas cumplidas (art.12 provisorio)</strong></div>
-        <div class="options-group"><div class="opt-btn" data-etapa="uno">Una etapa (1/3)</div><div class="opt-btn" data-etapa="dos">Dos etapas (2/3)</div><div class="opt-btn" data-etapa="completo">Todas las etapas</div></div>`;
-      }
-    } else if (step === 8) {
-      html = `<p>🔄 Procesando datos, presione "Calcular" para obtener la regulación final.</p>`;
+    function actualizarSubOpcionesP4() {
+        const proc = document.getElementById('tipoProceso').value;
+        const div = document.getElementById('subOpcionesP4');
+        div.innerHTML = '';
+        if (proc === 'sucesion') {
+            div.innerHTML = `
+                <label>Seleccione la situación:</label>
+                <select id="subSucesion" class="input-ui">
+                    <option value="varios">Varios letrados (escala completa)</option>
+                    <option value="unico">Un solo letrado para todos los herederos (Art. 35 → reducción 50%)</option>
+                </select>`;
+        } else if (proc === 'exhorto') {
+            div.innerHTML = `
+                <label>Tipo de exhorto:</label>
+                <select id="tipoExhorto" class="input-ui">
+                    <option value="a">Inciso a) Notificaciones → 3 UMA</option>
+                    <option value="b">Inciso b) Inscripciones y actos registrales → 10 a 20 UMA</option>
+                    <option value="c">Inciso c) Diligencias de prueba → 7 a 30 UMA</option>
+                </select>`;
+        }
     }
-    container.innerHTML = html;
-    attachStepEvents();
-  }
 
-  function attachStepEvents() {
-    // Eventos dinámicos para opciones
-    document.querySelectorAll('.opt-btn[data-choice]').forEach(btn => {
-      btn.onclick = () => { wizardState.provisional = (btn.dataset.choice === 'provisorio'); updateFundamento(btn.dataset.choice); renderWizardStep(); };
-    });
-    document.querySelectorAll('.opt-btn[data-tipo]').forEach(btn => {
-      btn.onclick = () => { wizardState.tipoJuicio = btn.dataset.tipo; updateFundamento(btn.dataset.tipo); renderWizardStep(); };
-    });
-    document.querySelectorAll('.opt-btn[data-recon]').forEach(btn => {
-      btn.onclick = () => { wizardState.hayReconvencion = (btn.dataset.recon === 'si'); updateFundamento(btn.dataset.recon === 'si' ? 'reconvencion' : 'sin_reconvencion'); renderWizardStep(); };
-    });
-    document.querySelectorAll('.opt-btn[data-ajuste]').forEach(btn => {
-      btn.onclick = () => { 
-        const ajuste = btn.dataset.ajuste;
-        if (ajuste === 'desalojo_vivienda') wizardState.principal.desalojoVivienda = true;
-        if (ajuste === 'ejecutivo_sin_excepciones') wizardState.principal.tieneExcepciones = false;
-        if (ajuste === 'medida_sin_oposicion') wizardState.principal.medidaOposicion = false;
-        if (ajuste === 'medida_con_oposicion') wizardState.principal.medidaOposicion = true;
-        if (ajuste === 'sucesion_unico') wizardState.principal.sucesionUnicoLetrado = true;
-        if (ajuste === 'ejecucion_sin_excepciones') wizardState.principal.ejecucionSinExcepciones = true;
-        if (ajuste === 'homologacion_vivienda') wizardState.principal.homologacionVivienda = true;
-        if (ajuste.startsWith('exhorto')) wizardState.principal.tipoExhorto = ajuste;
-        updateFundamento(ajuste);
-        renderWizardStep();
-      };
-    });
-    document.querySelectorAll('.opt-btn[data-terminacion]').forEach(btn => {
-      btn.onclick = () => { wizardState.principal.resultado = btn.dataset.terminacion; renderWizardStep(); };
-    });
-    document.querySelectorAll('.opt-btn[data-sentencia]').forEach(btn => {
-      btn.onclick = () => { wizardState.principal.sentenciaResultado = btn.dataset.sentencia; updateFundamento('sentencia_desestimada'); renderWizardStep(); };
-    });
-    document.querySelectorAll('.opt-btn[data-caducidad]').forEach(btn => {
-      btn.onclick = () => { wizardState.principal.caducidadModo = btn.dataset.caducidad; updateFundamento('caducidad_como_desestimada'); renderWizardStep(); };
-    });
-    document.querySelectorAll('.opt-btn[data-prueba]').forEach(btn => {
-      btn.onclick = () => { wizardState.principal.aperturaPrueba = (btn.dataset.prueba === 'si'); updateFundamento('terminacion_anormal_sin_prueba'); renderWizardStep(); };
-    });
-    document.querySelectorAll('.opt-btn[data-etapa]').forEach(btn => {
-      btn.onclick = () => { wizardState.etapasRealizadas = btn.dataset.etapa; renderWizardStep(); };
-    });
-    document.getElementById('skipReconBtn')?.addEventListener('click', () => { wizardState.hayReconvencion = false; wizardState.step++; renderWizardStep(); updateBreadcrumb(); });
-    document.getElementById('skipAperturaBtn')?.addEventListener('click', () => { wizardState.step++; renderWizardStep(); updateBreadcrumb(); });
-    document.getElementById('skipEtapasBtn')?.addEventListener('click', () => { wizardState.step++; renderWizardStep(); updateBreadcrumb(); });
-  }
-
-  function calcularFinal() {
-    let baseInput = document.getElementById('baseInputDynamic')?.value;
-    let base = parseNumber(baseInput) || 0;
-    if (!base) { alert("Por favor ingrese una base regulatoria válida (números)."); return; }
-    let grupo = 'grupo1';
-    const tipo = wizardState.tipoJuicio;
-    if (tipo === 'ejecutivo' && wizardState.principal.tieneExcepciones === false) grupo = 'grupo5';
-    else if (tipo === 'ejecucion_sentencia') grupo = wizardState.principal.ejecucionSinExcepciones ? 'grupo6' : 'grupo2';
-    else if (tipo === 'medida_cautelar') grupo = wizardState.principal.medidaOposicion ? 'grupo2' : 'grupo3';
-    else if (tipo === 'homologacion_desocupacion') grupo = 'grupo2';
-    else if (tipo === 'sucesion' && wizardState.principal.sucesionUnicoLetrado) grupo = 'grupo2';
-    else if (wizardState.principal.sentenciaResultado === 'rechaza') grupo = 'grupo4';
-    else if (wizardState.principal.caducidadModo === 'desestimada') grupo = 'grupo4';
-    else if ((wizardState.principal.resultado === 'desistimiento' || wizardState.principal.resultado === 'transaccion') && wizardState.principal.aperturaPrueba === false) grupo = 'grupo2';
-    
-    if (tipo === 'exhorto' || tipo === 'incidente') {
-      let exh = wizardState.principal.tipoExhorto || 'exhorto_notif';
-      if (tipo === 'incidente') exh = 'incidente';
-      const resEsp = calcularExhortoIncidente(exh, valorUMA, base);
-      const resDiv = document.getElementById('wizardResults');
-      resDiv.style.display = 'block';
-      resDiv.innerHTML = `<h3>${resEsp.tipo}</h3><p>Mínimo: ${formatNumber(resEsp.minPesos)} $ (${formatNumber(resEsp.minUMA)} UMA)<br>Máximo: ${formatNumber(resEsp.maxPesos)} $ (${formatNumber(resEsp.maxUMA)} UMA)</p>`;
-      return;
+    function validarP4() {
+        const proc = document.getElementById('tipoProceso').value;
+        wizardState.tipoProceso = proc;
+        if (proc === 'sucesion') {
+            const sub = document.getElementById('subSucesion')?.value;
+            wizardState.sucesionUnicoLetrado = (sub === 'unico');
+        } else if (proc === 'exhorto') {
+            wizardState.exhortoTipo = document.getElementById('tipoExhorto')?.value;
+            // Si es exhorto, saltamos directamente a pantalla de base? No, exhorto es cálculo especial, pero la pantalla de base es necesaria para UMA.
+            // Sin embargo, para exhorto no necesitamos base, solo el valor UMA. Lo manejaremos en calcularFinal.
+            next(6);
+            return;
+        } else if (proc === 'incidente') {
+            // incidente también es especial, necesita base (valor de incidencia)
+            next(6);
+            return;
+        }
+        next(5);
     }
-    const calc = calcularHonorariosPorGrupo(base, valorUMA, grupo);
-    if (!calc) return;
-    let htmlRes = `<h3>Base: $${formatNumber(base)} (${formatNumber(calc.baseEnUMA)} UMA)</h3><p>Escala: ${calc.tituloEscala} · Grupo ${grupo}</p>`;
-    htmlRes += `<h4>Patrocinante</h4><tr><th>Etapas</th><th>Mín UMA</th><th>Máx UMA</th><th>Mín $</th><th>Máx $</th></tr>`;
-    htmlRes += `<tr><td>Completo</td><td>${formatNumber(calc.patrocinante.full.min)}</td><td>${formatNumber(calc.patrocinante.full.max)}</td><td>${formatNumber(calc.patrocinante.full.min*valorUMA)}</td><td>${formatNumber(calc.patrocinante.full.max*valorUMA)}</td></tr>`;
-    htmlRes += `<tr><td>Una etapa</td><td>${formatNumber(calc.patrocinante.uno.min)}</td><td>${formatNumber(calc.patrocinante.uno.max)}</td><td>${formatNumber(calc.patrocinante.uno.min*valorUMA)}</td><td>${formatNumber(calc.patrocinante.uno.max*valorUMA)}</td></tr>`;
-    htmlRes += `<tr><td>Dos etapas</td><td>${formatNumber(calc.patrocinante.dos.min)}</td><td>${formatNumber(calc.patrocinante.dos.max)}</td><td>${formatNumber(calc.patrocinante.dos.min*valorUMA)}</td><td>${formatNumber(calc.patrocinante.dos.max*valorUMA)}</td></tr>`;
-    htmlRes += `</table><h4>Apoderado (+40%)</h4><table><th>Completo</th><td>${formatNumber(calc.apoderado.full.min)} UMA</td><td>${formatNumber(calc.apoderado.full.max)} UMA</td><td>${formatNumber(calc.apoderado.full.min*valorUMA)} $</td><td>${formatNumber(calc.apoderado.full.max*valorUMA)} $</td></table>`;
-    htmlRes += `<p><strong>Auxiliares:</strong> ${formatNumber(calc.auxMin)} UMA ($${formatNumber(calc.auxMin*valorUMA)}) - ${formatNumber(calc.auxMax)} UMA ($${formatNumber(calc.auxMax*valorUMA)})</p>`;
-    if (wizardState.provisional) {
-      let factor = wizardState.etapasRealizadas === 'uno' ? 1/3 : (wizardState.etapasRealizadas === 'dos' ? 2/3 : 1);
-      htmlRes = `<div class="warning-box">Honorarios provisorios (art.12) · etapa ${wizardState.etapasRealizadas}. Mínimo patrocinante: ${formatNumber(calc.patrocinante.full.min*factor)} UMA ($${formatNumber(calc.patrocinante.full.min*factor*valorUMA)})</div>`;
+
+    function actualizarTerminacion() {
+        const modo = document.getElementById('modoTerminacion').value;
+        const zona = document.getElementById('zonaTerminacionExtra');
+        const fund = document.getElementById('fundamentoP5');
+        zona.innerHTML = '';
+        if (modo === 'caducidad') {
+            fund.innerHTML = "Art. 22 y 25: la caducidad no está expresamente prevista. Elegí el criterio:";
+            zona.innerHTML = `
+                <select id="critCaducidad" class="input-ui">
+                    <option value="desestimada">Como demanda desestimada (art. 22 → -30% sobre la base)</option>
+                    <option value="art25">Como modo anormal de terminación (art. 25 → 50% o 100% según apertura a prueba)</option>
+                </select>`;
+        } else if (modo === 'desistimiento' || modo === 'transaccion') {
+            fund.innerHTML = "Art. 25: Si la terminación ocurre antes de la apertura a prueba, los honorarios se reducen al 50% de la escala. Si fue después, 100%.";
+            zona.innerHTML = '<label><input type="checkbox" id="chkAperturaPrueba"> ¿Se decretó la apertura a prueba antes de la terminación?</label>';
+        } else if (modo === 'sentencia_desestimada') {
+            fund.innerHTML = "Art. 22: Demanda desestimada → la base regulatoria se reduce en un 30%.";
+        } else {
+            fund.innerHTML = "Demanda admitida → escala plena (sin reducción adicional por resultado).";
+        }
     }
-    document.getElementById('wizardResults').innerHTML = htmlRes;
-    document.getElementById('wizardResults').style.display = 'block';
-  }
 
-  function nextStep() {
-    if (wizardState.step < 8) { wizardState.step++; renderWizardStep(); updateBreadcrumb(); }
-    else { calcularFinal(); }
-  }
-  function prevStep() { if (wizardState.step > 0) { wizardState.step--; renderWizardStep(); updateBreadcrumb(); } }
-  function resetWizard() { wizardState = { step:0, provisional:false, etapasRealizadas:'completo', tipoJuicio:null, hayReconvencion:false, principal:{ base:0, resultado:null, aperturaPrueba:null, caducidadModo:null, sentenciaResultado:null, tieneExcepciones:false, sucesionUnicoLetrado:false, medidaOposicion:null, desalojoVivienda:false, ejecucionSinExcepciones:false, homologacionVivienda:false, tipoExhorto:null }, reconvencionData:null, valorUMA }; renderWizardStep(); updateBreadcrumb(); document.getElementById('wizardResults').style.display = 'none'; }
+    function validarP5() {
+        const modo = document.getElementById('modoTerminacion').value;
+        wizardState.terminacion = modo;
+        if (modo === 'sentencia_admitida') {
+            wizardState.sentenciaResultado = 'admitida';
+        } else if (modo === 'sentencia_desestimada') {
+            wizardState.sentenciaResultado = 'desestimada';
+        } else if (modo === 'caducidad') {
+            const crit = document.getElementById('critCaducidad')?.value;
+            wizardState.caducidadModo = crit;
+            if (crit === 'art25') {
+                // necesita saber si hubo apertura a prueba
+                const chk = confirm('¿Se había decretado la apertura a prueba antes de la caducidad? (Aceptar = Sí, Cancelar = No)');
+                wizardState.aperturaPrueba = chk;
+            }
+        } else if (modo === 'desistimiento' || modo === 'transaccion') {
+            const chk = document.getElementById('chkAperturaPrueba');
+            wizardState.aperturaPrueba = chk ? chk.checked : false;
+        }
+        next(6);
+    }
 
-  window.addEventListener('DOMContentLoaded', async () => {
-    await cargarUMA();
-    wizardState.valorUMA = valorUMA;
-    renderWizardStep();
-    updateBreadcrumb();
-    document.getElementById('nextWizBtn').onclick = nextStep;
-    document.getElementById('prevWizBtn').onclick = prevStep;
-    document.getElementById('resetWizBtn').onclick = resetWizard;
-  });
+    function retrocederP6() {
+        // Vuelve a la pantalla anterior según el tipo de proceso
+        if (wizardState.tipoProceso === 'exhorto' || wizardState.tipoProceso === 'incidente') {
+            next(4);
+        } else {
+            next(5);
+        }
+    }
+
+    // Pantalla 6: mostrar ajustes específicos según tipo de proceso
+    function mostrarAjustesBase() {
+        const proc = wizardState.tipoProceso;
+        const div = document.getElementById('extraAjustesBase');
+        const fund = document.getElementById('fundamentoP6');
+        div.innerHTML = '';
+        if (proc === 'desalojo') {
+            div.innerHTML = `
+                <label><input type="checkbox" id="chkVivienda"> Locación para vivienda (art. 40 → reducción del 20% sobre la base)</label>
+                <div class="legal-box" style="margin-top:8px;">Si es vivienda, se multiplica la base por 0.8.</div>`;
+        } else if (proc === 'ejecutivo') {
+            div.innerHTML = `
+                <label><input type="checkbox" id="chkEjecutivoSinExcep"> Juicio ejecutivo sin oposición de excepciones (art. 34 → reducción del 10% sobre la escala final)</label>`;
+        } else if (proc === 'medida_cautelar') {
+            div.innerHTML = `
+                <select id="selOposicion" class="input-ui">
+                    <option value="con">Con oposición (art. 37 → 50% de la escala)</option>
+                    <option value="sin">Sin oposición (art. 37 → 25% de la escala)</option>
+                </select>`;
+        } else if (proc === 'ejecucion_sentencia') {
+            div.innerHTML = `
+                <label><input type="checkbox" id="chkEjecucionSinExcep"> Ejecución de sentencia / honorarios / acuerdo homologado SIN excepciones (art. 41 + art. 34 → 45% de la escala)</label>
+                <div class="legal-box">Con excepciones → 50% de la escala. Sin excepciones → 45%.</div>`;
+        } else if (proc === 'homologacion_desocupacion') {
+            div.innerHTML = `
+                <label><input type="checkbox" id="chkHomologVivienda"> La locación era para vivienda (art. 40 → -20% sobre la base, luego -50% por homologación)</label>`;
+        }
+        if (proc === 'sucesion') {
+            fund.innerHTML = "Sucesión: la base es el valor del patrimonio transmitido. Si hay un solo letrado, la escala se reduce a la mitad (ya se consideró en pantalla anterior).";
+        } else if (proc === 'exhorto') {
+            fund.innerHTML = "Exhorto: se calculará directamente con los valores fijos en UMA según el inciso seleccionado.";
+        } else if (proc === 'incidente') {
+            fund.innerHTML = "Incidente (art. 33 ley 21839): se calculará entre el 2% y el 20% del valor de la incidencia o del juicio principal.";
+        } else {
+            fund.innerHTML = "Base regulatoria: monto de la demanda, liquidación o transacción, actualizado con intereses (art. 22, 24, 52).";
+        }
+    }
+
+    // --------------------------------------------------------------
+    // 4. NÚCLEO DE CÁLCULO (idéntico a calc.txt)
+    // --------------------------------------------------------------
+    function calcularHonorariosPorGrupo(basePesos, valorUMA, grupo) {
+        if (!basePesos || !valorUMA || valorUMA <= 0) return null;
+        let baseEnUMA = basePesos / valorUMA;
+        let minComp, maxComp, tituloEscala;
+        if (baseEnUMA <= 15) { tituloEscala = "1ª escala (hasta 15 UMA): 22% a 33%"; minComp = baseEnUMA * 0.22; maxComp = baseEnUMA * 0.33; }
+        else if (baseEnUMA <= 45) { tituloEscala = "2ª escala (16-45 UMA): 20% a 26%"; minComp = (baseEnUMA-15)*0.20 + 4.95; maxComp = (baseEnUMA-15)*0.26 + 4.95; }
+        else if (baseEnUMA <= 90) { tituloEscala = "3ª escala (46-90 UMA): 18% a 24%"; minComp = (baseEnUMA-45)*0.18 + 11.7; maxComp = (baseEnUMA-45)*0.24 + 11.7; }
+        else if (baseEnUMA <= 150) { tituloEscala = "4ª escala (91-150 UMA): 17% a 22%"; minComp = (baseEnUMA-90)*0.17 + 21.6; maxComp = (baseEnUMA-90)*0.22 + 21.6; }
+        else if (baseEnUMA <= 450) { tituloEscala = "5ª escala (151-450 UMA): 15% a 20%"; minComp = (baseEnUMA-150)*0.15 + 33; maxComp = (baseEnUMA-150)*0.20 + 33; }
+        else if (baseEnUMA <= 750) { tituloEscala = "6ª escala (451-750 UMA): 13% a 17%"; minComp = (baseEnUMA-450)*0.13 + 90; maxComp = (baseEnUMA-450)*0.17 + 90; }
+        else { tituloEscala = "7ª escala (+750 UMA): 12% a 15%"; minComp = (baseEnUMA-750)*0.12 + 127.5; maxComp = (baseEnUMA-750)*0.15 + 127.5; }
+
+        // Aplicar reducción según grupo
+        if (grupo === 'grupo2') { minComp /= 2; maxComp /= 2; }
+        else if (grupo === 'grupo3') { minComp /= 4; maxComp /= 4; }
+        else if (grupo === 'grupo4') { minComp *= 0.7; maxComp *= 0.7; }
+        else if (grupo === 'grupo5') { minComp *= 0.9; maxComp *= 0.9; }
+        else if (grupo === 'grupo6') { minComp *= 0.45; maxComp *= 0.45; }
+
+        const auxMin = baseEnUMA * 0.05;   // 5% de la base en UMA
+        const auxMax = baseEnUMA * 0.10;   // 10% de la base en UMA
+        const etapaUnMin = minComp / 3;
+        const etapaUnMax = maxComp / 3;
+        const etapaDosMin = minComp * 2 / 3;
+        const etapaDosMax = maxComp * 2 / 3;
+
+        return {
+            tituloEscala, baseEnUMA,
+            patrocinante: { full: { min: minComp, max: maxComp }, uno: { min: etapaUnMin, max: etapaUnMax }, dos: { min: etapaDosMin, max: etapaDosMax } },
+            apoderado: { full: { min: minComp * 1.4, max: maxComp * 1.4 }, uno: { min: etapaUnMin * 1.4, max: etapaUnMax * 1.4 }, dos: { min: etapaDosMin * 1.4, max: etapaDosMax * 1.4 } },
+            auxMin, auxMax
+        };
+    }
+
+    function calcularFinal() {
+        // Obtener valores
+        let baseInput = parseFloat(document.getElementById('baseVal').value);
+        let uma = parseFloat(document.getElementById('valorUMA').value);
+        if (isNaN(uma) || uma <= 0) {
+            alert("Por favor ingrese un valor UMA válido.");
+            return;
+        }
+        if (isNaN(baseInput) || baseInput <= 0) {
+            alert("Por favor ingrese una base regulatoria válida (mayor a cero).");
+            return;
+        }
+
+        // Capturar ajustes de pantalla 6
+        const proc = wizardState.tipoProceso;
+        if (proc === 'desalojo') {
+            const chk = document.getElementById('chkVivienda');
+            wizardState.desalojoVivienda = chk ? chk.checked : false;
+            if (wizardState.desalojoVivienda) baseInput *= 0.8;
+        }
+        if (proc === 'ejecutivo') {
+            const chk = document.getElementById('chkEjecutivoSinExcep');
+            wizardState.ejecutivoSinExcepciones = chk ? chk.checked : false;
+        }
+        if (proc === 'medida_cautelar') {
+            const sel = document.getElementById('selOposicion');
+            wizardState.medidaCautelarOposicion = (sel?.value === 'con');
+        }
+        if (proc === 'ejecucion_sentencia') {
+            const chk = document.getElementById('chkEjecucionSinExcep');
+            wizardState.ejecucionSentenciaSinExcepciones = chk ? chk.checked : false;
+        }
+        if (proc === 'homologacion_desocupacion') {
+            const chk = document.getElementById('chkHomologVivienda');
+            wizardState.homologacionVivienda = chk ? chk.checked : false;
+            if (wizardState.homologacionVivienda) baseInput *= 0.8;
+        }
+
+        wizardState.baseValor = baseInput;
+
+        // Casos especiales: exhorto e incidente
+        if (proc === 'exhorto') {
+            let tipo = wizardState.exhortoTipo || 'a';
+            let minUMA, maxUMA;
+            if (tipo === 'a') { minUMA = 3; maxUMA = 3; }
+            else if (tipo === 'b') { minUMA = 10; maxUMA = 20; }
+            else { minUMA = 7; maxUMA = 30; }
+            const minPesos = minUMA * uma;
+            const maxPesos = maxUMA * uma;
+            document.getElementById('resultado').innerHTML = `
+                <h3>Exhorto (art. 50)</h3>
+                <table>
+                    <tr><th>Concepto</th><th>UMA</th><th>Pesos ($)</th></tr>
+                    <tr><td>Mínimo</td><td>${minUMA}</td><td>$${minPesos.toLocaleString()}</td></tr>
+                    <tr><td>Máximo</td><td>${maxUMA}</td><td>$${maxPesos.toLocaleString()}</td></tr>
+                </table>
+                <p class="legal-box">Los valores son fijos según el inciso del art. 50.</p>`;
+            next(7);
+            return;
+        }
+        if (proc === 'incidente') {
+            const baseUMA = baseInput / uma;
+            const minUMA = baseUMA * 0.02;
+            const maxUMA = baseUMA * 0.20;
+            const minPesos = minUMA * uma;
+            const maxPesos = maxUMA * uma;
+            document.getElementById('resultado').innerHTML = `
+                <h3>Incidente / BLSG (art. 33 ley 21839)</h3>
+                <table>
+                    <tr><th>Concepto</th><th>UMA</th><th>Pesos ($)</th></tr>
+                    <tr><td>Mínimo (2%)</td><td>${minUMA.toFixed(2)}</td><td>$${minPesos.toLocaleString()}</td></tr>
+                    <tr><td>Máximo (20%)</td><td>${maxUMA.toFixed(2)}</td><td>$${maxPesos.toLocaleString()}</td></tr>
+                </table>
+                <p class="legal-box">Art. 33 ley 21839: entre el 2% y el 20% del valor de la incidencia.</p>`;
+            next(7);
+            return;
+        }
+
+        // Determinar grupo interno según las elecciones del usuario
+        let grupo = 'grupo1'; // default
+
+        // Primero, reducciones por resultado y terminación
+        if (wizardState.terminacion === 'sentencia_desestimada') {
+            grupo = 'grupo4';
+        } else if (wizardState.terminacion === 'caducidad' && wizardState.caducidadModo === 'desestimada') {
+            grupo = 'grupo4';
+        } else if ((wizardState.terminacion === 'desistimiento' || wizardState.terminacion === 'transaccion' || (wizardState.terminacion === 'caducidad' && wizardState.caducidadModo === 'art25')) 
+                    && wizardState.aperturaPrueba === false) {
+            grupo = 'grupo2';
+        } else if (wizardState.terminacion === 'caducidad' && wizardState.caducidadModo === 'art25' && wizardState.aperturaPrueba === true) {
+            grupo = 'grupo1';
+        }
+
+        // Luego, ajustes por tipo de proceso (sobrescriben grupo en algunos casos)
+        if (proc === 'sucesion' && wizardState.sucesionUnicoLetrado) {
+            grupo = 'grupo2';
+        }
+        if (proc === 'ejecutivo' && wizardState.ejecutivoSinExcepciones) {
+            grupo = 'grupo5';
+        }
+        if (proc === 'medida_cautelar') {
+            grupo = wizardState.medidaCautelarOposicion ? 'grupo2' : 'grupo3';
+        }
+        if (proc === 'ejecucion_sentencia') {
+            grupo = wizardState.ejecucionSentenciaSinExcepciones ? 'grupo6' : 'grupo2';
+        }
+        if (proc === 'homologacion_desocupacion') {
+            grupo = 'grupo2';
+        }
+
+        // Ahora calcular con el grupo obtenido
+        const calc = calcularHonorariosPorGrupo(baseInput, uma, grupo);
+        if (!calc) {
+            alert("Error en el cálculo. Revise los parámetros.");
+            return;
+        }
+
+        const esProvisorio = (document.getElementById('tipoRegulacion').value === 'provisorios');
+        let etapasFactor = 1;
+        if (esProvisorio) {
+            let etapa = prompt("Honorarios provisorios (art. 12). ¿Cuántas etapas cumplió el profesional?\n1 - Una etapa (1/3)\n2 - Dos etapas (2/3)\n3 - Todas las etapas (completo)");
+            if (etapa === '1') etapasFactor = 1/3;
+            else if (etapa === '2') etapasFactor = 2/3;
+            else etapasFactor = 1;
+        }
+
+        let html = `<h3>Datos del juicio ingresados</h3>
+        <table>
+            <tr><th>Concepto</th><th>Valor</th></tr>
+            <tr><td>Base regulatoria final</td><td>$${baseInput.toLocaleString()}</td></tr>
+            <tr><td>Valor UMA</td><td>$${uma.toLocaleString()}</td></tr>
+            <tr><td>Base en UMA</td><td>${calc.baseEnUMA.toFixed(2)}</td></tr>
+            <tr><td>Escala aplicada</td><td>${calc.tituloEscala}</td></tr>
+            <tr><td>Grupo interno (reducción)</td><td>${grupo}</td></tr>
+        </table>`;
+
+        if (esProvisorio) {
+            const minFinal = calc.patrocinante.full.min * etapasFactor;
+            const minPesos = minFinal * uma;
+            html += `<div class="warning-box"><strong>Honorarios provisorios (art. 12)</strong><br>
+            Etapas cumplidas: ${etapasFactor === 1/3 ? 'una etapa' : (etapasFactor === 2/3 ? 'dos etapas' : 'todas')}<br>
+            <strong>Mínimo para patrocinante:</strong> ${minFinal.toFixed(2)} UMA ($${minPesos.toLocaleString()})<br>
+            (No corresponde máximo por tratarse de regulación provisoria)</div>`;
+        } else {
+            html += `<h4>Abogado PATROCINANTE</h4>
+            <table>
+                <tr><th>Etapas</th><th>Mínimo (UMA)</th><th>Máximo (UMA)</th><th>Mínimo ($)</th><th>Máximo ($)</th></tr>
+                <tr><td>Juicio completo</td><td>${calc.patrocinante.full.min.toFixed(2)}</td><td>${calc.patrocinante.full.max.toFixed(2)}</td>
+                    <td>$${(calc.patrocinante.full.min * uma).toLocaleString()}</td><td>$${(calc.patrocinante.full.max * uma).toLocaleString()}</td></tr>
+                <tr><td>Una etapa (1/3)</td><td>${calc.patrocinante.uno.min.toFixed(2)}</td><td>${calc.patrocinante.uno.max.toFixed(2)}</td>
+                    <td>$${(calc.patrocinante.uno.min * uma).toLocaleString()}</td><td>$${(calc.patrocinante.uno.max * uma).toLocaleString()}</td></tr>
+                <tr><td>Dos etapas (2/3)</td><td>${calc.patrocinante.dos.min.toFixed(2)}</td><td>${calc.patrocinante.dos.max.toFixed(2)}</td>
+                    <td>$${(calc.patrocinante.dos.min * uma).toLocaleString()}</td><td>$${(calc.patrocinante.dos.max * uma).toLocaleString()}</td></tr>
+            </table>`;
+
+            html += `<h4>Abogado APODERADO (+40%)</h4>
+            <table>
+                <tr><th>Etapas</th><th>Mínimo (UMA)</th><th>Máximo (UMA)</th><th>Mínimo ($)</th><th>Máximo ($)</th></tr>
+                <tr><td>Juicio completo</td><td>${calc.apoderado.full.min.toFixed(2)}</td><td>${calc.apoderado.full.max.toFixed(2)}</td>
+                    <td>$${(calc.apoderado.full.min * uma).toLocaleString()}</td><td>$${(calc.apoderado.full.max * uma).toLocaleString()}</td></tr>
+                <tr><td>Una etapa</td><td>${calc.apoderado.uno.min.toFixed(2)}</td><td>${calc.apoderado.uno.max.toFixed(2)}</td>
+                    <td>$${(calc.apoderado.uno.min * uma).toLocaleString()}</td><td>$${(calc.apoderado.uno.max * uma).toLocaleString()}</td></tr>
+                <tr><td>Dos etapas</td><td>${calc.apoderado.dos.min.toFixed(2)}</td><td>${calc.apoderado.dos.max.toFixed(2)}</td>
+                    <td>$${(calc.apoderado.dos.min * uma).toLocaleString()}</td><td>$${(calc.apoderado.dos.max * uma).toLocaleString()}</td></tr>
+            </table>`;
+
+            html += `<h4>Auxiliares de la Justicia (art. 21, 4° párrafo)</h4>
+            <table>
+                <tr><th>Mínimo (5% base)</th><th>Máximo (10% base)</th></tr>
+                <tr><td>${calc.auxMin.toFixed(2)} UMA ($${(calc.auxMin * uma).toLocaleString()})</td>
+                    <td>${calc.auxMax.toFixed(2)} UMA ($${(calc.auxMax * uma).toLocaleString()})</td></tr>
+            </table>
+            <p class="legal-box">Nota: ver si aplica art. 61 (6 UMA mínimo para peritos).</p>`;
+        }
+
+        document.getElementById('resultado').innerHTML = html;
+        next(7);
+    }
+
+    // Inicializar
+    window.addEventListener('DOMContentLoaded', () => {
+        cargarUMA();
+        // Al cargar pantalla 6, mostrar ajustes específicos
+        document.getElementById('p6').addEventListener('click', () => mostrarAjustesBase(), { once: false });
+        // También cuando se navega a p6 mediante next, se puede llamar manualmente desde el botón "Siguiente"? 
+        // Mejor lo hacemos al inicio de calcularFinal? No, porque los ajustes se muestran antes de que el usuario ingrese base.
+        // Vamos a mostrar ajustes cada vez que se muestre la pantalla 6.
+        const observer = new MutationObserver(() => {
+            if (document.getElementById('p6').classList.contains('active')) {
+                mostrarAjustesBase();
+            }
+        });
+        observer.observe(document.getElementById('p6'), { attributes: true, attributeFilter: ['class'] });
+        mostrarAjustesBase();
+    });
 </script>
 </body>
 </html>
