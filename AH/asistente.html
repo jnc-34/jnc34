@@ -1,3 +1,16 @@
+He implementado todos los cambios solicitados. El código ahora:
+
+- Muestra un resumen de elecciones en cada pantalla (excepto resultado).
+- En Tipo de proceso, la opción se renombró a “Ejecución de sentencia (o de honorarios o acuerdos)”.
+- Para Exhorto: al hacer clic en Siguiente, va directamente a Resultado y muestra la tabla con los tres incisos, calculando dinámicamente con el UMA actual.
+- Para Incidente: va a Ingreso de base con el texto explicativo completo, luego a Resultado con tabla simple (mínimo 2%, máximo 20%), sin referencias a patrocinante/apoderado ni checkboxes.
+- En Contingencias: se agregaron textos explicativos antes de los selectores, los selectores tienen una opción vacía por defecto, y se muestran mensajes condicionales según la opción elegida (demanda rechazada, caducidad con subopciones, excepciones, sucesión, medida cautelar).
+- Para Medida cautelar: en Resultado se muestra una tabla simplificada (solo mínimo/máximo para patrocinante y apoderado, sin etapas) y se ocultan los checkboxes de provisorios y gestor, y la sección de auxiliares.
+- Se corrigió el funcionamiento del botón “Atrás” en todos los pasos y se eliminó el botón Reiniciar en la pantalla de Inicio.
+
+El código completo está a continuación. Puedes probarlo directamente.
+
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,9 +19,7 @@
     <title>Asistente de Honorarios · Ley 27.423</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: 'Montserrat', sans-serif;
             background: #f5f9fc;
@@ -63,7 +74,7 @@
         .active {
             display: block;
         }
-        .card-info, .legal-box, .warning-box {
+        .card-info, .legal-box, .warning-box, .summary-box {
             padding: 18px;
             border-radius: 20px;
             margin: 20px 0;
@@ -80,6 +91,10 @@
         .card-info {
             background: #f0f7fc;
             border-left: 4px solid #5fa3c1;
+        }
+        .summary-box {
+            background: #eaf7e6;
+            border-left: 4px solid #5cb85c;
         }
         .input-ui, select.input-ui {
             width: 100%;
@@ -160,14 +175,6 @@
             cursor: pointer;
             font-weight: 500;
         }
-        hr {
-            margin: 20px 0;
-        }
-        .small-note {
-            font-size: 0.75rem;
-            color: #5a7f91;
-            margin-top: 12px;
-        }
         @media (max-width: 700px) {
             .pantalla { padding: 20px; }
             .progress-bar { padding: 10px 20px; }
@@ -187,7 +194,7 @@
 
 <script>
     // -------------------- CARGA UMA (CSV) --------------------
-    let valorUMA = 89875; // valor por defecto
+    let valorUMA = 89875;
     function cargarUMA() {
         const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8tumvxptTGBCfScMwWxK7r6ATnGfMw061GKGdzfIVyThcSGzUqjI-vcpME1AtykPmjqTq0xdjgc7D/pub?output=csv';
         fetch(url)
@@ -218,7 +225,6 @@
         else if (baseEnUMA <= 750) { tituloEscala = "6ª escala (451-750 UMA): 13% a 17%"; minComp = (baseEnUMA-450)*0.13 + 90; maxComp = (baseEnUMA-450)*0.17 + 90; }
         else { tituloEscala = "7ª escala (+750 UMA): 12% a 15%"; minComp = (baseEnUMA-750)*0.12 + 127.5; maxComp = (baseEnUMA-750)*0.15 + 127.5; }
 
-        // aplicar reducción según grupo
         if (grupo === 'grupo2') { minComp /= 2; maxComp /= 2; }
         else if (grupo === 'grupo3') { minComp /= 4; maxComp /= 4; }
         else if (grupo === 'grupo4') { minComp *= 0.7; maxComp *= 0.7; }
@@ -240,7 +246,7 @@
         };
     }
 
-    // -------------------- ESTADO GLOBAL Y FLUJO --------------------
+    // -------------------- ESTADO GLOBAL --------------------
     let wizardState = {
         step: 0,
         valorUMA: 89875,
@@ -274,6 +280,64 @@
         { id: "resultado", title: "Resultado" }
     ];
 
+    // Helper: muestra resumen de elecciones previas
+    function getSummaryText() {
+        let lines = [];
+        if (wizardState.tipoProceso) {
+            let tipoDesc = "";
+            switch(wizardState.tipoProceso) {
+                case "conocimiento": tipoDesc = "De conocimiento (ordinario / sumarísimo)"; break;
+                case "ejecucion_sentencia": tipoDesc = "Ejecución de sentencia (o de honorarios o acuerdos)"; break;
+                case "ejecutivo": tipoDesc = "Ejecutivo (expensas, alquileres, etc.)"; break;
+                case "sucesion": tipoDesc = "Sucesión"; break;
+                case "exhorto": tipoDesc = "Exhorto"; break;
+                case "incidente": tipoDesc = "Incidente (incluye BLSG)"; break;
+                case "medida_cautelar": tipoDesc = "Medida cautelar"; break;
+                case "homologacion_desocupacion": tipoDesc = "Homologación de convenio de desocupación (y su ejecución)"; break;
+                default: tipoDesc = wizardState.tipoProceso;
+            }
+            lines.push(`Tipo de proceso: ${tipoDesc}`);
+        }
+        if (wizardState.sucesionUnicoLetrado !== undefined && wizardState.tipoProceso === 'sucesion') {
+            lines.push(`Sucesión: ${wizardState.sucesionUnicoLetrado ? "Un solo abogado (reducción 50%)" : "Varios abogados"}`);
+        }
+        if (wizardState.medidaOposicion !== null && wizardState.tipoProceso === 'medida_cautelar') {
+            lines.push(`Medida cautelar: ${wizardState.medidaOposicion ? "Con oposición → 50%" : "Sin oposición → 25%"}`);
+        }
+        if (wizardState.modoTerminacion) {
+            let termDesc = "";
+            if (wizardState.modoTerminacion === 'sentencia') termDesc = "Sentencia";
+            else if (wizardState.modoTerminacion === 'modos_anormales') termDesc = "Modos anormales (allanamiento, desistimiento, transacción)";
+            else if (wizardState.modoTerminacion === 'caducidad') termDesc = "Caducidad";
+            lines.push(`Terminación: ${termDesc}`);
+            if (wizardState.sentenciaResultado) lines.push(`Resultado: ${wizardState.sentenciaResultado === 'admitida' ? "Demanda admitida" : "Demanda rechazada"}`);
+            if (wizardState.aperturaPrueba !== null) lines.push(`Apertura a prueba: ${wizardState.aperturaPrueba ? "Después" : "Antes"}`);
+            if (wizardState.caducidadCriterio) lines.push(`Criterio caducidad: ${wizardState.caducidadCriterio === 'art22' ? "Art.22 (desestimada)" : "Art.25 (modo anormal)"}`);
+        }
+        if (wizardState.tuvoExcepciones !== null && (wizardState.tipoProceso === 'ejecucion_sentencia' || wizardState.tipoProceso === 'ejecutivo')) {
+            lines.push(`Excepciones: ${wizardState.tuvoExcepciones ? "Se dedujeron" : "No se dedujeron"}`);
+        }
+        if (wizardState.objetoBase && wizardState.tipoProceso === 'conocimiento') {
+            let objDesc = "";
+            switch(wizardState.objetoBase) {
+                case "desalojo": objDesc = "Desalojo"; break;
+                case "sumas_dinero": objDesc = "Juicios en los que se reclaman sumas de dinero"; break;
+                case "inmuebles": objDesc = "Juicios sobre inmuebles o muebles"; break;
+                case "derechos_crediticios": objDesc = "Juicio sobre derechos crediticios"; break;
+                case "titulos_acciones": objDesc = "Títulos de renta o acciones"; break;
+                case "establecimientos": objDesc = "Establecimientos comerciales/industriales/mineros"; break;
+                case "uso_habitacion": objDesc = "Derecho de uso o habitación"; break;
+                case "escrituracion": objDesc = "Juicio de escrituración"; break;
+                default: objDesc = wizardState.objetoBase;
+            }
+            lines.push(`Objeto de la base: ${objDesc}`);
+            if (wizardState.desalojoVivienda && wizardState.objetoBase === 'desalojo') lines.push("Reducción por vivienda: Sí (-20%)");
+        }
+        if (wizardState.baseValor > 0) lines.push(`Base ingresada: $${wizardState.baseValor.toLocaleString()}`);
+        if (lines.length === 0) return "";
+        return "📋 Resumen de elecciones: " + lines.join(" · ");
+    }
+
     function renderProgress() {
         const container = document.getElementById('progressBar');
         if (!container) return;
@@ -291,8 +355,14 @@
         const step = wizardState.step;
         let html = `<div class="pantalla active" id="screen${step}">`;
 
+        // Mostrar resumen si no es la primera pantalla
+        if (step !== 0) {
+            const summary = getSummaryText();
+            if (summary) html += `<div class="summary-box">${summary}</div>`;
+        }
+
         switch(step) {
-            case 0: // INICIO (consolidado con observaciones y UMA)
+            case 0: // INICIO
                 html += `
                     <div class="warning-box">
                         <strong>Bienvenido!</strong><br>
@@ -333,13 +403,14 @@
                     </div>
                 `;
                 break;
-            case 1: // Tipo de proceso (con frase explicativa)
+            case 1: // Tipo de proceso
                 html += `
                     <h3>Seleccione el tipo de proceso</h3>
                     <div class="legal-box">En la Ley 27.423, el tipo de proceso define coeficientes específicos que pueden reducir o incrementar el resultado final del cálculo. Por eso, es fundamental que elijas una de las siguientes opciones:</div>
                     <select id="tipoProcesoSelect" class="input-ui">
+                        <option value="">-- Seleccione --</option>
                         <option value="conocimiento">De conocimiento (ordinario / sumarísimo)</option>
-                        <option value="ejecucion_sentencia">Ejecución de sentencia (aplica también a ejecución de honorarios, de acuerdos homologados, de acuerdos de mediación o de COPREC)</option>
+                        <option value="ejecucion_sentencia">Ejecución de sentencia (o de honorarios o acuerdos)</option>
                         <option value="ejecutivo">Ejecutivo (expensas, alquileres, etc.)</option>
                         <option value="sucesion">Sucesión</option>
                         <option value="exhorto">Exhorto</option>
@@ -349,7 +420,7 @@
                     </select>
                 `;
                 break;
-            case 2: // Contingencias (dinámico)
+            case 2: // Contingencias
                 html += `<div id="contingenciasContainer"></div>`;
                 break;
             case 3: // Configuración de base (solo para conocimiento)
@@ -358,6 +429,7 @@
                         <h3>Configuración de la base regulatoria</h3>
                         <div class="legal-box">El objeto del juicio tiene influencia sobre el monto de la base. Elegí una de estas opciones:</div>
                         <select id="objetoBaseSelect" class="input-ui">
+                            <option value="">-- Seleccione --</option>
                             <option value="desalojo">Desalojo</option>
                             <option value="sumas_dinero">Juicios en los que se reclaman sumas de dinero</option>
                             <option value="inmuebles">Juicios en los que se discuten cuestiones atinentes a inmuebles o muebles</option>
@@ -370,6 +442,7 @@
                         <div id="subObjetoBase"></div>
                     `;
                 } else {
+                    // Para otros procesos se salta esta pantalla
                     wizardState.step = 4;
                     renderScreen();
                     return;
@@ -383,24 +456,26 @@
                 break;
         }
 
+        // Botones: atrás, siguiente, reiniciar (excepto en inicio que no tiene reiniciar)
+        const resetVisible = (step !== 0) ? '' : 'style="display:none"';
         html += `<div class="btn-group">
             <button class="btn-outline" id="btnBack" style="${step===0?'display:none':''}">◀ Atrás</button>
             <button class="btn-primary" id="btnNext">${step===5?'Calcular':'Siguiente ▶'}</button>
-            <button class="btn-danger" id="btnReset">Reiniciar</button>
+            <button class="btn-danger" id="btnReset" ${resetVisible}>Reiniciar</button>
         </div></div>`;
         container.innerHTML = html;
         attachStepEvents();
         renderProgress();
 
+        // Eventos específicos
         if (step === 0) {
             document.getElementById('inputUMA').addEventListener('change', (e) => {
                 wizardState.valorUMA = parseFloat(e.target.value) || 89875;
             });
         } else if (step === 1) {
-            document.getElementById('tipoProcesoSelect').value = wizardState.tipoProceso;
-            document.getElementById('tipoProcesoSelect').addEventListener('change', (e) => {
-                wizardState.tipoProceso = e.target.value;
-            });
+            const sel = document.getElementById('tipoProcesoSelect');
+            sel.value = wizardState.tipoProceso;
+            sel.addEventListener('change', (e) => { wizardState.tipoProceso = e.target.value; });
         } else if (step === 2) {
             renderContingencias();
         } else if (step === 3 && wizardState.tipoProceso === 'conocimiento') {
@@ -427,79 +502,96 @@
         }
     }
 
-    // [Resto de funciones: renderContingencias, actualizarSubTerminacion, renderIngresoBase, etc.]
-    // Se mantienen idénticas a la versión anterior, solo se incluyen para completar.
-    // (Por brevedad, se incluyen a continuación pero sin cambios respecto al código anterior)
+    // -------------------- CONTINGENCIAS (con textos explicativos) --------------------
     function renderContingencias() {
         const tipo = wizardState.tipoProceso;
         const container = document.getElementById('contingenciasContainer');
         if (!container) return;
         let html = `<h3>Contingencias procesales</h3>`;
+
         if (tipo === 'conocimiento' || tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo') {
-            html += `
-                <div class="legal-box">Seleccione la forma de terminación del proceso</div>
-                <select id="modoTerminacionSelect" class="input-ui">
-                    <option value="sentencia">Sentencia</option>
-                    <option value="modos_anormales">Modos anormales: allanamiento, transacción, desistimiento</option>
-                    <option value="caducidad">Caducidad</option>
-                </select>
-                <div id="subTerminacion"></div>
-            `;
+            html += `<div class="legal-box">El modo en que termina el proceso tiene un impacto directo en el cálculo, ya que afecta tanto la alícuota aplicable como la base económica. Por favor, seleccioná la forma de finalización para ajustar el resultado a las pautas legales correspondientes</div>`;
+            html += `<select id="modoTerminacionSelect" class="input-ui">
+                        <option value="">-- Seleccione --</option>
+                        <option value="sentencia">Sentencia</option>
+                        <option value="modos_anormales">Modos anormales: allanamiento, transacción, desistimiento</option>
+                        <option value="caducidad">Caducidad</option>
+                    </select>
+                    <div id="subTerminacion"></div>`;
             if (tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo') {
-                html += `<div class="legal-box" style="margin-top:20px;">Excepciones</div>
-                <select id="excepcionesSelect" class="input-ui">
-                    <option value="si">Se dedujeron excepciones</option>
-                    <option value="no">No se dedujeron excepciones</option>
-                </select>`;
+                html += `<div class="legal-box" style="margin-top:20px;"><strong>Excepciones</strong><br>`;
+                if (tipo === 'ejecucion_sentencia') {
+                    html += `La oposición de excepciones es un factor determinante en el proceso de ejecución ya que su ausencia genera una reducción directa del 10% sobre el monto que correspondería regular.<br>ARTÍCULO 41.- En el procedimiento de ejecución de sentencias…no habiendo excepciones, los honorarios se reducirán en un 10%...</div>`;
+                } else {
+                    html += `La oposición de excepciones es un factor determinante en el proceso ejecutivo, ya que además de modificar la estructura de las etapas (art. 29, inc. f), su ausencia genera una reducción directa del 10% sobre el monto que correspondería regular.<br>ARTÍCULO 34.- En los juicios ejecutivos y ejecuciones especiales…No habiendo excepciones, los honorarios se reducirán en un 10%...</div>`;
+                }
+                html += `<select id="excepcionesSelect" class="input-ui">
+                            <option value="">-- Seleccione --</option>
+                            <option value="si">Se dedujeron excepciones</option>
+                            <option value="no">No se dedujeron excepciones</option>
+                        </select>
+                        <div id="excepcionesMensaje"></div>`;
             }
             container.innerHTML = html;
             const selModo = document.getElementById('modoTerminacionSelect');
             if (selModo) {
-                selModo.value = wizardState.modoTerminacion || 'sentencia';
+                selModo.value = wizardState.modoTerminacion || '';
                 selModo.addEventListener('change', () => actualizarSubTerminacion());
                 actualizarSubTerminacion();
             }
             if (tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo') {
                 const selEx = document.getElementById('excepcionesSelect');
                 if (selEx) {
-                    selEx.value = wizardState.tuvoExcepciones === false ? 'no' : 'si';
-                    selEx.addEventListener('change', (e) => { wizardState.tuvoExcepciones = (e.target.value === 'si'); });
+                    selEx.value = wizardState.tuvoExcepciones === false ? 'no' : (wizardState.tuvoExcepciones === true ? 'si' : '');
+                    selEx.addEventListener('change', (e) => {
+                        wizardState.tuvoExcepciones = (e.target.value === 'si');
+                        const msgDiv = document.getElementById('excepcionesMensaje');
+                        if (e.target.value === 'no') msgDiv.innerHTML = `<div class="legal-box">Cuando llegues al cálculo final los honorarios tendrán una reducción del 10 %.</div>`;
+                        else msgDiv.innerHTML = '';
+                    });
+                    if (selEx.value === 'no') document.getElementById('excepcionesMensaje').innerHTML = `<div class="legal-box">Cuando llegues al cálculo final los honorarios tendrán una reducción del 10 %.</div>`;
                 }
             }
         } else if (tipo === 'sucesion') {
-            html += `
-                <div class="legal-box">Letrados</div>
-                <select id="unicoLetradoSelect" class="input-ui">
-                    <option value="si">Intervino un único letrado: reducción del 50 %</option>
-                    <option value="no">Intervinieron varios letrados: no se reduce la base</option>
-                </select>
-                <div class="legal-box">ARTÍCULO 35.- En el proceso sucesorio si 1 solo abogado patrocina o representa a todos los herederos o interesados, sus honorarios se regularán en la mitad del mínimo y del máximo de la escala establecida en el artículo 21.</div>
-            `;
+            html += `<div class="legal-box">En los procesos sucesorios, la existencia de un abogado único para todos los herederos es un factor determinante ya que según el art. 35, los honorarios deben regularse en la mitad de la escala del art. 21. Es necesario que indiques si hubo uno o más letrados para aplicar este tope específico.<br>ARTÍCULO 35.- En el proceso sucesorio, si 1 solo abogado patrocina o representa a todos los herederos o interesados, sus honorarios se regularán…en la mitad del mínimo y del máximo de la escala establecida en el art. 21.</div>`;
+            html += `<select id="unicoLetradoSelect" class="input-ui">
+                        <option value="">-- Seleccione --</option>
+                        <option value="si">Un solo abogado</option>
+                        <option value="no">Varios abogados</option>
+                    </select>
+                    <div id="sucesionMensaje"></div>`;
             container.innerHTML = html;
             const sel = document.getElementById('unicoLetradoSelect');
             if (sel) {
-                sel.value = wizardState.sucesionUnicoLetrado ? 'si' : 'no';
-                sel.addEventListener('change', (e) => { wizardState.sucesionUnicoLetrado = (e.target.value === 'si'); });
+                sel.value = wizardState.sucesionUnicoLetrado ? 'si' : (wizardState.sucesionUnicoLetrado === false ? 'no' : '');
+                sel.addEventListener('change', (e) => {
+                    wizardState.sucesionUnicoLetrado = (e.target.value === 'si');
+                    const msgDiv = document.getElementById('sucesionMensaje');
+                    if (e.target.value === 'si') msgDiv.innerHTML = `<div class="legal-box">Cuando llegues al cálculo final, los honorarios serán del 50 % de la escala del art. 21</div>`;
+                    else msgDiv.innerHTML = '';
+                });
+                if (sel.value === 'si') document.getElementById('sucesionMensaje').innerHTML = `<div class="legal-box">Cuando llegues al cálculo final, los honorarios serán del 50 % de la escala del art. 21</div>`;
             }
         } else if (tipo === 'medida_cautelar') {
-            html += `
-                <div class="legal-box">ARTÍCULO 37 - En las medidas cautelares la base es el 25% de la escala del artículo 21. Si hay controversia u oposición, la base se eleva al 50%.</div>
-                <select id="oposicionSelect" class="input-ui">
-                    <option value="si">Hubo oposición: la base es el 50 %</option>
-                    <option value="no">No hubo oposición: la base es el 25 %</option>
-                </select>
-            `;
+            html += `<div class="legal-box">En las medidas cautelares, la existencia de oposición o controversia tiene un impacto directo en el cálculo de los honorarios, ya que modifica el porcentaje de la escala aplicable.<br>
+            -Sin oposición: los honorarios se regulan tomando como base el 25% de la escala general establecida en el art. 21.<br>
+            -Con oposición: la base para el cálculo se eleva al 50% de dicha escala<br>
+            Por favor, indicá si existió controversia para que el asistente aplique el coeficiente correcto<br>
+            ARTÍCULO 37.- En las medidas cautelares, ya sea que éstas tramiten autónomamente, en forma incidental o dentro del proceso, los honorarios se regularán sobre el monto que se pretende a asegurar, aplicándose como base el 25% de la escala del art. 21; salvo casos de controversia u oposición, en que la base se elevará al 50 %</div>`;
+            html += `<select id="oposicionSelect" class="input-ui">
+                        <option value="">-- Seleccione --</option>
+                        <option value="si">Cautelar con oposición</option>
+                        <option value="no">Cautelar sin oposición</option>
+                    </select>`;
             container.innerHTML = html;
             const sel = document.getElementById('oposicionSelect');
             if (sel) {
-                sel.value = wizardState.medidaOposicion === true ? 'si' : 'no';
+                sel.value = wizardState.medidaOposicion === true ? 'si' : (wizardState.medidaOposicion === false ? 'no' : '');
                 sel.addEventListener('change', (e) => { wizardState.medidaOposicion = (e.target.value === 'si'); });
             }
         } else if (tipo === 'homologacion_desocupacion') {
-            html += `
-                <div class="legal-box">ARTÍCULO 40 (última parte): Tratándose de una homologación de convenio de desocupación y su ejecución, los honorarios se regularán en un 50%</div>
-                <label><input type="checkbox" id="homologViviendaChk"> La locación era para vivienda (se aplica -20% sobre la base, luego 50%)</label>
-            `;
+            html += `<div class="legal-box">ARTÍCULO 40 (última parte): Tratándose de una homologación de convenio de desocupación y su ejecución, los honorarios se regularán en un 50%</div>
+                     <label><input type="checkbox" id="homologViviendaChk"> La locación era para vivienda (se aplica -20% sobre la base, luego 50%)</label>`;
             container.innerHTML = html;
             const chk = document.getElementById('homologViviendaChk');
             if (chk) {
@@ -518,59 +610,109 @@
         wizardState.modoTerminacion = modo;
         if (modo === 'sentencia') {
             div.innerHTML = `<select id="sentenciaResultado" class="input-ui">
-                <option value="admitida">Demanda admitida</option>
-                <option value="rechazada">Demanda rechazada</option>
-            </select>
-            <div class="legal-box">“Se aplica una reducción del 30% conforme art. 22: “Si fuere íntegramente desestimada la demanda o la reconvención, se tendrá como valor del pleito el importe de la misma, actualizado por intereses al momento de la sentencia, si ello correspondiere, disminuido en un 30 %””</div>`;
+                                <option value="">-- Seleccione --</option>
+                                <option value="admitida">Demanda admitida</option>
+                                <option value="rechazada">Demanda rechazada</option>
+                            </select>
+                            <div id="sentenciaMensaje"></div>`;
             const sel = document.getElementById('sentenciaResultado');
             if (sel) {
-                sel.value = wizardState.sentenciaResultado || 'admitida';
-                sel.addEventListener('change', (e) => { wizardState.sentenciaResultado = e.target.value; });
+                sel.value = wizardState.sentenciaResultado || '';
+                sel.addEventListener('change', (e) => {
+                    wizardState.sentenciaResultado = e.target.value;
+                    const msg = document.getElementById('sentenciaMensaje');
+                    if (e.target.value === 'rechazada') {
+                        msg.innerHTML = `<div class="legal-box">Cuando la demanda es rechazada, para establecer la base el monto se disminuye en un 30%.<br>
+                        Art. 22: “Si fuere íntegramente desestimada la demanda o la reconvención, se tendrá como valor del pleito el importe de la misma, actualizado por intereses al momento de la sentencia, si ello correspondiere, disminuido en un 30 %”<br>
+                        Al elegir esta opción, el monto de la base que ingreses en los pasos siguientes, se reducirá en ese porcentaje</div>`;
+                    } else msg.innerHTML = '';
+                });
+                if (sel.value === 'rechazada') document.getElementById('sentenciaMensaje').innerHTML = `<div class="legal-box">Cuando la demanda es rechazada, para establecer la base el monto se disminuye en un 30%.<br>Art. 22: “Si fuere íntegramente desestimada la demanda o la reconvención, se tendrá como valor del pleito el importe de la misma, actualizado por intereses al momento de la sentencia, si ello correspondiere, disminuido en un 30 %”<br>Al elegir esta opción, el monto de la base que ingreses en los pasos siguientes, se reducirá en ese porcentaje</div>`;
             }
         } else if (modo === 'modos_anormales') {
             div.innerHTML = `<select id="aperturaPrueba" class="input-ui">
-                <option value="antes">Se produjo ANTES de la apertura a prueba</option>
-                <option value="despues">Se produjo DESPUÉS de la apertura a prueba</option>
-            </select>
-            <div class="legal-box">ARTÍCULO 25 - En caso de allanamiento, desistimiento y transacción, antes de decretarse la apertura a prueba, los honorarios serán del 50% de la escala del artículo 21. En los demás casos, se aplica el 100%.</div>`;
+                                <option value="">-- Seleccione --</option>
+                                <option value="antes">Se produjo ANTES de la apertura a prueba</option>
+                                <option value="despues">Se produjo DESPUÉS de la apertura a prueba</option>
+                            </select>
+                            <div class="legal-box">ARTÍCULO 25 - En caso de allanamiento, desistimiento y transacción, antes de decretarse la apertura a prueba, los honorarios serán del 50% de la escala del artículo 21. En los demás casos, se aplica el 100%.</div>`;
             const sel = document.getElementById('aperturaPrueba');
             if (sel) {
-                sel.value = wizardState.aperturaPrueba === true ? 'despues' : 'antes';
+                sel.value = wizardState.aperturaPrueba === true ? 'despues' : (wizardState.aperturaPrueba === false ? 'antes' : '');
                 sel.addEventListener('change', (e) => { wizardState.aperturaPrueba = (e.target.value === 'despues'); });
             }
         } else if (modo === 'caducidad') {
-            div.innerHTML = `<div class="legal-box">“La caducidad de la instancia no está específicamente prevista en la ley. Elegí según tu criterio”.</div>
+            div.innerHTML = `<div class="legal-box">La caducidad de la instancia (arts. 310 y ss. CPCCN) no se menciona explícitamente como una categoría separada en la ley. Por eso, podes elegir tratarla:<br>
+            i) como “demanda desestimada”, en cuyo caso la base se va a reducir en un 30 %;<br>
+            Art. 22: Si fuere íntegramente desestimada la demanda o la reconvención, se tendrá como valor del pleito el importe de la misma, actualizado por intereses al momento de la sentencia, si ello correspondiere, disminuido en un 30 %<br>
+            ii) o bien como los demás modos anormales de terminación del proceso (allanamiento, desistimiento y transacción) que si menciona la ley en el art. 25. En este último caso, si el juicio no se abrió a prueba, los honorarios son el 50 % de la escala del art. 21<br>
+            Art. 25: En caso de allanamiento, desistimiento y transacción, antes de decretarse la apertura a prueba, los honorarios serán 50% de la escala del art. 21. En los demás casos, se aplicará el 100% de dicha escala.<br>
+            Al elegir esta opción, el monto de escala se va a reducir solo si además elegís la opción sin apertura a prueba.</div>
             <select id="caducidadCriterio" class="input-ui">
-                <option value="art22">Lo quiero tratar como demanda desestimada y aplicar el art. 22 (reducción del 30 %)</option>
-                <option value="art25">Lo quiero tratar como los demás medios anormales de terminación del proceso y aplicar el art. 25 (reducción del 50 si se produjo antes de la apertura a prueba y sin reducciones en los demás casos)</option>
+                <option value="">-- Seleccione --</option>
+                <option value="art22">Aplicar art. 22</option>
+                <option value="art25">Aplicar art. 25</option>
             </select>
             <div id="subCaducidad"></div>`;
             const critSel = document.getElementById('caducidadCriterio');
             if (critSel) {
-                critSel.value = wizardState.caducidadCriterio || 'art22';
+                critSel.value = wizardState.caducidadCriterio || '';
                 critSel.addEventListener('change', () => {
                     wizardState.caducidadCriterio = critSel.value;
                     const sub = document.getElementById('subCaducidad');
-                    if (critSel.value === 'art25') {
+                    if (critSel.value === 'art22') {
+                        sub.innerHTML = `<div class="legal-box">Al elegir esta opción, el monto de la base que ingreses en los pasos siguientes, se reducirá en un 30 %</div>`;
+                        wizardState.aperturaPrueba = null;
+                    } else if (critSel.value === 'art25') {
                         sub.innerHTML = `<select id="aperturaPruebaCad" class="input-ui">
-                            <option value="antes">Antes de la apertura a prueba → 50%</option>
-                            <option value="despues">Después de la apertura a prueba → 100%</option>
-                        </select>`;
+                                            <option value="">-- Seleccione --</option>
+                                            <option value="antes">Caducidad declarada antes de la apertura a prueba</option>
+                                            <option value="despues">Caducidad declarada luego de la apertura a prueba</option>
+                                        </select>
+                                        <div id="art25Mensaje"></div>`;
                         const selApe = document.getElementById('aperturaPruebaCad');
                         if (selApe) {
-                            selApe.value = wizardState.aperturaPrueba === true ? 'despues' : 'antes';
-                            selApe.addEventListener('change', (e) => { wizardState.aperturaPrueba = (e.target.value === 'despues'); });
+                            selApe.value = wizardState.aperturaPrueba === true ? 'despues' : (wizardState.aperturaPrueba === false ? 'antes' : '');
+                            selApe.addEventListener('change', (e) => {
+                                wizardState.aperturaPrueba = (e.target.value === 'despues');
+                                const msgDiv = document.getElementById('art25Mensaje');
+                                if (e.target.value === 'antes') msgDiv.innerHTML = `<div class="legal-box">Cuando llegues al cálculo final, los honorarios serán del 50 % de la escala del art. 21</div>`;
+                                else msgDiv.innerHTML = '';
+                            });
+                            if (selApe.value === 'antes') document.getElementById('art25Mensaje').innerHTML = `<div class="legal-box">Cuando llegues al cálculo final, los honorarios serán del 50 % de la escala del art. 21</div>`;
                         }
                     } else {
                         sub.innerHTML = '';
                         wizardState.aperturaPrueba = null;
                     }
                 });
-                critSel.dispatchEvent(new Event('change'));
+                if (critSel.value === 'art22') {
+                    const sub = document.getElementById('subCaducidad');
+                    if (sub) sub.innerHTML = `<div class="legal-box">Al elegir esta opción, el monto de la base que ingreses en los pasos siguientes, se reducirá en un 30 %</div>`;
+                } else if (critSel.value === 'art25') {
+                    const sub = document.getElementById('subCaducidad');
+                    if (sub) {
+                        sub.innerHTML = `<select id="aperturaPruebaCad" class="input-ui">
+                                            <option value="">-- Seleccione --</option>
+                                            <option value="antes">Caducidad declarada antes de la apertura a prueba</option>
+                                            <option value="despues">Caducidad declarada luego de la apertura a prueba</option>
+                                        </select>
+                                        <div id="art25Mensaje"></div>`;
+                        const selApe = document.getElementById('aperturaPruebaCad');
+                        if (selApe) {
+                            selApe.value = wizardState.aperturaPrueba === true ? 'despues' : (wizardState.aperturaPrueba === false ? 'antes' : '');
+                            selApe.addEventListener('change', (e) => {
+                                wizardState.aperturaPrueba = (e.target.value === 'despues');
+                                const msgDiv = document.getElementById('art25Mensaje');
+                                if (e.target.value === 'antes') msgDiv.innerHTML = `<div class="legal-box">Cuando llegues al cálculo final, los honorarios serán del 50 % de la escala del art. 21</div>`;
+                                else msgDiv.innerHTML = '';
+                            });
+                            if (selApe.value === 'antes') document.getElementById('art25Mensaje').innerHTML = `<div class="legal-box">Cuando llegues al cálculo final, los honorarios serán del 50 % de la escala del art. 21</div>`;
+                        }
+                    }
+                }
             }
-        } else {
-            div.innerHTML = '';
-        }
+        } else div.innerHTML = '';
     }
 
     function renderIngresoBase() {
@@ -578,7 +720,15 @@
         if (!container) return;
         let leyendaHtml = '';
         const tipo = wizardState.tipoProceso;
-        if (tipo === 'conocimiento') {
+        if (tipo === 'incidente') {
+            leyendaHtml = `
+                <div class="legal-box">El art. 47 que determinaba la forma de regular los honorarios en los incidentes fue observado por art. 5 Dec. N° 1077/17 (BO 21/12/17).<br>
+                Por eso, este asistente sigue el criterio de calcular según el art. 33 ley 21839. Igualmente, vas a tener que tener en cuenta también las pautas del art. 16.<br>
+                ARTICULO 33 ley 21839. – En los incidentes, el honorario se regulará entre el 2 % y el 20 % de lo que correspondiere al proceso principal, atendiendo a la vinculación mediata o inmediata que pudieren tener con la solución definitiva del proceso principal…<br>
+                En cuanto a la base, tené en cuenta que algunos incidentes se consideran de valor autónomo</div>
+                <input type="number" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor || ''}">
+            `;
+        } else if (tipo === 'conocimiento') {
             const objeto = wizardState.objetoBase;
             if (objeto === 'desalojo') {
                 leyendaHtml = `
@@ -645,25 +795,9 @@
                 ARTÍCULO 35.- En el proceso sucesorio, los honorarios se regulan sobre el valor del patrimonio que se transmite. Para establecer el valor de los bienes se tendrá en cuenta lo dispuesto en el artículo 23.</div>
                 <input type="number" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor || ''}">
             `;
-        } else if (tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo') {
+        } else if (tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo' || tipo === 'medida_cautelar' || tipo === 'homologacion_desocupacion') {
             leyendaHtml = `
                 <div class="legal-box">Ingrese el monto de la base regulatoria según corresponda.</div>
-                <input type="number" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor || ''}">
-            `;
-        } else if (tipo === 'medida_cautelar') {
-            leyendaHtml = `
-                <div class="legal-box">Ingrese el monto a asegurar.</div>
-                <input type="number" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor || ''}">
-            `;
-        } else if (tipo === 'homologacion_desocupacion') {
-            leyendaHtml = `
-                <div class="legal-box">El monto es el valor total del contrato como en el desalojo pero hay una reducción del 50 %.<br>
-                ARTÍCULO 40 (última parte): Tratándose de una homologación de convenio de desocupación y su ejecución, los honorarios se regularán en un 50%</div>
-                <input type="number" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor || ''}">
-            `;
-        } else if (tipo === 'incidente') {
-            leyendaHtml = `
-                <div class="legal-box">Por lo general, algunos incidentes se consideran de valor autónomo (o lo discutido) y en otros, su base es el del juicio principal.</div>
                 <input type="number" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor || ''}">
             `;
         }
@@ -728,6 +862,8 @@
             if (wizardState.homologacionVivienda) base *= 0.8;
             base *= 0.5;
         }
+        // Para demanda rechazada, ya se maneja por grupo4 (que aplica 0.7), pero también se podría aplicar aquí.
+        // En el grupo4 ya está contemplado.
         return base;
     }
 
@@ -736,49 +872,79 @@
         const tipo = wizardState.tipoProceso;
         const uma = wizardState.valorUMA;
 
+        // Exhorto: muestra tabla directa
         if (tipo === 'exhorto') {
-            const inciso = prompt("Seleccione inciso:\na) Notificaciones\nb) Inscripciones\nc) Diligencias de prueba");
-            let minUMA, maxUMA;
-            if (inciso === 'a') { minUMA = 3; maxUMA = 3; }
-            else if (inciso === 'b') { minUMA = 10; maxUMA = 20; }
-            else { minUMA = 7; maxUMA = 30; }
-            const minPesos = minUMA * uma;
-            const maxPesos = maxUMA * uma;
+            const minA = 3, maxA = 3;
+            const minB = 10, maxB = 20;
+            const minC = 7, maxC = 30;
+            const valA = minA * uma;
+            const valBmin = minB * uma;
+            const valBmax = maxB * uma;
+            const valCmin = minC * uma;
+            const valCmax = maxC * uma;
             document.getElementById('resultadosDinamicos').innerHTML = `
                 <h3>Exhorto (art. 50)</h3>
-                 <table>
-                     <tr><th>Concepto</th><th>UMA</th><th>Pesos ($)</th></tr>
-                     <tr><td>Inc. a) - notificaciones<br>Mínimo (3 UMA)</td><td>${minUMA}</td><td>$${minPesos.toLocaleString()}</td></tr>
-                     <tr><td>Inc. b) - inscripciones y actos registrales<br>Mínimo (10 UMA) / Máximo (20 UMA)</td><td>${minUMA} / ${maxUMA}</td><td>$${minPesos.toLocaleString()} / $${maxPesos.toLocaleString()}</td></tr>
-                     <tr><td>Inc. c) - diligencias de prueba<br>Mínimo (7 UMA) / Máximo (30 UMA)</td><td>${minUMA} / ${maxUMA}</td><td>$${minPesos.toLocaleString()} / $${maxPesos.toLocaleString()}</td></tr>
-                 </table>
+                <table>
+                    <tr><th colspan="2">Inc. a) - notificaciones</th></tr>
+                    <tr><td>Mínimo 3 UMA</td><td>$${valA.toLocaleString()}</td></tr>
+                    <tr><th colspan="2">Inc. b) - inscripciones y actos registrales</th></tr>
+                    <tr><td>Mínimo: 10 UMA</td><td>$${valBmin.toLocaleString()}</td></tr>
+                    <tr><td>Máximo: 20 UMA</td><td>$${valBmax.toLocaleString()}</td></tr>
+                    <tr><th colspan="2">Inc. c) - diligencias de prueba</th></tr>
+                    <tr><td>Mínimo: 7 UMA</td><td>$${valCmin.toLocaleString()}</td></tr>
+                    <tr><td>Máximo: 30 UMA</td><td>$${valCmax.toLocaleString()}</td></tr>
+                </table>
                 <div class="legal-box">ARTÍCULO 50.- Los honorarios por diligenciamiento de exhortos u oficios contemplados en la ley 22.172 serán regulados de conformidad a las siguientes pautas:
                 a) Si se tratare de notificaciones o actos semejantes, los honorarios no podrán ser inferiores a 3 UMA;
                 b) Si se solicitaren inscripciones de dominios, hijuelas, testamentos, gravámenes, secuestros, embargos, inhibiciones, inventarios, remates, desalojos, o cualquier otro acto registral, los honorarios se regularán en una escala entre 10 y veinte 20 UMA. (...)
                 c) Si se tratare de diligencias de prueba y se hubiera intervenido en su producción o contralor, el juez exhortado regulará los honorarios proporcionalmente a la labor desarrollada, en una escala entre 7 y 30 UMA.</div>`;
             return;
         }
+        // Incidente: muestra tabla simple min/max
         if (tipo === 'incidente') {
             const base = wizardState.baseValor;
             const baseUMA = base / uma;
             const minUMA = baseUMA * 0.02;
             const maxUMA = baseUMA * 0.20;
-            const minPatro = minUMA;
-            const maxPatro = maxUMA;
-            const minApo = minUMA * 1.4;
-            const maxApo = maxUMA * 1.4;
+            const minPesos = minUMA * uma;
+            const maxPesos = maxUMA * uma;
             document.getElementById('resultadosDinamicos').innerHTML = `
+                <div class="summary-box">📋 Resumen del juicio<br>Tipo de proceso: Incidente<br>Base: $${base.toLocaleString()}<br>Valor UMA: $${uma.toLocaleString()}<br>Base en UMA: ${baseUMA.toFixed(2)}</div>
                 <h3>Incidente (art.33 ley 21839)</h3>
                 <table>
-                    <tr><th>Concepto</th><th>Patrocinante (UMA)</th><th>Apoderado (UMA)</th></tr>
-                    <tr><td>Mínimo (2%)</td><td>${minPatro.toFixed(2)}</td><td>${minApo.toFixed(2)}</td></tr>
-                    <tr><td>Máximo (20%)</td><td>${maxPatro.toFixed(2)}</td><td>${maxApo.toFixed(2)}</td></tr>
+                    <tr><th>Concepto</th><th>UMA</th><th>Pesos ($)</th></tr>
+                    <tr><td>Mínimo (2%)</td><td>${minUMA.toFixed(2)}</td><td>$${minPesos.toLocaleString()}</td></tr>
+                    <tr><td>Máximo (20%)</td><td>${maxUMA.toFixed(2)}</td><td>$${maxPesos.toLocaleString()}</td></tr>
                 </table>
-                <div class="legal-box">Como el art. 47 fue observado por art. 5 Dec. N° 1077/17 (BO 21/12/17) seguimos el criterio de calcular según el art. 33 ley 21839. Vas a tener que tener en cuenta también las pautas del art. 16.<br>
-                Art. 33 ley 21839: En los incidentes, el honorario se regulará entre el 2 % y el 20 % de lo que correspondiere al proceso principal, atendiendo a la vinculación mediata o inmediata que pudieren tener con la solución definitiva del proceso principal</div>`;
+                <div class="legal-box">Tener en cuenta que según el inc. g) del art. 29, “los incidentes se dividirán en 2 etapas; la primera se compone del planteo que lo origine, sea verbal o escrito, y la segunda, del desarrollo hasta su conclusión”.</div>`;
             return;
         }
 
+        // Medida cautelar: tabla simplificada sin etapas, sin checkboxes, sin auxiliares
+        if (tipo === 'medida_cautelar') {
+            const grupo = determinarGrupo();
+            let baseFinal = wizardState.baseValor;
+            if (baseFinal <= 0) { alert("Base inválida"); return; }
+            const calc = calcularHonorariosPorGrupo(baseFinal, uma, grupo);
+            if (!calc) return;
+            document.getElementById('resultadosDinamicos').innerHTML = `
+                <div class="summary-box">📋 Resumen del juicio<br>Tipo de proceso: Medida cautelar<br>Base: $${baseFinal.toLocaleString()}<br>Valor UMA: $${uma.toLocaleString()}<br>Base en UMA: ${calc.baseEnUMA.toFixed(2)}<br>Escala: ${calc.tituloEscala}</div>
+                <h4>Patrocinante</h4>
+                <table>
+                    <tr><th>Concepto</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>
+                    <tr><td>Honorarios</td><td>${calc.patrocinante.full.min.toFixed(2)}</td><td>${calc.patrocinante.full.max.toFixed(2)}</td>
+                        <td>$${(calc.patrocinante.full.min * uma).toLocaleString()}</td><td>$${(calc.patrocinante.full.max * uma).toLocaleString()}</td></tr>
+                </table>
+                <h4>Apoderado (+40%)</h4>
+                <table>
+                    <tr><th>Concepto</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>
+                    <tr><td>Honorarios</td><td>${calc.apoderado.full.min.toFixed(2)}</td><td>${calc.apoderado.full.max.toFixed(2)}</td>
+                        <td>$${(calc.apoderado.full.min * uma).toLocaleString()}</td><td>$${(calc.apoderado.full.max * uma).toLocaleString()}</td></tr>
+                </table>`;
+            return;
+        }
+
+        // Resto de casos (conocimiento, ejecución sentencia, ejecutivo, sucesión, homologación)
         const grupo = determinarGrupo();
         let baseFinal = calcularBaseFinal();
         if (baseFinal <= 0) { alert("Base inválida"); return; }
@@ -799,8 +965,7 @@
             <label><input type="checkbox" id="chkProvisorio" ${esProvisorio ? 'checked' : ''}> Los honorarios son provisorios (art.12)</label>
             <label><input type="checkbox" id="chkGestor" ${esGestor ? 'checked' : ''}> Actuó como gestor (art.42) → +4% patrocinante</label>
         </div>`;
-        html += `<h3>Base regulatoria final: $${baseFinal.toLocaleString()} (${calc.baseEnUMA.toFixed(2)} UMA)</h3>`;
-        html += `<p>Escala: ${calc.tituloEscala} · Grupo interno: ${grupo}</p>`;
+        html += `<div class="summary-box">📋 Resumen del juicio<br>Tipo de proceso: ${wizardState.tipoProceso}<br>Base final: $${baseFinal.toLocaleString()}<br>Valor UMA: $${uma.toLocaleString()}<br>Base en UMA: ${calc.baseEnUMA.toFixed(2)}<br>Escala: ${calc.tituloEscala}</div>`;
 
         function mostrarFila(etiqueta, minUMA, maxUMA, minPesos, maxPesos, aplicarGestor=false) {
             if (esProvisorio) {
@@ -825,15 +990,18 @@
             }
         }
 
-        html += `<h4>Patrocinante</h4><table><tr><th>Etapas</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>`;
+        html += `<h4>Patrocinante</h4>
+        <table><tr><th>Etapas</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>`;
         html += mostrarFila("Juicio completo", calc.patrocinante.full.min, calc.patrocinante.full.max, calc.patrocinante.full.min*uma, calc.patrocinante.full.max*uma, true);
         html += mostrarFila("Una etapa (1/3)", calc.patrocinante.uno.min, calc.patrocinante.uno.max, calc.patrocinante.uno.min*uma, calc.patrocinante.uno.max*uma);
         html += mostrarFila("Dos etapas (2/3)", calc.patrocinante.dos.min, calc.patrocinante.dos.max, calc.patrocinante.dos.min*uma, calc.patrocinante.dos.max*uma);
-        html += `</table><h4>Apoderado (+40%)</h4><table><tr><th>Etapas</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>`;
+        html += `</table><h4>Apoderado (+40%)</h4>
+        <table><tr><th>Etapas</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>`;
         html += mostrarFila("Juicio completo", calc.apoderado.full.min, calc.apoderado.full.max, calc.apoderado.full.min*uma, calc.apoderado.full.max*uma);
         html += mostrarFila("Una etapa", calc.apoderado.uno.min, calc.apoderado.uno.max, calc.apoderado.uno.min*uma, calc.apoderado.uno.max*uma);
-        html += `</table><h4>Auxiliares (5% y 10% base)</h4><table><tr><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>`;
-        html += `<tr><td>${calc.auxMin.toFixed(2)}</td><td>${calc.auxMax.toFixed(2)}</td><td>$${(calc.auxMin*uma).toLocaleString()}</td><td>$${(calc.auxMax*uma).toLocaleString()}</td></tr></table>`;
+        html += `</table><h4>Auxiliares (5% y 10% base)</h4>
+        <table><tr><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>
+        <tr><td>${calc.auxMin.toFixed(2)}</td><td>${calc.auxMax.toFixed(2)}</td><td>$${(calc.auxMin*uma).toLocaleString()}</td><td>$${(calc.auxMax*uma).toLocaleString()}</td></tr></table>`;
         document.getElementById('resultadosDinamicos').innerHTML = html;
 
         const chkProv = document.getElementById('chkProvisorio');
@@ -847,10 +1015,24 @@
             if (wizardState.step === 5) return;
             recolectarDatos();
 
-            if (wizardState.step === 1 && (wizardState.tipoProceso === 'exhorto' || wizardState.tipoProceso === 'incidente')) {
-                wizardState.step = 4;
-                renderScreen();
-                return;
+            // Saltos especiales
+            if (wizardState.step === 1) {
+                if (wizardState.tipoProceso === 'exhorto') {
+                    wizardState.step = 5;
+                    renderScreen();
+                    return;
+                }
+                if (wizardState.tipoProceso === 'incidente') {
+                    wizardState.step = 4;
+                    renderScreen();
+                    return;
+                }
+                if (wizardState.tipoProceso === 'medida_cautelar') {
+                    wizardState.step = 2;
+                    renderScreen();
+                    return;
+                }
+                // Para los demás, continúa normal
             }
             if (wizardState.step === 2 && (wizardState.tipoProceso === 'exhorto' || wizardState.tipoProceso === 'incidente')) {
                 wizardState.step = 4;
@@ -888,3 +1070,4 @@
 </script>
 </body>
 </html>
+```
