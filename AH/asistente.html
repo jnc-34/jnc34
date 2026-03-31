@@ -134,7 +134,7 @@
             margin: 16px 0;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 20px;
             flex-wrap: wrap;
         }
         .check-group label {
@@ -174,20 +174,21 @@
 <script>
     // -------------------- CARGA UMA (CSV) --------------------
     let valorUMA = 89875; // valor por defecto
-    async function cargarUMA() {
+    function cargarUMA() {
         const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8tumvxptTGBCfScMwWxK7r6ATnGfMw061GKGdzfIVyThcSGzUqjI-vcpME1AtykPmjqTq0xdjgc7D/pub?output=csv';
-        try {
-            const resp = await fetch(url);
-            const data = await resp.text();
-            const filas = data.split('\n');
-            const cols = filas[0].split(',');
-            let val = cols[1]?.replace(/"/g, '').trim();
-            if (val && !isNaN(parseFloat(val))) {
-                valorUMA = parseFloat(val);
-                const inputUMA = document.getElementById('inputUMA');
-                if (inputUMA) inputUMA.value = valorUMA;
-            }
-        } catch(e) { console.warn("Error carga UMA"); }
+        fetch(url)
+            .then(response => response.text())
+            .then(data => {
+                const filas = data.split('\n');
+                const cols = filas[0].split(',');
+                let val = cols[1]?.replace(/"/g, '').trim();
+                if (val && !isNaN(parseFloat(val))) {
+                    valorUMA = parseFloat(val);
+                    const inputUMA = document.getElementById('inputUMA');
+                    if (inputUMA) inputUMA.value = valorUMA;
+                }
+            })
+            .catch(e => console.warn("Error carga UMA", e));
     }
 
     // -------------------- NÚCLEO DE CÁLCULO (calc.txt) --------------------
@@ -225,32 +226,32 @@
         };
     }
 
-    // -------------------- ESTADO GLOBAL Y FLUJO DINÁMICO --------------------
+    // -------------------- ESTADO GLOBAL Y FLUJO --------------------
     let wizardState = {
         step: 0,
         valorUMA: 89875,
         tipoProceso: '',
         // contingencias
-        modoTerminacion: '',       // 'sentencia_admitida', 'sentencia_rechazada', 'modos_anormales', 'caducidad'
-        aperturaPrueba: null,      // true/false (para modos anormales y caducidad art25)
-        caducidadCriterio: '',     // 'art22' o 'art25'
-        tuvoExcepciones: null,     // true/false (para ejecución sentencia y ejecutivo)
+        modoTerminacion: '',
+        sentenciaResultado: null,
+        aperturaPrueba: null,
+        caducidadCriterio: '',
+        tuvoExcepciones: null,
         sucesionUnicoLetrado: false,
-        medidaOposicion: null,     // true=con oposición, false=sin
+        medidaOposicion: null,
         homologacionVivienda: false,
         // configuración de base (solo para conocimiento)
-        objetoBase: '',            // 'desalojo', 'sumas_dinero', 'inmuebles', 'derechos_crediticios', 'titulos_acciones', 'establecimientos', 'uso_habitacion', 'escrituracion'
+        objetoBase: '',
         desalojoVivienda: false,
         // base numérica
         baseValor: 0,
-        // provisorio
+        // provisorio y gestor
         esProvisorio: false,
-        etapasRealizadas: 3,       // 1,2,3
-        // gestor
+        etapasRealizadas: 3,
         esGestor: false
     };
 
-    let steps = [
+    const steps = [
         { id: "observaciones", title: "Observaciones" },
         { id: "valorUma", title: "Valor UMA" },
         { id: "tipoProceso", title: "Tipo de proceso" },
@@ -265,7 +266,7 @@
         if (!container) return;
         let html = '';
         steps.forEach((s, idx) => {
-            let activeClass = (idx === wizardState.step) ? 'active' : '';
+            const activeClass = (idx === wizardState.step) ? 'active' : '';
             html += `<div class="step-dot ${activeClass}">${s.title}</div>`;
         });
         container.innerHTML = html;
@@ -276,6 +277,7 @@
         if (!container) return;
         const step = wizardState.step;
         let html = `<div class="pantalla active" id="screen${step}">`;
+
         switch(step) {
             case 0: // Observaciones
                 html += `
@@ -298,7 +300,7 @@
                 html += `
                     <h3>Valor de la Unidad de Medida Arancelaria (UMA)</h3>
                     <div class="legal-box">Se carga automáticamente desde la publicación oficial. Podés modificarlo manualmente si es necesario.</div>
-                    <input type="number" id="inputUMA" class="input-ui" step="1" value="${valorUMA}">
+                    <input type="number" id="inputUMA" class="input-ui" step="1" value="${wizardState.valorUMA}">
                 `;
                 break;
             case 2: // Tipo de proceso
@@ -316,26 +318,41 @@
                     </select>
                 `;
                 break;
-            case 3: // Contingencias (dinámico según tipo)
-                html += await renderContingencias();
+            case 3: // Contingencias
+                html += `<div id="contingenciasContainer"></div>`;
                 break;
             case 4: // Configuración de base (solo para conocimiento)
                 if (wizardState.tipoProceso === 'conocimiento') {
-                    html += await renderConfigBaseConocimiento();
+                    html += `
+                        <h3>Configuración de la base regulatoria</h3>
+                        <div class="legal-box">El objeto del juicio tiene influencia sobre el monto de la base. Elegí una de estas opciones:</div>
+                        <select id="objetoBaseSelect" class="input-ui">
+                            <option value="desalojo">Desalojo (art.40)</option>
+                            <option value="sumas_dinero">Juicios en los que se reclaman sumas de dinero</option>
+                            <option value="inmuebles">Juicios sobre inmuebles o muebles (art.23)</option>
+                            <option value="derechos_crediticios">Juicio sobre derechos crediticios (art.23 inc.d)</option>
+                            <option value="titulos_acciones">Títulos de renta o acciones (art.23 inc.e)</option>
+                            <option value="establecimientos">Establecimientos comerciales/industriales/mineros (art.23 inc.f)</option>
+                            <option value="uso_habitacion">Derecho de uso o habitación (art.23 inc.h)</option>
+                            <option value="escrituracion">Juicio de escrituración (art.46)</option>
+                        </select>
+                        <div id="subObjetoBase"></div>
+                    `;
                 } else {
-                    // Para otros procesos, se saltea esta pantalla (se pasa directamente a ingreso de base)
+                    // Para otros procesos se salta esta pantalla (se pasa directamente a ingreso de base)
                     wizardState.step = 5;
                     renderScreen();
                     return;
                 }
                 break;
             case 5: // Ingreso de base numérica
-                html += await renderIngresoBase();
+                html += `<div id="ingresoBaseContainer"></div>`;
                 break;
             case 6: // Resultado
                 html += `<div id="resultadosDinamicos"></div>`;
                 break;
         }
+
         html += `<div class="btn-group">
             <button class="btn-outline" id="btnBack" style="${step===0?'display:none':''}">◀ Atrás</button>
             <button class="btn-primary" id="btnNext">${step===6?'Calcular':'Siguiente ▶'}</button>
@@ -344,17 +361,47 @@
         container.innerHTML = html;
         attachStepEvents();
         renderProgress();
-        if (step === 1) document.getElementById('inputUMA').addEventListener('change', (e) => { valorUMA = parseFloat(e.target.value); wizardState.valorUMA = valorUMA; });
-        if (step === 2) {
-            document.getElementById('tipoProcesoSelect').addEventListener('change', (e) => { wizardState.tipoProceso = e.target.value; });
-        }
-        if (step === 6) {
+
+        // Cargar contenido dinámico según pantalla
+        if (step === 1) {
+            document.getElementById('inputUMA').addEventListener('change', (e) => {
+                wizardState.valorUMA = parseFloat(e.target.value) || 89875;
+            });
+        } else if (step === 2) {
+            document.getElementById('tipoProcesoSelect').value = wizardState.tipoProceso;
+            document.getElementById('tipoProcesoSelect').addEventListener('change', (e) => {
+                wizardState.tipoProceso = e.target.value;
+            });
+        } else if (step === 3) {
+            renderContingencias();
+        } else if (step === 4 && wizardState.tipoProceso === 'conocimiento') {
+            const selObj = document.getElementById('objetoBaseSelect');
+            if (selObj) {
+                selObj.value = wizardState.objetoBase;
+                selObj.addEventListener('change', (e) => {
+                    wizardState.objetoBase = e.target.value;
+                    const div = document.getElementById('subObjetoBase');
+                    if (wizardState.objetoBase === 'desalojo') {
+                        div.innerHTML = `<label><input type="checkbox" id="desalojoViviendaChk"> Locación para vivienda → reducción del 20% (art.40)</label>`;
+                        const chk = document.getElementById('desalojoViviendaChk');
+                        if (chk) chk.checked = wizardState.desalojoVivienda;
+                    } else {
+                        div.innerHTML = '';
+                    }
+                });
+                selObj.dispatchEvent(new Event('change'));
+            }
+        } else if (step === 5) {
+            renderIngresoBase();
+        } else if (step === 6) {
             calcularFinal();
         }
     }
 
-    async function renderContingencias() {
+    function renderContingencias() {
         const tipo = wizardState.tipoProceso;
+        const container = document.getElementById('contingenciasContainer');
+        if (!container) return;
         let html = `<h3>Contingencias procesales</h3>`;
         if (tipo === 'conocimiento' || tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo') {
             html += `
@@ -373,12 +420,20 @@
                     <option value="no">No se dedujeron excepciones</option>
                 </select>`;
             }
-            // eventos para subopciones
-            setTimeout(() => {
-                const sel = document.getElementById('modoTerminacionSelect');
-                if (sel) sel.addEventListener('change', () => actualizarSubTerminacion());
+            container.innerHTML = html;
+            const selModo = document.getElementById('modoTerminacionSelect');
+            if (selModo) {
+                selModo.value = wizardState.modoTerminacion || 'sentencia';
+                selModo.addEventListener('change', () => actualizarSubTerminacion());
                 actualizarSubTerminacion();
-            }, 10);
+            }
+            if (tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo') {
+                const selEx = document.getElementById('excepcionesSelect');
+                if (selEx) {
+                    selEx.value = wizardState.tuvoExcepciones === false ? 'no' : 'si';
+                    selEx.addEventListener('change', (e) => { wizardState.tuvoExcepciones = (e.target.value === 'si'); });
+                }
+            }
         } else if (tipo === 'sucesion') {
             html += `
                 <div class="legal-box">ARTÍCULO 35</div>
@@ -387,6 +442,12 @@
                     <option value="no">Intervinieron varios letrados (escala completa)</option>
                 </select>
             `;
+            container.innerHTML = html;
+            const sel = document.getElementById('unicoLetradoSelect');
+            if (sel) {
+                sel.value = wizardState.sucesionUnicoLetrado ? 'si' : 'no';
+                sel.addEventListener('change', (e) => { wizardState.sucesionUnicoLetrado = (e.target.value === 'si'); });
+            }
         } else if (tipo === 'medida_cautelar') {
             html += `
                 <div class="legal-box">ARTÍCULO 37</div>
@@ -395,80 +456,97 @@
                     <option value="no">No hubo oposición → 25% de la escala</option>
                 </select>
             `;
+            container.innerHTML = html;
+            const sel = document.getElementById('oposicionSelect');
+            if (sel) {
+                sel.value = wizardState.medidaOposicion === true ? 'si' : 'no';
+                sel.addEventListener('change', (e) => { wizardState.medidaOposicion = (e.target.value === 'si'); });
+            }
         } else if (tipo === 'homologacion_desocupacion') {
             html += `
                 <div class="legal-box">ARTÍCULO 40 (último párrafo)</div>
                 <label><input type="checkbox" id="homologViviendaChk"> La locación era para vivienda (se aplica -20% sobre la base, luego 50%)</label>
             `;
-        } else if (tipo === 'exhorto' || tipo === 'incidente') {
-            // No hay contingencias
-            html += `<p>No requiere contingencias adicionales.</p>`;
+            container.innerHTML = html;
+            const chk = document.getElementById('homologViviendaChk');
+            if (chk) {
+                chk.checked = wizardState.homologacionVivienda;
+                chk.addEventListener('change', (e) => { wizardState.homologacionVivienda = e.target.checked; });
+            }
+        } else {
+            container.innerHTML = `<p>No requiere contingencias adicionales.</p>`;
         }
-        return html;
     }
 
     function actualizarSubTerminacion() {
         const modo = document.getElementById('modoTerminacionSelect')?.value;
         const div = document.getElementById('subTerminacion');
         if (!div) return;
+        wizardState.modoTerminacion = modo;
         if (modo === 'sentencia') {
             div.innerHTML = `<select id="sentenciaResultado" class="input-ui">
                 <option value="admitida">Demanda admitida → 100% escala</option>
                 <option value="rechazada">Demanda rechazada → 70% escala (art.22)</option>
             </select><div class="legal-box">Art.22: reducción del 30% sobre la base.</div>`;
+            const sel = document.getElementById('sentenciaResultado');
+            if (sel) {
+                sel.value = wizardState.sentenciaResultado || 'admitida';
+                sel.addEventListener('change', (e) => { wizardState.sentenciaResultado = e.target.value; });
+            }
         } else if (modo === 'modos_anormales') {
             div.innerHTML = `<select id="aperturaPrueba" class="input-ui">
                 <option value="antes">Antes de la apertura a prueba → 50% escala (art.25)</option>
                 <option value="despues">Después de la apertura a prueba → 100% escala</option>
             </select><div class="legal-box">Art.25: antes de apertura a prueba, 50%.</div>`;
+            const sel = document.getElementById('aperturaPrueba');
+            if (sel) {
+                sel.value = wizardState.aperturaPrueba === true ? 'despues' : 'antes';
+                sel.addEventListener('change', (e) => { wizardState.aperturaPrueba = (e.target.value === 'despues'); });
+            }
         } else if (modo === 'caducidad') {
             div.innerHTML = `<select id="caducidadCriterio" class="input-ui">
                 <option value="art22">Tratar como demanda desestimada (art.22) → 70% escala</option>
                 <option value="art25">Tratar como modo anormal (art.25) → depende de apertura a prueba</option>
             </select>
             <div id="subCaducidad"></div>`;
-            const critSelect = document.getElementById('caducidadCriterio');
-            critSelect.addEventListener('change', () => {
-                const sub = document.getElementById('subCaducidad');
-                if (critSelect.value === 'art25') {
-                    sub.innerHTML = `<select id="aperturaPruebaCad" class="input-ui">
-                        <option value="antes">Antes de apertura a prueba → 50% escala</option>
-                        <option value="despues">Después de apertura a prueba → 100% escala</option>
-                    </select>`;
-                } else sub.innerHTML = '';
-            });
-            critSelect.dispatchEvent(new Event('change'));
-        } else div.innerHTML = '';
+            const critSel = document.getElementById('caducidadCriterio');
+            if (critSel) {
+                critSel.value = wizardState.caducidadCriterio || 'art22';
+                critSel.addEventListener('change', () => {
+                    wizardState.caducidadCriterio = critSel.value;
+                    const sub = document.getElementById('subCaducidad');
+                    if (critSel.value === 'art25') {
+                        sub.innerHTML = `<select id="aperturaPruebaCad" class="input-ui">
+                            <option value="antes">Antes de apertura a prueba → 50% escala</option>
+                            <option value="despues">Después de apertura a prueba → 100% escala</option>
+                        </select>`;
+                        const selApe = document.getElementById('aperturaPruebaCad');
+                        if (selApe) {
+                            selApe.value = wizardState.aperturaPrueba === true ? 'despues' : 'antes';
+                            selApe.addEventListener('change', (e) => { wizardState.aperturaPrueba = (e.target.value === 'despues'); });
+                        }
+                    } else {
+                        sub.innerHTML = '';
+                        wizardState.aperturaPrueba = null;
+                    }
+                });
+                critSel.dispatchEvent(new Event('change'));
+            }
+        } else {
+            div.innerHTML = '';
+        }
     }
 
-    async function renderConfigBaseConocimiento() {
-        return `
-            <h3>Configuración de la base regulatoria</h3>
-            <div class="legal-box">El objeto del juicio tiene influencia sobre el monto de la base. Elegí una de estas opciones:</div>
-            <select id="objetoBaseSelect" class="input-ui">
-                <option value="desalojo">Desalojo (art.40)</option>
-                <option value="sumas_dinero">Juicios en los que se reclaman sumas de dinero</option>
-                <option value="inmuebles">Juicios sobre inmuebles o muebles (art.23)</option>
-                <option value="derechos_crediticios">Juicio sobre derechos crediticios (art.23 inc.d)</option>
-                <option value="titulos_acciones">Títulos de renta o acciones (art.23 inc.e)</option>
-                <option value="establecimientos">Establecimientos comerciales/industriales/mineros (art.23 inc.f)</option>
-                <option value="uso_habitacion">Derecho de uso o habitación (art.23 inc.h)</option>
-                <option value="escrituracion">Juicio de escrituración (art.46)</option>
-            </select>
-            <div id="subObjetoBase"></div>
-        `;
-        // se llenará con eventos
-    }
-
-    async function renderIngresoBase() {
+    function renderIngresoBase() {
+        const container = document.getElementById('ingresoBaseContainer');
+        if (!container) return;
         let leyenda = '';
-        let extraHtml = '';
         const tipo = wizardState.tipoProceso;
         if (tipo === 'conocimiento') {
             const objeto = wizardState.objetoBase;
             if (objeto === 'desalojo') {
                 leyenda = `Ingrese el total de alquileres del contrato o suma estimada.<br>
-                <label><input type="checkbox" id="desalojoViviendaChk"> Locación para vivienda → reducción del 20% (art.40)</label>`;
+                <label><input type="checkbox" id="desalojoViviendaChk2"> Locación para vivienda → reducción del 20% (art.40)</label>`;
             } else if (objeto === 'sumas_dinero') {
                 leyenda = `Ingrese el monto de la liquidación (capital + intereses) o monto transado.<br>
                 <div class="legal-box">Art.22, 24, 52.</div>`;
@@ -504,87 +582,37 @@
             leyenda = `Ingrese el total de alquileres del contrato. Se aplicará reducción del 50% (y 20% si corresponde).`;
         } else if (tipo === 'incidente') {
             leyenda = `Ingrese el valor de la incidencia o del juicio principal.`;
-        } else if (tipo === 'exhorto') {
-            // se maneja directamente en resultado
         }
-        return `
+        container.innerHTML = `
             <h3>Ingrese la base regulatoria</h3>
             <div class="legal-box">${leyenda}</div>
-            <input type="number" id="baseInputNum" class="input-ui" placeholder="Monto en pesos">
-            ${extraHtml}
+            <input type="number" id="baseInputNum" class="input-ui" placeholder="Monto en pesos" value="${wizardState.baseValor || ''}">
         `;
+        if (tipo === 'conocimiento' && wizardState.objetoBase === 'desalojo') {
+            const chk = document.getElementById('desalojoViviendaChk2');
+            if (chk) {
+                chk.checked = wizardState.desalojoVivienda;
+                chk.addEventListener('change', (e) => { wizardState.desalojoVivienda = e.target.checked; });
+            }
+        }
     }
 
     function recolectarDatos() {
         // Paso 1: UMA
         if (wizardState.step === 1) {
             const input = document.getElementById('inputUMA');
-            if (input) valorUMA = parseFloat(input.value);
-            wizardState.valorUMA = valorUMA;
+            if (input) wizardState.valorUMA = parseFloat(input.value) || 89875;
         }
-        // Paso 2: tipo proceso
-        if (wizardState.step === 2) {
-            const sel = document.getElementById('tipoProcesoSelect');
-            if (sel) wizardState.tipoProceso = sel.value;
-        }
-        // Paso 3: contingencias
-        if (wizardState.step === 3) {
-            const tipo = wizardState.tipoProceso;
-            if (tipo === 'conocimiento' || tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo') {
-                const modo = document.getElementById('modoTerminacionSelect')?.value;
-                wizardState.modoTerminacion = modo;
-                if (modo === 'sentencia') {
-                    const res = document.getElementById('sentenciaResultado')?.value;
-                    wizardState.sentenciaResultado = res; // 'admitida' o 'rechazada'
-                    wizardState.aperturaPrueba = null;
-                } else if (modo === 'modos_anormales') {
-                    const ap = document.getElementById('aperturaPrueba')?.value;
-                    wizardState.aperturaPrueba = (ap === 'despues');
-                    wizardState.sentenciaResultado = null;
-                } else if (modo === 'caducidad') {
-                    const crit = document.getElementById('caducidadCriterio')?.value;
-                    wizardState.caducidadCriterio = crit;
-                    if (crit === 'art25') {
-                        const ap = document.getElementById('aperturaPruebaCad')?.value;
-                        wizardState.aperturaPrueba = (ap === 'despues');
-                    } else wizardState.aperturaPrueba = null;
-                }
-                if (tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo') {
-                    const excep = document.getElementById('excepcionesSelect')?.value;
-                    wizardState.tuvoExcepciones = (excep === 'si');
-                }
-            } else if (tipo === 'sucesion') {
-                const unico = document.getElementById('unicoLetradoSelect')?.value;
-                wizardState.sucesionUnicoLetrado = (unico === 'si');
-            } else if (tipo === 'medida_cautelar') {
-                const op = document.getElementById('oposicionSelect')?.value;
-                wizardState.medidaOposicion = (op === 'si');
-            } else if (tipo === 'homologacion_desocupacion') {
-                const chk = document.getElementById('homologViviendaChk');
-                wizardState.homologacionVivienda = chk ? chk.checked : false;
-            }
-        }
-        // Paso 4: configuración base (solo conocimiento)
-        if (wizardState.step === 4 && wizardState.tipoProceso === 'conocimiento') {
-            const obj = document.getElementById('objetoBaseSelect')?.value;
-            wizardState.objetoBase = obj;
-            if (obj === 'desalojo') {
-                const chk = document.getElementById('desalojoViviendaChk');
-                wizardState.desalojoVivienda = chk ? chk.checked : false;
-            }
-        }
-        // Paso 5: ingreso base
+        // Paso 5: base numérica
         if (wizardState.step === 5) {
-            const baseInput = document.getElementById('baseInputNum')?.value;
-            wizardState.baseValor = parseFloat(baseInput) || 0;
+            const input = document.getElementById('baseInputNum');
+            if (input) wizardState.baseValor = parseFloat(input.value) || 0;
+            // Para desalojo en conocimiento, ya se capturó el checkbox en el evento
         }
     }
 
     function determinarGrupo() {
         const tipo = wizardState.tipoProceso;
-        let grupo = 'grupo1';
-        // Casos especiales se resuelven aparte
-        if (tipo === 'exhorto' || tipo === 'incidente') return null;
         if (tipo === 'medida_cautelar') {
             return wizardState.medidaOposicion ? 'grupo2' : 'grupo3';
         }
@@ -595,18 +623,14 @@
             return wizardState.sucesionUnicoLetrado ? 'grupo2' : 'grupo1';
         }
         if (tipo === 'ejecutivo') {
-            if (wizardState.tuvoExcepciones === false) return 'grupo5';
-            else return 'grupo1';
+            return wizardState.tuvoExcepciones === false ? 'grupo5' : 'grupo1';
         }
         if (tipo === 'ejecucion_sentencia') {
-            if (wizardState.tuvoExcepciones === false) return 'grupo6';
-            else return 'grupo2';
+            return wizardState.tuvoExcepciones === false ? 'grupo6' : 'grupo2';
         }
         if (tipo === 'conocimiento') {
-            // aplicar según modoTerminacion
             if (wizardState.modoTerminacion === 'sentencia') {
-                if (wizardState.sentenciaResultado === 'rechazada') return 'grupo4';
-                else return 'grupo1';
+                return wizardState.sentenciaResultado === 'rechazada' ? 'grupo4' : 'grupo1';
             } else if (wizardState.modoTerminacion === 'modos_anormales') {
                 return wizardState.aperturaPrueba ? 'grupo1' : 'grupo2';
             } else if (wizardState.modoTerminacion === 'caducidad') {
@@ -614,7 +638,7 @@
                 else return wizardState.aperturaPrueba ? 'grupo1' : 'grupo2';
             }
         }
-        return grupo;
+        return 'grupo1';
     }
 
     function calcularBaseFinal() {
@@ -625,18 +649,16 @@
         }
         if (tipo === 'homologacion_desocupacion') {
             if (wizardState.homologacionVivienda) base *= 0.8;
-            base *= 0.5; // 50% por homologación
-        }
-        if (tipo === 'medida_cautelar') {
-            // no modificar base, el grupo ya aplica el factor
+            base *= 0.5;
         }
         return base;
     }
 
-    async function calcularFinal() {
+    function calcularFinal() {
         recolectarDatos();
         const tipo = wizardState.tipoProceso;
         const uma = wizardState.valorUMA;
+
         if (tipo === 'exhorto') {
             const inciso = prompt("Seleccione inciso:\na) Notificaciones\nb) Inscripciones\nc) Diligencias de prueba");
             let minUMA, maxUMA;
@@ -648,8 +670,8 @@
             document.getElementById('resultadosDinamicos').innerHTML = `
                 <h3>Exhorto (art.50)</h3>
                 <table><tr><th>Concepto</th><th>UMA</th><th>Pesos ($)</th></tr>
-                <tr><td>Mínimo</td><td>${minUMA}</td><td>${minPesos.toLocaleString()}</td></tr>
-                <tr><td>Máximo</td><td>${maxUMA}</td><td>${maxPesos.toLocaleString()}</td></tr></table>
+                <tr><td>Mínimo</td><td>${minUMA}</td><td>$${minPesos.toLocaleString()}</td></tr>
+                <tr><td>Máximo</td><td>${maxUMA}</td><td>$${maxPesos.toLocaleString()}</td></tr></table>
                 <div class="legal-box">Art.50: según inciso.</div>`;
             return;
         }
@@ -664,19 +686,19 @@
             const maxApo = maxUMA * 1.4;
             document.getElementById('resultadosDinamicos').innerHTML = `
                 <h3>Incidente (art.33 ley 21839)</h3>
-                <table>
-                    <tr><th>Concepto</th><th>Patrocinante (UMA)</th><th>Apoderado (UMA)</th></tr>
-                    <tr><td>Mínimo (2%)</td><td>${minPatro.toFixed(2)}</td><td>${minApo.toFixed(2)}</td></tr>
-                    <tr><td>Máximo (20%)</td><td>${maxPatro.toFixed(2)}</td><td>${maxApo.toFixed(2)}</td></tr>
-                </table>
+                <table><tr><th>Concepto</th><th>Patrocinante (UMA)</th><th>Apoderado (UMA)</th></tr>
+                <tr><td>Mínimo (2%)</td><td>${minPatro.toFixed(2)}</td><td>${minApo.toFixed(2)}</td></tr>
+                <tr><td>Máximo (20%)</td><td>${maxPatro.toFixed(2)}</td><td>${maxApo.toFixed(2)}</td></tr></table>
                 <div class="legal-box">Como el art.47 fue observado, se sigue art.33 ley 21839 (2% a 20%).</div>`;
             return;
         }
+
         const grupo = determinarGrupo();
         let baseFinal = calcularBaseFinal();
         if (baseFinal <= 0) { alert("Base inválida"); return; }
         const calc = calcularHonorariosPorGrupo(baseFinal, uma, grupo);
         if (!calc) return;
+
         const esProvisorio = wizardState.esProvisorio;
         const esGestor = wizardState.esGestor;
         let etapasFactor = 1;
@@ -686,25 +708,26 @@
             else if (etapas === '2') etapasFactor = 2/3;
             else etapasFactor = 1;
         }
+
         let html = `<div class="check-group">
-            <label><input type="checkbox" id="chkProvisorio"> Los honorarios son provisorios (art.12)</label>
-            <label><input type="checkbox" id="chkGestor"> Actuó como gestor (art.42) → +4% patrocinante</label>
+            <label><input type="checkbox" id="chkProvisorio" ${esProvisorio ? 'checked' : ''}> Los honorarios son provisorios (art.12)</label>
+            <label><input type="checkbox" id="chkGestor" ${esGestor ? 'checked' : ''}> Actuó como gestor (art.42) → +4% patrocinante</label>
         </div>`;
         html += `<h3>Base regulatoria final: $${baseFinal.toLocaleString()} (${calc.baseEnUMA.toFixed(2)} UMA)</h3>`;
         html += `<p>Escala: ${calc.tituloEscala} · Grupo interno: ${grupo}</p>`;
-        // Función para mostrar tabla con o sin máximos, y gestor
-        function mostrarFila(etiqueta, minUMA, maxUMA, minPesos, maxPesos, gestor=false) {
+
+        function mostrarFila(etiqueta, minUMA, maxUMA, minPesos, maxPesos, aplicarGestor=false) {
             if (esProvisorio) {
                 const valMin = minUMA * etapasFactor;
                 const valPesos = valMin * uma;
-                if (gestor && esGestor) {
+                if (aplicarGestor && esGestor) {
                     const valGestor = valMin * 1.04;
                     const pesosGestor = valGestor * uma;
                     return `<tr><td>${etiqueta}</td><td>${valMin.toFixed(2)}</td><td>$${valPesos.toLocaleString()}</td><td>${valGestor.toFixed(2)}</td><td>$${pesosGestor.toLocaleString()}</td></tr>`;
                 }
                 return `<tr><td>${etiqueta}</td><td>${valMin.toFixed(2)}</td><td>$${valPesos.toLocaleString()}</td><td>-</td><td>-</td></tr>`;
             } else {
-                if (gestor && esGestor) {
+                if (aplicarGestor && esGestor) {
                     const minG = minUMA * 1.04;
                     const maxG = maxUMA * 1.04;
                     return `<tr><td>${etiqueta}</td><td>${minUMA.toFixed(2)} / ${minG.toFixed(2)}</td><td>${maxUMA.toFixed(2)} / ${maxG.toFixed(2)}</td>
@@ -715,6 +738,7 @@
                     <td>$${(minUMA*uma).toLocaleString()}</td><td>$${(maxUMA*uma).toLocaleString()}</td></tr>`;
             }
         }
+
         html += `<h4>Patrocinante</h4><table><tr><th>Etapas</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>`;
         html += mostrarFila("Juicio completo", calc.patrocinante.full.min, calc.patrocinante.full.max, calc.patrocinante.full.min*uma, calc.patrocinante.full.max*uma, true);
         html += mostrarFila("Una etapa (1/3)", calc.patrocinante.uno.min, calc.patrocinante.uno.max, calc.patrocinante.uno.min*uma, calc.patrocinante.uno.max*uma);
@@ -725,7 +749,7 @@
         html += `</table><h4>Auxiliares (5% y 10% base)</h4><table><tr><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>`;
         html += `<tr><td>${calc.auxMin.toFixed(2)}</td><td>${calc.auxMax.toFixed(2)}</td><td>$${(calc.auxMin*uma).toLocaleString()}</td><td>$${(calc.auxMax*uma).toLocaleString()}</td></tr></table>`;
         document.getElementById('resultadosDinamicos').innerHTML = html;
-        // eventos checkboxes
+
         const chkProv = document.getElementById('chkProvisorio');
         const chkGest = document.getElementById('chkGestor');
         if (chkProv) chkProv.addEventListener('change', (e) => { wizardState.esProvisorio = e.target.checked; calcularFinal(); });
@@ -736,14 +760,10 @@
         document.getElementById('btnNext')?.addEventListener('click', () => {
             if (wizardState.step === 6) return;
             recolectarDatos();
-            // Avanzar lógica especial
-            if (wizardState.step === 2 && wizardState.tipoProceso === 'exhorto') {
-                wizardState.step = 6; // saltar a resultado
-                renderScreen();
-                return;
-            }
-            if (wizardState.step === 2 && wizardState.tipoProceso === 'incidente') {
-                wizardState.step = 5; // ingreso base
+
+            // Saltos lógicos
+            if (wizardState.step === 2 && (wizardState.tipoProceso === 'exhorto' || wizardState.tipoProceso === 'incidente')) {
+                wizardState.step = 5; // ir a ingreso de base
                 renderScreen();
                 return;
             }
@@ -753,12 +773,7 @@
                 return;
             }
             if (wizardState.step === 3 && wizardState.tipoProceso !== 'conocimiento') {
-                wizardState.step = 5;
-                renderScreen();
-                return;
-            }
-            if (wizardState.step === 4 && wizardState.tipoProceso !== 'conocimiento') {
-                wizardState.step = 5;
+                wizardState.step = 5; // saltar configuración base
                 renderScreen();
                 return;
             }
@@ -772,31 +787,18 @@
         });
         document.getElementById('btnReset')?.addEventListener('click', () => {
             wizardState = {
-                step: 0, valorUMA: valorUMA, tipoProceso: '', modoTerminacion: '', aperturaPrueba: null,
-                caducidadCriterio: '', tuvoExcepciones: null, sucesionUnicoLetrado: false, medidaOposicion: null,
-                homologacionVivienda: false, objetoBase: '', desalojoVivienda: false, baseValor: 0,
-                esProvisorio: false, etapasRealizadas: 3, esGestor: false, sentenciaResultado: null
+                step: 0, valorUMA: wizardState.valorUMA, tipoProceso: '', modoTerminacion: '', sentenciaResultado: null,
+                aperturaPrueba: null, caducidadCriterio: '', tuvoExcepciones: null, sucesionUnicoLetrado: false,
+                medidaOposicion: null, homologacionVivienda: false, objetoBase: '', desalojoVivienda: false,
+                baseValor: 0, esProvisorio: false, etapasRealizadas: 3, esGestor: false
             };
             renderScreen();
         });
-        // Eventos dinámicos en pantalla 4 (config base)
-        if (wizardState.step === 4 && wizardState.tipoProceso === 'conocimiento') {
-            const selObj = document.getElementById('objetoBaseSelect');
-            if (selObj) {
-                selObj.addEventListener('change', (e) => {
-                    wizardState.objetoBase = e.target.value;
-                    const div = document.getElementById('subObjetoBase');
-                    if (wizardState.objetoBase === 'desalojo') {
-                        div.innerHTML = `<label><input type="checkbox" id="desalojoViviendaChk"> Locación para vivienda → reducción del 20%</label>`;
-                    } else div.innerHTML = '';
-                });
-                selObj.dispatchEvent(new Event('change'));
-            }
-        }
     }
 
-    window.addEventListener('DOMContentLoaded', async () => {
-        await cargarUMA();
+    // Inicialización
+    window.addEventListener('DOMContentLoaded', () => {
+        cargarUMA();
         renderScreen();
     });
 </script>
