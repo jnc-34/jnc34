@@ -4,33 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Asistente de Honorarios · Ley 27.423</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
         }
         body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #eef2f5;
+            font-family: 'Montserrat', sans-serif;
+            background: #f5f9fc;
             margin: 0;
             padding: 20px;
             line-height: 1.5;
+            color: #1a3e50;
         }
         .app-container {
             max-width: 1100px;
             margin: 0 auto;
             background: white;
-            border-radius: 28px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-radius: 32px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
             overflow: hidden;
         }
         .header {
-            background: #1e466e;
+            background: #2c6e8f;
             color: white;
-            padding: 20px 28px;
+            padding: 24px 28px;
         }
         .header h1 {
             margin: 0;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 600;
         }
         .progress-bar {
@@ -38,20 +40,20 @@
             justify-content: space-between;
             background: #fff;
             padding: 12px 28px;
-            border-bottom: 1px solid #dce4ec;
+            border-bottom: 1px solid #e0eef4;
             flex-wrap: wrap;
             gap: 8px;
         }
         .step-dot {
-            background: #e2e8f0;
-            padding: 6px 14px;
+            background: #e4edf2;
+            padding: 6px 16px;
             border-radius: 40px;
             font-size: 0.75rem;
             font-weight: 600;
-            color: #2c3e50;
+            color: #2c6e8f;
         }
         .step-dot.active {
-            background: #2c7da0;
+            background: #2c6e8f;
             color: white;
         }
         .pantalla {
@@ -62,79 +64,93 @@
             display: block;
         }
         .card-info, .legal-box, .warning-box {
-            padding: 16px;
-            border-radius: 16px;
-            margin: 16px 0;
+            padding: 18px;
+            border-radius: 20px;
+            margin: 20px 0;
             font-size: 0.9rem;
         }
         .warning-box {
-            background: #fff0f0;
-            border-left: 5px solid #e74c3c;
+            background: #fef5e8;
+            border-left: 5px solid #e67e22;
         }
         .legal-box {
-            background: #e8f0fe;
-            border-left: 4px solid #2c7da0;
+            background: #eef4fa;
+            border-left: 4px solid #2c6e8f;
         }
         .card-info {
-            background: #fef9e3;
-            border-left: 4px solid #f1c40f;
+            background: #f0f7fc;
+            border-left: 4px solid #5fa3c1;
         }
         .input-ui, select.input-ui {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #cbd5e1;
+            padding: 12px 18px;
+            border: 1px solid #cbdbe2;
             border-radius: 48px;
             font-size: 1rem;
-            margin: 8px 0 12px;
+            margin: 10px 0 15px;
             background: white;
+            font-family: 'Montserrat', sans-serif;
         }
         .btn-group {
             display: flex;
             gap: 12px;
-            margin-top: 24px;
+            margin-top: 28px;
             flex-wrap: wrap;
         }
         button {
-            padding: 10px 24px;
+            padding: 10px 26px;
             border: none;
-            border-radius: 40px;
+            border-radius: 48px;
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
+            font-family: 'Montserrat', sans-serif;
         }
         .btn-primary {
-            background: #2c7da0;
+            background: #2c6e8f;
             color: white;
+        }
+        .btn-primary:hover {
+            background: #1e526c;
         }
         .btn-outline {
             background: transparent;
-            border: 1px solid #bdc3c7;
-            color: #2c3e50;
+            border: 1px solid #b7cddb;
+            color: #2c6e8f;
+        }
+        .btn-outline:hover {
+            background: #eef4fa;
         }
         .btn-danger {
-            background: #b91c1c;
+            background: #d96c6c;
             color: white;
+        }
+        .btn-danger:hover {
+            background: #b55151;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
             font-size: 0.85rem;
+            border-radius: 16px;
+            overflow: hidden;
         }
         th, td {
-            border: 1px solid #cbd5e1;
-            padding: 10px 12px;
+            border: 1px solid #dce5ec;
+            padding: 12px 14px;
             text-align: left;
             vertical-align: top;
         }
         th {
-            background: #f1f5f9;
+            background: #eef4fa;
+            font-weight: 600;
         }
         .check-group {
-            margin: 16px 0;
+            margin: 20px 0;
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 24px;
             flex-wrap: wrap;
         }
         .check-group label {
@@ -142,23 +158,21 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
+            font-weight: 500;
         }
         hr {
             margin: 20px 0;
         }
-        .resultados-container {
-            background: #f8fafc;
-            border-radius: 20px;
-            padding: 20px;
-            margin-top: 20px;
-        }
         .small-note {
             font-size: 0.75rem;
-            color: #4b5563;
+            color: #5a7f91;
             margin-top: 12px;
         }
         @media (max-width: 700px) {
             .pantalla { padding: 20px; }
+            .progress-bar { padding: 10px 20px; }
+            .step-dot { font-size: 0.7rem; padding: 4px 12px; }
+            .header h1 { font-size: 1.2rem; }
         }
     </style>
 </head>
@@ -252,8 +266,7 @@
     };
 
     const steps = [
-        { id: "observaciones", title: "Observaciones" },
-        { id: "valorUma", title: "Valor UMA" },
+        { id: "inicio", title: "Inicio" },
         { id: "tipoProceso", title: "Tipo de proceso" },
         { id: "contingencias", title: "Contingencias" },
         { id: "configBase", title: "Configuración de base" },
@@ -279,33 +292,51 @@
         let html = `<div class="pantalla active" id="screen${step}">`;
 
         switch(step) {
-            case 0: // Observaciones (texto exacto)
+            case 0: // INICIO (consolidado con observaciones y UMA)
                 html += `
                     <div class="warning-box">
-                        <strong>⚠️ Advertencia:</strong> Herramienta de referencia. No sustituye criterio judicial.
+                        <strong>Bienvenido!</strong><br>
+                        Este asistente interactivo lo guiará en el proceso de estimación de honorarios mediante la selección de opciones. Antes de comenzar, por favor tenga en cuenta las siguientes consideraciones legales y técnicas:
                     </div>
-                    <div class="card-info" style="max-height: 400px; overflow-y: auto;">
-                        <p><strong>1.</strong> Sirve para los juicios iniciados a partir de su entrada en vigencia (B.O.: 22/12/17). También sirve si seguís el criterio respecto a que se aplica a cualquier juicio en trámite incluso iniciado antes de su entrada en vigencia o bien si seguís el precedente “Establecimiento Las Marías” (CSJN 04/09/2018, <a href="#" target="_blank">ver</a>) para las etapas que tuvieron principio de ejecución con la nueva ley.</p>
-                        <p><strong>2.</strong> Mínimos arancelarios: si consideras que son aplicables a tu caso los mínimos de los arts. 58, 61, etc. desestima el cálculo si arroja un resultado menor.</p>
-                        <p><strong>3.</strong> Reducciones: no vamos a contemplar limitaciones como las que puedan corresponder a los arts. 730 (prorrateo), 1255 (reajuste de precio) del Cód. Civ. y Com.; al art. 60 ley 24.441 (ejecución hipotecaria especial) o art. 48 ley Ley 14.394 / art. 254 Cód. Civ. y Com. (régimen de vivienda, ex bien de familia).</p>
-                        <p><strong>4.</strong> Auxiliares de justicia: no se incluyen las especificaciones de las leyes especiales de reglamentación específica de cada actividad o profesión (art. 1, párrafo segundo, ley 27423). En este asistente solo vamos a guiarnos por la ley 27.423. También hay que tener en cuenta que la Ley 27802 de Modernización Laboral introdujo modificaciones (<a href="#" target="_blank">ver</a>). Tampoco este asistente contempla a los administradores judiciales o interventores (ver las reglas del art. 32) ni los partidores (ver pautas del art. 34 último párrafo).</p>
-                        <p><strong>5.</strong> Mediadores: tienen su propia ley que define sus pautas arancelarias diferenciadas (ley 26.589; decretos reglamentario (actual 696/2025) y 2536/15 podes ver el valor del UHOM <a href="#" target="_blank">acá</a>). Te dejo una calculadora web aparte (<a href="#" target="_blank">ver</a>).</p>
-                        <p><strong>6.</strong> Asuntos no susceptibles de apreciación pecuniaria: no se puede ejecutar un cálculo numérico matemático como el que propone este asistente. Recurrir a las pautas del art. 16 y a los mínimos arancelarios si aplican</p>
-                        <p><strong>7.</strong> No contemplamos los juicios de familia (alimentos, disolución de sociedad conyugal, etc.) ni tampoco penales ni laborales</p>
-                        <p><strong>8.</strong> Reconvención y acumulación de acciones: en esos casos, se aplica el art. 28 según el cual se regulan por separado los honorarios que correspondan a cada una. Podes reiniciar el asistente según las particularidades de cada caso.</p>
+                    <div class="card-info">
+                        <strong>Naturaleza de la herramienta</strong><br>
+                        • <strong>Alcance:</strong> Los resultados se basan en interpretaciones de la Ley 27.423 que podrían diferir de su criterio profesional o del aplicado por los tribunales.<br>
+                        • <strong>Fundamentación:</strong> En cada paso, intentaremos explicitar el fundamento jurídico y su impacto en el cálculo.<br>
+                        • <strong>Limitación de responsabilidad:</strong> Esta herramienta es de carácter referencial; no sustituye el criterio del juez natural de la causa ni debe considerarse un dictamen profesional.
+                    </div>
+                    <div class="card-info">
+                        <strong>Ámbito de aplicación temporal</strong><br>
+                        • <strong>Vigencia:</strong> Diseñado para juicios iniciados a partir del 22/12/17.<br>
+                        • <strong>Excepciones:</strong> También es aplicable si sigue el criterio de aplicación inmediata a juicios en trámite, o el precedente “Establecimiento Las Marías” (CSJN, 04/09/2018) para etapas con principio de ejecución bajo la nueva ley.
+                    </div>
+                    <div class="card-info">
+                        <strong>Restricciones y exclusiones del cálculo</strong><br>
+                        • <strong>Mínimos arancelarios:</strong> El asistente no aplica automáticamente los mínimos de los arts. 58, 61, etc. Si el resultado es menor a dichos mínimos, deberá desestimar el cálculo.<br>
+                        • <strong>Reducciones y topes:</strong> No se contemplan las limitaciones por prorrateo (art. 730 CCyCN), reajuste de precio (art. 1255 CCyCN), ejecución hipotecaria especial (art. 60 Ley 24.441) o régimen de vivienda (art. 254 CCyCN / art. 48 Ley 14.394).<br>
+                        • <strong>Materias excluidas:</strong> no apto para fueros Penal, Laboral o Familia (alimentos, disolución de sociedad conyugal, etc.).<br>
+                        • <strong>Asuntos no susceptibles de apreciación pecuniaria:</strong> para casos sin monto determinado, no es posible un cálculo matemático; se debe recurrir a las pautas del art. 16 y si son aplicables, los mínimos legales.
+                    </div>
+                    <div class="card-info">
+                        <strong>Auxiliares de justicia</strong><br>
+                        • <strong>Leyes especiales:</strong> solo se utiliza la Ley 27.423. No se incluyen reglamentaciones específicas de otras profesiones (art. 1, 2° párr.) ni las modificaciones de la Ley 27.802 (Modernización Laboral).<br>
+                        • <strong>Excluidos:</strong> no contempla los cálculos de los honorarios de los administradores judiciales o interventores (art. 32) ni partidores (art. 34).<br>
+                        • <strong>Mediadores:</strong> tienen normativa propia (Ley 26.589 y Decs. 2536/15 y 696/2025). Puede utilizar nuestra calculadora web
+                    </div>
+                    <div class="card-info">
+                        <strong>Reconvención y acumulación de acciones</strong><br>
+                        • <strong>Art. 28:</strong> en estos supuestos, los honorarios se regulan por separado para cada acción. Le sugerimos reiniciar el asistente para cada una de las pretensiones según sus particularidades
+                    </div>
+                    <div style="margin-top: 25px;">
+                        <h3>Valor de la Unidad de Medida Arancelaria (UMA)</h3>
+                        <div class="legal-box">Ingresa el valor de la UMA actualizado</div>
+                        <input type="number" id="inputUMA" class="input-ui" step="1" value="${wizardState.valorUMA}">
                     </div>
                 `;
                 break;
-            case 1: // Valor UMA
-                html += `
-                    <h3>Valor de la Unidad de Medida Arancelaria (UMA)</h3>
-                    <div class="legal-box">Se carga automáticamente desde la publicación oficial. Podés modificarlo manualmente si es necesario.</div>
-                    <input type="number" id="inputUMA" class="input-ui" step="1" value="${wizardState.valorUMA}">
-                `;
-                break;
-            case 2: // Tipo de proceso (exacto)
+            case 1: // Tipo de proceso (con frase explicativa)
                 html += `
                     <h3>Seleccione el tipo de proceso</h3>
+                    <div class="legal-box">En la Ley 27.423, el tipo de proceso define coeficientes específicos que pueden reducir o incrementar el resultado final del cálculo. Por eso, es fundamental que elijas una de las siguientes opciones:</div>
                     <select id="tipoProcesoSelect" class="input-ui">
                         <option value="conocimiento">De conocimiento (ordinario / sumarísimo)</option>
                         <option value="ejecucion_sentencia">Ejecución de sentencia (aplica también a ejecución de honorarios, de acuerdos homologados, de acuerdos de mediación o de COPREC)</option>
@@ -318,10 +349,10 @@
                     </select>
                 `;
                 break;
-            case 3: // Contingencias (dinámico)
+            case 2: // Contingencias (dinámico)
                 html += `<div id="contingenciasContainer"></div>`;
                 break;
-            case 4: // Configuración de base (solo para conocimiento)
+            case 3: // Configuración de base (solo para conocimiento)
                 if (wizardState.tipoProceso === 'conocimiento') {
                     html += `
                         <h3>Configuración de la base regulatoria</h3>
@@ -339,42 +370,40 @@
                         <div id="subObjetoBase"></div>
                     `;
                 } else {
-                    // Para otros procesos se salta esta pantalla
-                    wizardState.step = 5;
+                    wizardState.step = 4;
                     renderScreen();
                     return;
                 }
                 break;
-            case 5: // Ingreso de base
+            case 4: // Ingreso de base
                 html += `<div id="ingresoBaseContainer"></div>`;
                 break;
-            case 6: // Resultado
+            case 5: // Resultado
                 html += `<div id="resultadosDinamicos"></div>`;
                 break;
         }
 
         html += `<div class="btn-group">
             <button class="btn-outline" id="btnBack" style="${step===0?'display:none':''}">◀ Atrás</button>
-            <button class="btn-primary" id="btnNext">${step===6?'Calcular':'Siguiente ▶'}</button>
+            <button class="btn-primary" id="btnNext">${step===5?'Calcular':'Siguiente ▶'}</button>
             <button class="btn-danger" id="btnReset">Reiniciar</button>
         </div></div>`;
         container.innerHTML = html;
         attachStepEvents();
         renderProgress();
 
-        // Cargar contenido dinámico según pantalla
-        if (step === 1) {
+        if (step === 0) {
             document.getElementById('inputUMA').addEventListener('change', (e) => {
                 wizardState.valorUMA = parseFloat(e.target.value) || 89875;
             });
-        } else if (step === 2) {
+        } else if (step === 1) {
             document.getElementById('tipoProcesoSelect').value = wizardState.tipoProceso;
             document.getElementById('tipoProcesoSelect').addEventListener('change', (e) => {
                 wizardState.tipoProceso = e.target.value;
             });
-        } else if (step === 3) {
+        } else if (step === 2) {
             renderContingencias();
-        } else if (step === 4 && wizardState.tipoProceso === 'conocimiento') {
+        } else if (step === 3 && wizardState.tipoProceso === 'conocimiento') {
             const selObj = document.getElementById('objetoBaseSelect');
             if (selObj) {
                 selObj.value = wizardState.objetoBase;
@@ -391,13 +420,16 @@
                 });
                 selObj.dispatchEvent(new Event('change'));
             }
-        } else if (step === 5) {
+        } else if (step === 4) {
             renderIngresoBase();
-        } else if (step === 6) {
+        } else if (step === 5) {
             calcularFinal();
         }
     }
 
+    // [Resto de funciones: renderContingencias, actualizarSubTerminacion, renderIngresoBase, etc.]
+    // Se mantienen idénticas a la versión anterior, solo se incluyen para completar.
+    // (Por brevedad, se incluyen a continuación pero sin cambios respecto al código anterior)
     function renderContingencias() {
         const tipo = wizardState.tipoProceso;
         const container = document.getElementById('contingenciasContainer');
@@ -646,11 +678,11 @@
     }
 
     function recolectarDatos() {
-        if (wizardState.step === 1) {
+        if (wizardState.step === 0) {
             const input = document.getElementById('inputUMA');
             if (input) wizardState.valorUMA = parseFloat(input.value) || 89875;
         }
-        if (wizardState.step === 5) {
+        if (wizardState.step === 4) {
             const input = document.getElementById('baseInputNum');
             if (input) wizardState.baseValor = parseFloat(input.value) || 0;
         }
@@ -812,21 +844,21 @@
 
     function attachStepEvents() {
         document.getElementById('btnNext')?.addEventListener('click', () => {
-            if (wizardState.step === 6) return;
+            if (wizardState.step === 5) return;
             recolectarDatos();
 
+            if (wizardState.step === 1 && (wizardState.tipoProceso === 'exhorto' || wizardState.tipoProceso === 'incidente')) {
+                wizardState.step = 4;
+                renderScreen();
+                return;
+            }
             if (wizardState.step === 2 && (wizardState.tipoProceso === 'exhorto' || wizardState.tipoProceso === 'incidente')) {
-                wizardState.step = 5;
+                wizardState.step = 4;
                 renderScreen();
                 return;
             }
-            if (wizardState.step === 3 && (wizardState.tipoProceso === 'exhorto' || wizardState.tipoProceso === 'incidente')) {
-                wizardState.step = 5;
-                renderScreen();
-                return;
-            }
-            if (wizardState.step === 3 && wizardState.tipoProceso !== 'conocimiento') {
-                wizardState.step = 5;
+            if (wizardState.step === 2 && wizardState.tipoProceso !== 'conocimiento') {
+                wizardState.step = 4;
                 renderScreen();
                 return;
             }
