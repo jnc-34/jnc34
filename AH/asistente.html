@@ -1,16 +1,3 @@
-He implementado todos los cambios solicitados. El código ahora:
-
-- Muestra un resumen de elecciones en cada pantalla (excepto resultado).
-- En Tipo de proceso, la opción se renombró a “Ejecución de sentencia (o de honorarios o acuerdos)”.
-- Para Exhorto: al hacer clic en Siguiente, va directamente a Resultado y muestra la tabla con los tres incisos, calculando dinámicamente con el UMA actual.
-- Para Incidente: va a Ingreso de base con el texto explicativo completo, luego a Resultado con tabla simple (mínimo 2%, máximo 20%), sin referencias a patrocinante/apoderado ni checkboxes.
-- En Contingencias: se agregaron textos explicativos antes de los selectores, los selectores tienen una opción vacía por defecto, y se muestran mensajes condicionales según la opción elegida (demanda rechazada, caducidad con subopciones, excepciones, sucesión, medida cautelar).
-- Para Medida cautelar: en Resultado se muestra una tabla simplificada (solo mínimo/máximo para patrocinante y apoderado, sin etapas) y se ocultan los checkboxes de provisorios y gestor, y la sección de auxiliares.
-- Se corrigió el funcionamiento del botón “Atrás” en todos los pasos y se eliminó el botón Reiniciar en la pantalla de Inicio.
-
-El código completo está a continuación. Puedes probarlo directamente.
-
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1070,4 +1057,3 @@ El código completo está a continuación. Puedes probarlo directamente.
 </script>
 </body>
 </html>
-```
