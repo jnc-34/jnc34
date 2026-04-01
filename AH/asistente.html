@@ -4,59 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Asistente de Honorarios · Ley 27.423</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
         body {
-            font-family: 'Montserrat', sans-serif;
-            background: #f5f9fc;
+            font-family: 'Inter', sans-serif;
+            background: #f4f7fc;
             margin: 0;
             padding: 20px;
             line-height: 1.5;
-            color: #1a3e50;
+            color: #1e293b;
         }
         .app-container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 32px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
             overflow: hidden;
         }
         .header {
-            background: #2c6e8f;
+            background: linear-gradient(135deg, #1e4a76 0%, #0f2c44 100%);
             color: white;
-            padding: 24px 28px;
+            padding: 28px 32px;
         }
         .header h1 {
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 600;
+            letter-spacing: -0.3px;
         }
         .progress-bar {
             display: flex;
             justify-content: space-between;
             background: #fff;
-            padding: 12px 28px;
-            border-bottom: 1px solid #e0eef4;
+            padding: 16px 32px;
+            border-bottom: 1px solid #e2e8f0;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 10px;
         }
         .step-dot {
-            background: #e4edf2;
-            padding: 6px 16px;
+            background: #e2e8f0;
+            padding: 6px 18px;
             border-radius: 40px;
             font-size: 0.75rem;
             font-weight: 600;
-            color: #2c6e8f;
+            color: #1e4a76;
         }
         .step-dot.active {
-            background: #2c6e8f;
+            background: #1e4a76;
             color: white;
         }
         .pantalla {
             display: none;
-            padding: 28px 32px;
+            padding: 32px;
         }
         .active {
             display: block;
@@ -73,7 +76,7 @@
         }
         .legal-box {
             background: #eef4fa;
-            border-left: 4px solid #2c6e8f;
+            border-left: 4px solid #1e4a76;
         }
         .card-info {
             background: #f0f7fc;
@@ -81,17 +84,17 @@
         }
         .summary-box {
             background: #eaf7e6;
-            border-left: 4px solid #5cb85c;
+            border-left: 4px solid #2e7d32;
         }
         .input-ui, select.input-ui {
             width: 100%;
             padding: 12px 18px;
-            border: 1px solid #cbdbe2;
+            border: 1px solid #cbd5e1;
             border-radius: 48px;
             font-size: 1rem;
             margin: 10px 0 15px;
             background: white;
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
         .btn-group {
             display: flex;
@@ -106,19 +109,19 @@
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
         .btn-primary {
-            background: #2c6e8f;
+            background: #1e4a76;
             color: white;
         }
         .btn-primary:hover {
-            background: #1e526c;
+            background: #0f3a5e;
         }
         .btn-outline {
             background: transparent;
             border: 1px solid #b7cddb;
-            color: #2c6e8f;
+            color: #1e4a76;
         }
         .btn-outline:hover {
             background: #eef4fa;
@@ -137,16 +140,18 @@
             font-size: 0.85rem;
             border-radius: 16px;
             overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         th, td {
-            border: 1px solid #dce5ec;
-            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
             text-align: left;
             vertical-align: top;
         }
         th {
-            background: #eef4fa;
+            background: #f8fafc;
             font-weight: 600;
+            color: #0f3a5e;
         }
         .check-group {
             margin: 20px 0;
@@ -169,11 +174,50 @@
             margin-top: 8px;
             margin-bottom: 16px;
         }
+        .dashboard-card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #eef2f6;
+        }
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e4a76;
+        }
+        .badge {
+            background: #eef2ff;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        hr {
+            margin: 20px 0;
+            border-color: #e2e8f0;
+        }
         @media (max-width: 700px) {
             .pantalla { padding: 20px; }
-            .progress-bar { padding: 10px 20px; }
+            .progress-bar { padding: 12px 20px; }
             .step-dot { font-size: 0.7rem; padding: 4px 12px; }
             .header h1 { font-size: 1.2rem; }
+            .grid-2col { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -187,12 +231,10 @@
 </div>
 
 <script>
-    // -------------------- PARSEO DE NÚMEROS (formato argentino: puntos miles, coma decimal) --------------------
+    // -------------------- PARSEO DE NÚMEROS (formato argentino) --------------------
     function parseNumber(str) {
         if (!str) return NaN;
-        // Eliminar todos los puntos (separadores de miles)
         let cleaned = String(str).replace(/\./g, '');
-        // Reemplazar coma decimal por punto
         cleaned = cleaned.replace(',', '.');
         return parseFloat(cleaned);
     }
@@ -226,14 +268,45 @@
         if (!basePesos || !valorUMA || valorUMA <= 0) return null;
         let baseEnUMA = basePesos / valorUMA;
         let minComp, maxComp, tituloEscala;
-        if (baseEnUMA <= 15) { tituloEscala = "1ª escala (hasta 15 UMA): 22% a 33%"; minComp = baseEnUMA * 0.22; maxComp = baseEnUMA * 0.33; }
-        else if (baseEnUMA <= 45) { tituloEscala = "2ª escala (16-45 UMA): 20% a 26%"; minComp = (baseEnUMA-15)*0.20 + 4.95; maxComp = (baseEnUMA-15)*0.26 + 4.95; }
-        else if (baseEnUMA <= 90) { tituloEscala = "3ª escala (46-90 UMA): 18% a 24%"; minComp = (baseEnUMA-45)*0.18 + 11.7; maxComp = (baseEnUMA-45)*0.24 + 11.7; }
-        else if (baseEnUMA <= 150) { tituloEscala = "4ª escala (91-150 UMA): 17% a 22%"; minComp = (baseEnUMA-90)*0.17 + 21.6; maxComp = (baseEnUMA-90)*0.22 + 21.6; }
-        else if (baseEnUMA <= 450) { tituloEscala = "5ª escala (151-450 UMA): 15% a 20%"; minComp = (baseEnUMA-150)*0.15 + 33; maxComp = (baseEnUMA-150)*0.20 + 33; }
-        else if (baseEnUMA <= 750) { tituloEscala = "6ª escala (451-750 UMA): 13% a 17%"; minComp = (baseEnUMA-450)*0.13 + 90; maxComp = (baseEnUMA-450)*0.17 + 90; }
-        else { tituloEscala = "7ª escala (+750 UMA): 12% a 15%"; minComp = (baseEnUMA-750)*0.12 + 127.5; maxComp = (baseEnUMA-750)*0.15 + 127.5; }
+        let minPorcOriginal, maxPorcOriginal;
+        if (baseEnUMA <= 15) {
+            tituloEscala = "1ª escala (hasta 15 UMA): 22% a 33%";
+            minComp = baseEnUMA * 0.22;
+            maxComp = baseEnUMA * 0.33;
+            minPorcOriginal = 22; maxPorcOriginal = 33;
+        } else if (baseEnUMA <= 45) {
+            tituloEscala = "2ª escala (16-45 UMA): 20% a 26%";
+            minComp = (baseEnUMA-15)*0.20 + 4.95;
+            maxComp = (baseEnUMA-15)*0.26 + 4.95;
+            minPorcOriginal = 20; maxPorcOriginal = 26;
+        } else if (baseEnUMA <= 90) {
+            tituloEscala = "3ª escala (46-90 UMA): 18% a 24%";
+            minComp = (baseEnUMA-45)*0.18 + 11.7;
+            maxComp = (baseEnUMA-45)*0.24 + 11.7;
+            minPorcOriginal = 18; maxPorcOriginal = 24;
+        } else if (baseEnUMA <= 150) {
+            tituloEscala = "4ª escala (91-150 UMA): 17% a 22%";
+            minComp = (baseEnUMA-90)*0.17 + 21.6;
+            maxComp = (baseEnUMA-90)*0.22 + 21.6;
+            minPorcOriginal = 17; maxPorcOriginal = 22;
+        } else if (baseEnUMA <= 450) {
+            tituloEscala = "5ª escala (151-450 UMA): 15% a 20%";
+            minComp = (baseEnUMA-150)*0.15 + 33;
+            maxComp = (baseEnUMA-150)*0.20 + 33;
+            minPorcOriginal = 15; maxPorcOriginal = 20;
+        } else if (baseEnUMA <= 750) {
+            tituloEscala = "6ª escala (451-750 UMA): 13% a 17%";
+            minComp = (baseEnUMA-450)*0.13 + 90;
+            maxComp = (baseEnUMA-450)*0.17 + 90;
+            minPorcOriginal = 13; maxPorcOriginal = 17;
+        } else {
+            tituloEscala = "7ª escala (+750 UMA): 12% a 15%";
+            minComp = (baseEnUMA-750)*0.12 + 127.5;
+            maxComp = (baseEnUMA-750)*0.15 + 127.5;
+            minPorcOriginal = 12; maxPorcOriginal = 15;
+        }
 
+        // aplicar reducción según grupo
         if (grupo === 'grupo2') { minComp /= 2; maxComp /= 2; }
         else if (grupo === 'grupo3') { minComp /= 4; maxComp /= 4; }
         else if (grupo === 'grupo4') { minComp *= 0.7; maxComp *= 0.7; }
@@ -248,7 +321,7 @@
         const etapaDosMax = maxComp * 2 / 3;
 
         return {
-            tituloEscala, baseEnUMA,
+            tituloEscala, baseEnUMA, minPorcOriginal, maxPorcOriginal,
             patrocinante: { full: { min: minComp, max: maxComp }, uno: { min: etapaUnMin, max: etapaUnMax }, dos: { min: etapaDosMin, max: etapaDosMax } },
             apoderado: { full: { min: minComp * 1.4, max: maxComp * 1.4 }, uno: { min: etapaUnMin * 1.4, max: etapaUnMax * 1.4 }, dos: { min: etapaDosMin * 1.4, max: etapaDosMax * 1.4 } },
             auxMin, auxMax
@@ -260,7 +333,6 @@
         step: 0,
         valorUMA: 89875,
         tipoProceso: '',
-        // contingencias
         modoTerminacion: '',
         sentenciaResultado: null,
         aperturaPrueba: null,
@@ -269,14 +341,11 @@
         sucesionUnicoLetrado: false,
         medidaOposicion: null,
         homologacionVivienda: false,
-        // configuración de base (objeto del juicio)
         objetoBase: '',
         desalojoVivienda: false,
-        // base numérica
         baseValor: 0,
-        // provisorio
         esProvisorio: false,
-        etapasRealizadas: 3
+        mostrarProcurador: false
     };
 
     const steps = [
@@ -357,6 +426,7 @@
         container.innerHTML = html;
     }
 
+    // -------------------- RENDER DE PANTALLAS --------------------
     function renderScreen() {
         const container = document.getElementById('pantallas');
         if (!container) return;
@@ -533,104 +603,6 @@
         } else if (step === 5) {
             calcularFinal();
         }
-    }
-
-    function renderBase() {
-        const container = document.getElementById('baseContainer');
-        if (!container) return;
-        let leyendaHtml = '';
-        const tipo = wizardState.tipoProceso;
-        const objeto = wizardState.objetoBase;
-
-        let introHtml = `<h3>Monto numérico de la base regulatoria</h3>
-        <div class="legal-box">La base regulatoria, también llamada cuantía o monto del asunto es el valor económico que se toma como referencia para aplicar la escala de honorarios del art. 21 en los procesos susceptibles de apreciación pecuniaria. Su correcta determinación es fundamental ya que de ella depende el coeficiente aplicable y la determinación de los mínimos y máximos arancelarios. Según las elecciones previas, en este paso tenes que ingresar ese monto.</div>`;
-
-        if (tipo === 'conocimiento') {
-            if (objeto === 'desalojo') {
-                leyendaHtml = `
-                    <div class="legal-box">Ingresá el valor de la totalidad del contrato.<br>
-                    Si es un desalojo sin contrato o en el caso que el profesional haya estimado inadecuado el valor del contrato, ingresá la sumatoria de alquileres estimados o determinados por el perito designado.<br>
-                    Nota: si elegiste “alquiler para vivienda” en el paso anterior, no ingreses el monto reducido porque ya estará calculado por el sistema.<br>
-                    ARTICULO 40: En los procesos de desalojo se fijarán los honorarios de acuerdo con la escala del art. 21, tomando como base el total de los alquileres del contrato… Si el profesional estimare inadecuado el alquiler fijado en el contrato o en caso de que éste no pudiera determinarse exactamente o se tratase de juicios por intrusión o tenencia precaria, deberá fijarse el valor locativo actualizado del inmueble, para lo cual el profesional podrá acompañar tasaciones al respecto o designar perito para que lo determine.</div>
-                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
-                `;
-            } else if (objeto === 'sumas_dinero') {
-                let textoAdicional = "";
-                if (wizardState.modoTerminacion === 'sentencia' && wizardState.sentenciaResultado === 'admitida') {
-                    textoAdicional = "Si se dictó sentencia, ingresá el monto de la liquidación aprobada. ";
-                } else if (wizardState.modoTerminacion === 'sentencia' && wizardState.sentenciaResultado === 'rechazada') {
-                    textoAdicional = "Si se rechazó la demanda, ingresá el monto de la liquidación practicada al efecto regulatorio. ";
-                } else if (wizardState.modoTerminacion === 'modos_anormales') {
-                    textoAdicional = "Si el juicio terminó por acuerdo, ingresá el monto de la transacción. ";
-                } else if (wizardState.modoTerminacion === 'caducidad') {
-                    textoAdicional = "Si se declaró la caducidad de la instancia, ingresá el monto de la liquidación practicada al efecto regulatorio. ";
-                }
-                leyendaHtml = `
-                    <div class="legal-box">${textoAdicional}Nota: no ingreses el monto con reducciones porque ya estará calculado por el sistema según tus elecciones previas.<br>
-                    ARTÍCULO 22.- En los juicios por cobro de sumas de dinero la cuantía del asunto …será el monto de la demanda o reconvención; si hubiera sentencia será el de la liquidación que resulte de la misma, actualizado por intereses si correspondiere. En caso de transacción, la cuantía será el monto de la misma<br>
-                    ARTÍCULO 24.- A los efectos de la regulación de honorarios, se tendrán en cuenta los intereses que deban calcularse sobre el monto de condena. Los intereses fijados en la sentencia deberán siempre integrar la base regulatoria, bajo pena de nulidad.<br>
-                    ARTÍCULO 52.- … A los efectos de la regulación se tendrán en cuenta los intereses, los frutos y los accesorios, que integrarán la base regulatoria según lo establecido en los artículos 22, 23 y 24.</div>
-                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
-                `;
-            } else if (objeto === 'inmuebles') {
-                leyendaHtml = `
-                    <div class="legal-box">Ingresá el valor del bien según estas reglas:<br>
-                    - Si los bienes fueron tasados, ingresá el monto de la tasación.<br>
-                    - Si la valuación fiscal (VF) se consideró adecuada, ingresa el monto de la VF actualizada incrementado en un 50 %<br>
-                    - Si la VF se consideró inadecuada, se inició y terminó el procedimiento del art. 23 para la valuación de los bienes ingresá el valor de la estimación<br>
-                    - Recordá que si hay montos en dólares, tenés que definir el tipo de cambio que vas a usar (oficial venta, MEP, etc.) para ingresar la base en pesos<br>
-                    ARTÍCULO 23.- El monto de los procesos en caso de que existan bienes susceptibles de apreciación pecuniaria, se determinará conforme lo siguiente: a) Si se trata de bienes inmuebles o derechos sobre los mismos y no han sido tasados en autos, se tendrá como cuantía del asunto la valuación fiscal al momento en que se practique la regulación, incrementada en un 50%. No obstante reputándose ésta, inadecuada al valor real del inmueble, el profesional podrá estimar el valor que le asigne, de lo que se dará traslado al obligado al pago. En caso de oposición, el juez designará perito tasador…</div>
-                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
-                `;
-            } else if (objeto === 'derechos_crediticios') {
-                leyendaHtml = `
-                    <div class="legal-box">Ingresá el valor consignado en las escrituras o documentos respectivos, deducidas las amortizaciones.<br>
-                    Art. 23 inc. d): Si se trata de derechos crediticios, se tomará como cuantía del asunto el valor consignado en las escrituras o documentos respectivos, deducidas las amortizaciones normales previstas en los mismos, o las extraordinarias que justifique el interesado.</div>
-                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
-                `;
-            } else if (objeto === 'titulos_acciones') {
-                leyendaHtml = `
-                    <div class="legal-box">Ingresá el valor de cotización de los títulos<br>
-                    Art. 23 inc. e): Si se trata de títulos de renta o acciones de entidades privadas, se tomará como cuantía del asunto el valor de cotización de la Bolsa de Comercio de Buenos Aires; si no cotizara en bolsa, el valor que informe cualquier entidad bancaria oficial; si por esta vía fuere imposible lograr la determinación, se aplicará el procedimiento del inciso a)</div>
-                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
-                `;
-            } else if (objeto === 'establecimientos') {
-                leyendaHtml = `
-                    <div class="legal-box">Ingresá el valor del activo<br>
-                    Art. 23 inc. f): Si se trata de establecimientos comerciales, industriales o mineros, se valuará el activo conforme las normas de los incisos de este artículo; se descontará el pasivo justificado por certificación contable u otro medio idóneo en caso de que no se lleve la contabilidad en legal forma, y al líquido que resulte se le sumará un diez por ciento (10%) que será computado como valor llave.</div>
-                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
-                `;
-            } else if (objeto === 'uso_habitacion') {
-                leyendaHtml = `
-                    <div class="legal-box">Ingresá el valor del bien según estas reglas:<br>
-                    Art. 23 inc. h): Si se trata de uso y habitación, será valuado en el 10% anual del valor del bien respectivo, justipreciado según las reglas del inciso a) y el resultado se multiplicará por el número de años por el que se transmite el derecho, no pudiendo exceder en ningún caso del 100% de aquél;</div>
-                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
-                `;
-            } else if (objeto === 'escrituracion') {
-                leyendaHtml = `
-                    <div class="legal-box">Ingresá el valor del bien o el monto del boleto si es mayor.<br>
-                    ARTÍCULO 46.- En los juicios de escrituración y, en general, en los procesos derivados del contrato de compraventa de inmuebles, a los efectos de la regulación, se aplicará la norma del artículo 23, inciso a), salvo que resulte un monto mayor del boleto de compraventa, en cuyo caso se aplicará este último.</div>
-                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
-                `;
-            }
-        } else if (tipo === 'sucesion') {
-            leyendaHtml = `
-                <div class="legal-box">ingrese el valor del patrimonio que se transmite (art. 35).<br>
-                Si la valuación fiscal se consideró inadecuada, se inició y terminó el procedimiento del art. 23 para la valuación de los bienes ingrese el valor de la estimación de valor.<br>
-                Si hay montos en dólares, tenés que definir el tipo de cambio que vas a usar (oficial venta, MEP, etc.)<br>
-                Si la valuación fiscal se consideró adecuada, ingresa ese monto incrementado en un  50 %<br>
-                ARTÍCULO 23.- El monto de los procesos en caso de que existan bienes susceptibles de apreciación pecuniaria, se determinará conforme lo siguiente:<br>
-                a) Si se trata de bienes inmuebles o derechos sobre los mismos y no han sido tasados en autos, se tendrá como cuantía del asunto la valuación fiscal al momento en que se practique la regulación, incrementada en un cincuenta por ciento (50%). No obstante reputándose ésta, inadecuada al valor real del inmueble, el profesional podrá estimar el valor que le asigne, de lo que se dará traslado al obligado al pago. En caso de oposición, el juez designará perito tasador.<br>
-                ARTÍCULO 35.- En el proceso sucesorio, los honorarios se regulan sobre el valor del patrimonio que se transmite. Para establecer el valor de los bienes se tendrá en cuenta lo dispuesto en el artículo 23.</div>
-                <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
-            `;
-        } else if (tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo' || tipo === 'medida_cautelar' || tipo === 'homologacion_desocupacion') {
-            leyendaHtml = `
-                <div class="legal-box">Ingrese el monto de la base regulatoria según corresponda.</div>
-                <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
-            `;
-        }
-        container.innerHTML = introHtml + leyendaHtml;
     }
 
     function renderContingencias() {
@@ -845,6 +817,104 @@
         } else div.innerHTML = '';
     }
 
+    function renderBase() {
+        const container = document.getElementById('baseContainer');
+        if (!container) return;
+        let leyendaHtml = '';
+        const tipo = wizardState.tipoProceso;
+        const objeto = wizardState.objetoBase;
+
+        let introHtml = `<h3>Monto numérico de la base regulatoria</h3>
+        <div class="legal-box">La base regulatoria, también llamada cuantía o monto del asunto es el valor económico que se toma como referencia para aplicar la escala de honorarios del art. 21 en los procesos susceptibles de apreciación pecuniaria. Su correcta determinación es fundamental ya que de ella depende el coeficiente aplicable y la determinación de los mínimos y máximos arancelarios. Según las elecciones previas, en este paso tenes que ingresar ese monto.</div>`;
+
+        if (tipo === 'conocimiento') {
+            if (objeto === 'desalojo') {
+                leyendaHtml = `
+                    <div class="legal-box">Ingresá el valor de la totalidad del contrato.<br>
+                    Si es un desalojo sin contrato o en el caso que el profesional haya estimado inadecuado el valor del contrato, ingresá la sumatoria de alquileres estimados o determinados por el perito designado.<br>
+                    Nota: si elegiste “alquiler para vivienda” en el paso anterior, no ingreses el monto reducido porque ya estará calculado por el sistema.<br>
+                    ARTICULO 40: En los procesos de desalojo se fijarán los honorarios de acuerdo con la escala del art. 21, tomando como base el total de los alquileres del contrato… Si el profesional estimare inadecuado el alquiler fijado en el contrato o en caso de que éste no pudiera determinarse exactamente o se tratase de juicios por intrusión o tenencia precaria, deberá fijarse el valor locativo actualizado del inmueble, para lo cual el profesional podrá acompañar tasaciones al respecto o designar perito para que lo determine.</div>
+                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
+                `;
+            } else if (objeto === 'sumas_dinero') {
+                let textoAdicional = "";
+                if (wizardState.modoTerminacion === 'sentencia' && wizardState.sentenciaResultado === 'admitida') {
+                    textoAdicional = "Si se dictó sentencia, ingresá el monto de la liquidación aprobada. ";
+                } else if (wizardState.modoTerminacion === 'sentencia' && wizardState.sentenciaResultado === 'rechazada') {
+                    textoAdicional = "Si se rechazó la demanda, ingresá el monto de la liquidación practicada al efecto regulatorio. ";
+                } else if (wizardState.modoTerminacion === 'modos_anormales') {
+                    textoAdicional = "Si el juicio terminó por acuerdo, ingresá el monto de la transacción. ";
+                } else if (wizardState.modoTerminacion === 'caducidad') {
+                    textoAdicional = "Si se declaró la caducidad de la instancia, ingresá el monto de la liquidación practicada al efecto regulatorio. ";
+                }
+                leyendaHtml = `
+                    <div class="legal-box">${textoAdicional}Nota: no ingreses el monto con reducciones porque ya estará calculado por el sistema según tus elecciones previas.<br>
+                    ARTÍCULO 22.- En los juicios por cobro de sumas de dinero la cuantía del asunto …será el monto de la demanda o reconvención; si hubiera sentencia será el de la liquidación que resulte de la misma, actualizado por intereses si correspondiere. En caso de transacción, la cuantía será el monto de la misma<br>
+                    ARTÍCULO 24.- A los efectos de la regulación de honorarios, se tendrán en cuenta los intereses que deban calcularse sobre el monto de condena. Los intereses fijados en la sentencia deberán siempre integrar la base regulatoria, bajo pena de nulidad.<br>
+                    ARTÍCULO 52.- … A los efectos de la regulación se tendrán en cuenta los intereses, los frutos y los accesorios, que integrarán la base regulatoria según lo establecido en los artículos 22, 23 y 24.</div>
+                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
+                `;
+            } else if (objeto === 'inmuebles') {
+                leyendaHtml = `
+                    <div class="legal-box">Ingresá el valor del bien según estas reglas:<br>
+                    - Si los bienes fueron tasados, ingresá el monto de la tasación.<br>
+                    - Si la valuación fiscal (VF) se consideró adecuada, ingresa el monto de la VF actualizada incrementado en un 50 %<br>
+                    - Si la VF se consideró inadecuada, se inició y terminó el procedimiento del art. 23 para la valuación de los bienes ingresá el valor de la estimación<br>
+                    - Recordá que si hay montos en dólares, tenés que definir el tipo de cambio que vas a usar (oficial venta, MEP, etc.) para ingresar la base en pesos<br>
+                    ARTÍCULO 23.- El monto de los procesos en caso de que existan bienes susceptibles de apreciación pecuniaria, se determinará conforme lo siguiente: a) Si se trata de bienes inmuebles o derechos sobre los mismos y no han sido tasados en autos, se tendrá como cuantía del asunto la valuación fiscal al momento en que se practique la regulación, incrementada en un 50%. No obstante reputándose ésta, inadecuada al valor real del inmueble, el profesional podrá estimar el valor que le asigne, de lo que se dará traslado al obligado al pago. En caso de oposición, el juez designará perito tasador…</div>
+                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
+                `;
+            } else if (objeto === 'derechos_crediticios') {
+                leyendaHtml = `
+                    <div class="legal-box">Ingresá el valor consignado en las escrituras o documentos respectivos, deducidas las amortizaciones.<br>
+                    Art. 23 inc. d): Si se trata de derechos crediticios, se tomará como cuantía del asunto el valor consignado en las escrituras o documentos respectivos, deducidas las amortizaciones normales previstas en los mismos, o las extraordinarias que justifique el interesado.</div>
+                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
+                `;
+            } else if (objeto === 'titulos_acciones') {
+                leyendaHtml = `
+                    <div class="legal-box">Ingresá el valor de cotización de los títulos<br>
+                    Art. 23 inc. e): Si se trata de títulos de renta o acciones de entidades privadas, se tomará como cuantía del asunto el valor de cotización de la Bolsa de Comercio de Buenos Aires; si no cotizara en bolsa, el valor que informe cualquier entidad bancaria oficial; si por esta vía fuere imposible lograr la determinación, se aplicará el procedimiento del inciso a)</div>
+                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
+                `;
+            } else if (objeto === 'establecimientos') {
+                leyendaHtml = `
+                    <div class="legal-box">Ingresá el valor del activo<br>
+                    Art. 23 inc. f): Si se trata de establecimientos comerciales, industriales o mineros, se valuará el activo conforme las normas de los incisos de este artículo; se descontará el pasivo justificado por certificación contable u otro medio idóneo en caso de que no se lleve la contabilidad en legal forma, y al líquido que resulte se le sumará un diez por ciento (10%) que será computado como valor llave.</div>
+                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
+                `;
+            } else if (objeto === 'uso_habitacion') {
+                leyendaHtml = `
+                    <div class="legal-box">Ingresá el valor del bien según estas reglas:<br>
+                    Art. 23 inc. h): Si se trata de uso y habitación, será valuado en el 10% anual del valor del bien respectivo, justipreciado según las reglas del inciso a) y el resultado se multiplicará por el número de años por el que se transmite el derecho, no pudiendo exceder en ningún caso del 100% de aquél;</div>
+                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
+                `;
+            } else if (objeto === 'escrituracion') {
+                leyendaHtml = `
+                    <div class="legal-box">Ingresá el valor del bien o el monto del boleto si es mayor.<br>
+                    ARTÍCULO 46.- En los juicios de escrituración y, en general, en los procesos derivados del contrato de compraventa de inmuebles, a los efectos de la regulación, se aplicará la norma del artículo 23, inciso a), salvo que resulte un monto mayor del boleto de compraventa, en cuyo caso se aplicará este último.</div>
+                    <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
+                `;
+            }
+        } else if (tipo === 'sucesion') {
+            leyendaHtml = `
+                <div class="legal-box">ingrese el valor del patrimonio que se transmite (art. 35).<br>
+                Si la valuación fiscal se consideró inadecuada, se inició y terminó el procedimiento del art. 23 para la valuación de los bienes ingrese el valor de la estimación de valor.<br>
+                Si hay montos en dólares, tenés que definir el tipo de cambio que vas a usar (oficial venta, MEP, etc.)<br>
+                Si la valuación fiscal se consideró adecuada, ingresa ese monto incrementado en un  50 %<br>
+                ARTÍCULO 23.- El monto de los procesos en caso de que existan bienes susceptibles de apreciación pecuniaria, se determinará conforme lo siguiente:<br>
+                a) Si se trata de bienes inmuebles o derechos sobre los mismos y no han sido tasados en autos, se tendrá como cuantía del asunto la valuación fiscal al momento en que se practique la regulación, incrementada en un cincuenta por ciento (50%). No obstante reputándose ésta, inadecuada al valor real del inmueble, el profesional podrá estimar el valor que le asigne, de lo que se dará traslado al obligado al pago. En caso de oposición, el juez designará perito tasador.<br>
+                ARTÍCULO 35.- En el proceso sucesorio, los honorarios se regulan sobre el valor del patrimonio que se transmite. Para establecer el valor de los bienes se tendrá en cuenta lo dispuesto en el artículo 23.</div>
+                <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
+            `;
+        } else if (tipo === 'ejecucion_sentencia' || tipo === 'ejecutivo' || tipo === 'medida_cautelar' || tipo === 'homologacion_desocupacion') {
+            leyendaHtml = `
+                <div class="legal-box">Ingrese el monto de la base regulatoria según corresponda.</div>
+                <input type="text" id="baseInputNum" class="input-ui" placeholder="Ingrese el monto" value="${wizardState.baseValor ? formatNumber(wizardState.baseValor) : ''}">
+            `;
+        }
+        container.innerHTML = introHtml + leyendaHtml;
+    }
+
     function recolectarDatos() {
         if (wizardState.step === 0) {
             const input = document.getElementById('inputUMA');
@@ -899,12 +969,57 @@
         return base;
     }
 
+    function getMotivoReduccionEscala(grupo, tipoProceso, wizard) {
+        if (grupo === 'grupo2') {
+            if (tipoProceso === 'conocimiento' && wizard.modoTerminacion === 'modos_anormales' && wizard.aperturaPrueba === false) return "50% por finalización anormal antes de apertura a prueba (art.25)";
+            if (tipoProceso === 'conocimiento' && wizard.modoTerminacion === 'caducidad' && wizard.caducidadCriterio === 'art25' && wizard.aperturaPrueba === false) return "50% por caducidad tratada como modo anormal antes de prueba (art.25)";
+            if (tipoProceso === 'sucesion' && wizard.sucesionUnicoLetrado) return "50% por único letrado en sucesión (art.35)";
+            if (tipoProceso === 'ejecucion_sentencia' && wizard.tuvoExcepciones !== false) return "50% por ejecución de sentencia (art.41)";
+            if (tipoProceso === 'medida_cautelar' && wizard.medidaOposicion === true) return "50% por medida cautelar con oposición (art.37)";
+            if (tipoProceso === 'homologacion_desocupacion') return "50% por homologación de desocupación (art.40)";
+            return "Reducción del 50%";
+        }
+        if (grupo === 'grupo3') return "25% por medida cautelar sin oposición (art.37)";
+        if (grupo === 'grupo4') return "30% por demanda desestimada (art.22)";
+        if (grupo === 'grupo5') return "10% por ejecutivo sin excepciones (art.34)";
+        if (grupo === 'grupo6') return "45% por ejecución de sentencia sin excepciones (art.41 + art.34)";
+        return "Sin reducción de escala";
+    }
+
+    function getMotivoReduccionBase(baseOriginal, baseFinal, wizard) {
+        let motivos = [];
+        if (wizard.tipoProceso === 'conocimiento' && wizard.objetoBase === 'desalojo' && wizard.desalojoVivienda) {
+            motivos.push("Desalojo para vivienda: -20% (art.40)");
+        }
+        if (wizard.tipoProceso === 'conocimiento' && wizard.sentenciaResultado === 'rechazada') {
+            motivos.push("Demanda rechazada: -30% (art.22)");
+        }
+        if (wizard.tipoProceso === 'conocimiento' && wizard.modoTerminacion === 'caducidad' && wizard.caducidadCriterio === 'art22') {
+            motivos.push("Caducidad tratada como demanda desestimada: -30% (art.22)");
+        }
+        if (wizard.tipoProceso === 'homologacion_desocupacion' && wizard.homologacionVivienda) {
+            motivos.push("Homologación con vivienda: -20% sobre base (art.40)");
+        }
+        if (wizard.tipoProceso === 'homologacion_desocupacion') {
+            motivos.push("Homologación de desocupación: -50% sobre escala (art.40)");
+        }
+        if (motivos.length === 0) return null;
+        return motivos.join("; ");
+    }
+
+    function getMotivoReduccionHonorarios(grupo, tipoProceso, wizard) {
+        if (grupo === 'grupo5') return "Juicio ejecutivo sin excepciones: reducción del 10% (art.34)";
+        if (grupo === 'grupo6') return "Ejecución de sentencia sin excepciones: reducción adicional del 10% (art.41 + art.34)";
+        return null;
+    }
+
     function calcularFinal() {
         recolectarDatos();
         const tipo = wizardState.tipoProceso;
         const uma = wizardState.valorUMA;
+        const baseOriginal = wizardState.baseValor;
 
-        // Exhorto: muestra tabla directa
+        // Exhorto
         if (tipo === 'exhorto') {
             const minA = 3, maxA = 3;
             const minB = 10, maxB = 20;
@@ -915,24 +1030,24 @@
             const valCmin = minC * uma;
             const valCmax = maxC * uma;
             document.getElementById('resultadosDinamicos').innerHTML = `
-                <h3>Exhorto (art. 50)</h3>
-                 表
-                      <tr><th colspan="2">Inc. a) - notificaciones</th></tr>
-                      <tr><td>Mínimo 3 UMA</td><td>$${formatNumber(valA)}</td></tr>
-                      <tr><th colspan="2">Inc. b) - inscripciones y actos registrales</th></tr>
-                      <tr><td>Mínimo: 10 UMA</td><td>$${formatNumber(valBmin)}</td></tr>
-                      <tr><td>Máximo: 20 UMA</td><td>$${formatNumber(valBmax)}</td></tr>
-                      <tr><th colspan="2">Inc. c) - diligencias de prueba</th></tr>
-                      <tr><td>Mínimo: 7 UMA</td><td>$${formatNumber(valCmin)}</td></tr>
-                      <tr><td>Máximo: 30 UMA</td><td>$${formatNumber(valCmax)}</td></tr>
-                  </table>
+                <div class="dashboard-card"><h3>Exhorto (art. 50)</h3>
+                <table>
+                    <tr><th colspan="2">Inc. a) - notificaciones</th></tr>
+                    <tr><td>Mínimo 3 UMA</td><td>$${formatNumber(valA)}</td></tr>
+                    <tr><th colspan="2">Inc. b) - inscripciones y actos registrales</th></tr>
+                    <tr><td>Mínimo: 10 UMA</td><td>$${formatNumber(valBmin)}</td></tr>
+                    <tr><td>Máximo: 20 UMA</td><td>$${formatNumber(valBmax)}</td></tr>
+                    <tr><th colspan="2">Inc. c) - diligencias de prueba</th></tr>
+                    <tr><td>Mínimo: 7 UMA</td><td>$${formatNumber(valCmin)}</td></tr>
+                    <tr><td>Máximo: 30 UMA</td><td>$${formatNumber(valCmax)}</td></tr>
+                </table>
                 <div class="legal-box">ARTÍCULO 50.- Los honorarios por diligenciamiento de exhortos u oficios contemplados en la ley 22.172 serán regulados de conformidad a las siguientes pautas:
                 a) Si se tratare de notificaciones o actos semejantes, los honorarios no podrán ser inferiores a 3 UMA;
                 b) Si se solicitaren inscripciones de dominios, hijuelas, testamentos, gravámenes, secuestros, embargos, inhibiciones, inventarios, remates, desalojos, o cualquier otro acto registral, los honorarios se regularán en una escala entre 10 y veinte 20 UMA. (...)
-                c) Si se tratare de diligencias de prueba y se hubiera intervenido en su producción o contralor, el juez exhortado regulará los honorarios proporcionalmente a la labor desarrollada, en una escala entre 7 y 30 UMA.</div>`;
+                c) Si se tratare de diligencias de prueba y se hubiera intervenido en su producción o contralor, el juez exhortado regulará los honorarios proporcionalmente a la labor desarrollada, en una escala entre 7 y 30 UMA.</div></div>`;
             return;
         }
-        // Incidente: muestra tabla simple min/max
+        // Incidente
         if (tipo === 'incidente') {
             const base = wizardState.baseValor;
             const baseUMA = base / uma;
@@ -941,18 +1056,20 @@
             const minPesos = minUMA * uma;
             const maxPesos = maxUMA * uma;
             document.getElementById('resultadosDinamicos').innerHTML = `
-                <div class="summary-box">📋 Resumen del juicio<br>Tipo de proceso: Incidente<br>Base: $${formatNumber(base)}<br>Valor UMA: $${formatNumber(uma)}<br>Base en UMA: ${baseUMA.toFixed(2)}</div>
-                <h3>Incidente (art.33 ley 21839)</h3>
-                <table>
-                    <tr><th>Concepto</th><th>UMA</th><th>Pesos ($)</th></tr>
-                    <tr><td>Mínimo (2%)</td><td>${minUMA.toFixed(2)}</td><td>$${formatNumber(minPesos)}</td></tr>
-                    <tr><td>Máximo (20%)</td><td>${maxUMA.toFixed(2)}</td><td>$${formatNumber(maxPesos)}</td></tr>
-                </table>
-                <div class="legal-box">Tener en cuenta que según el inc. g) del art. 29, “los incidentes se dividirán en 2 etapas; la primera se compone del planteo que lo origine, sea verbal o escrito, y la segunda, del desarrollo hasta su conclusión”.</div>`;
+                <div class="dashboard-card">
+                    <div class="summary-box">📋 Resumen del juicio<br>Tipo de proceso: Incidente<br>Base: $${formatNumber(base)}<br>Valor UMA: $${formatNumber(uma)}<br>Base en UMA: ${baseUMA.toFixed(2)}</div>
+                    <h3>Incidente (art.33 ley 21839)</h3>
+                    <table>
+                        <tr><th>Concepto</th><th>UMA</th><th>Pesos ($)</th></tr>
+                        <tr><td>Mínimo (2%)</td><td>${minUMA.toFixed(2)}</td><td>$${formatNumber(minPesos)}</td></tr>
+                        <tr><td>Máximo (20%)</td><td>${maxUMA.toFixed(2)}</td><td>$${formatNumber(maxPesos)}</td></tr>
+                    </table>
+                    <div class="legal-box">Tener en cuenta que según el inc. g) del art. 29, “los incidentes se dividirán en 2 etapas; la primera se compone del planteo que lo origine, sea verbal o escrito, y la segunda, del desarrollo hasta su conclusión”.</div>
+                </div>`;
             return;
         }
 
-        // Medida cautelar: tabla simplificada sin etapas, sin checkboxes, sin auxiliares
+        // Medida cautelar
         if (tipo === 'medida_cautelar') {
             const grupo = determinarGrupo();
             let baseFinal = wizardState.baseValor;
@@ -960,23 +1077,23 @@
             const calc = calcularHonorariosPorGrupo(baseFinal, uma, grupo);
             if (!calc) return;
             document.getElementById('resultadosDinamicos').innerHTML = `
-                <div class="summary-box">📋 Resumen del juicio<br>Tipo de proceso: Medida cautelar<br>Base: $${formatNumber(baseFinal)}<br>Valor UMA: $${formatNumber(uma)}<br>Base en UMA: ${calc.baseEnUMA.toFixed(2)}<br>Escala: ${calc.tituloEscala}</div>
-                <h4>Patrocinante</h4>
-                <table>
-                    <tr><th>Concepto</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>
-                    <tr><td>Honorarios</td><td>${calc.patrocinante.full.min.toFixed(2)}</td><td>${calc.patrocinante.full.max.toFixed(2)}</td>
-                        <td>$${formatNumber(calc.patrocinante.full.min * uma)}</td><td>$${formatNumber(calc.patrocinante.full.max * uma)}</td></tr>
-                </table>
-                <h4>Apoderado (+40%)</h4>
-                <table>
-                    <tr><th>Concepto</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>
-                    <tr><td>Honorarios</td><td>${calc.apoderado.full.min.toFixed(2)}</td><td>${calc.apoderado.full.max.toFixed(2)}</td>
-                        <td>$${formatNumber(calc.apoderado.full.min * uma)}</td><td>$${formatNumber(calc.apoderado.full.max * uma)}</td></tr>
-                </table>`;
+                <div class="dashboard-card">
+                    <div class="summary-box">📋 Resumen del juicio<br>Tipo de proceso: Medida cautelar<br>Base: $${formatNumber(baseFinal)}<br>Valor UMA: $${formatNumber(uma)}<br>Base en UMA: ${calc.baseEnUMA.toFixed(2)}<br>Escala: ${calc.tituloEscala}</div>
+                    <h4>Patrocinante</h4>
+                    <table>
+                        <tr><th>Concepto</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>
+                        <tr><td>Honorarios</td><td>${calc.patrocinante.full.min.toFixed(2)}</td><td>${calc.patrocinante.full.max.toFixed(2)}</td><td>$${formatNumber(calc.patrocinante.full.min * uma)}</td><td>$${formatNumber(calc.patrocinante.full.max * uma)}</td></tr>
+                    </table>
+                    <h4>Apoderado (+40%)</h4>
+                    <table>
+                        <tr><th>Concepto</th><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>
+                        <tr><td>Honorarios</td><td>${calc.apoderado.full.min.toFixed(2)}</td><td>${calc.apoderado.full.max.toFixed(2)}</td><td>$${formatNumber(calc.apoderado.full.min * uma)}</td><td>$${formatNumber(calc.apoderado.full.max * uma)}</td></tr>
+                    </table>
+                </div>`;
             return;
         }
 
-        // Resto de casos (conocimiento, ejecución sentencia, ejecutivo, sucesión, homologación)
+        // Resto de casos
         const grupo = determinarGrupo();
         let baseFinal = calcularBaseFinal();
         if (baseFinal <= 0) { alert("Base inválida"); return; }
@@ -984,63 +1101,104 @@
         if (!calc) return;
 
         const esProvisorio = wizardState.esProvisorio;
+        const mostrarProcurador = wizardState.mostrarProcurador;
 
-        let html = `<div class="check-group">
-            <label><input type="checkbox" id="chkProvisorio" ${esProvisorio ? 'checked' : ''}> Los honorarios son provisorios (art.12)</label>
+        let motivoBase = getMotivoReduccionBase(baseOriginal, baseFinal, wizardState);
+        let motivoEscala = getMotivoReduccionEscala(grupo, tipo, wizardState);
+        let motivoHonorarios = getMotivoReduccionHonorarios(grupo, tipo, wizardState);
+
+        let factorEscala = 1;
+        if (grupo === 'grupo2') factorEscala = 0.5;
+        else if (grupo === 'grupo3') factorEscala = 0.25;
+        else if (grupo === 'grupo4') factorEscala = 0.7;
+        else if (grupo === 'grupo5') factorEscala = 0.9;
+        else if (grupo === 'grupo6') factorEscala = 0.45;
+        const minPorcRed = calc.minPorcOriginal * factorEscala;
+        const maxPorcRed = calc.maxPorcOriginal * factorEscala;
+
+        let html = `<div class="dashboard-card">
+            <h3 style="margin-top:0;">📊 Resumen del juicio</h3>
+            <div class="grid-2col">
+                <div class="stat-card"><div class="badge">Tipo de proceso</div><div class="stat-number" style="font-size:1.2rem;">${tipo === 'conocimiento' ? 'De conocimiento' : tipo === 'ejecucion_sentencia' ? 'Ejecución de sentencia' : tipo === 'ejecutivo' ? 'Ejecutivo' : tipo === 'sucesion' ? 'Sucesión' : tipo === 'medida_cautelar' ? 'Medida cautelar' : tipo === 'homologacion_desocupacion' ? 'Homologación desocupación' : tipo}</div></div>
+                <div class="stat-card"><div class="badge">Base regulatoria</div><div class="stat-number">$${formatNumber(baseFinal)}</div>${baseOriginal !== baseFinal ? `<small class="badge" style="background:#f0e6d2;">Original: $${formatNumber(baseOriginal)}</small><br><small>${motivoBase}</small>` : ''}</div>
+                <div class="stat-card"><div class="badge">Valor UMA</div><div class="stat-number">$${formatNumber(uma)}</div></div>
+                <div class="stat-card"><div class="badge">Base en UMA</div><div class="stat-number">${calc.baseEnUMA.toFixed(2)}</div></div>
+            </div>
+            <div><strong>Escala aplicada:</strong> ${calc.tituloEscala} (${calc.minPorcOriginal}% a ${calc.maxPorcOriginal}%)<br>
+            ${factorEscala !== 1 ? `<strong>Escala reducida (${motivoEscala}):</strong> ${minPorcRed.toFixed(1)}% a ${maxPorcRed.toFixed(1)}%` : ''}</div>
+        </div>`;
+
+        const ocultarProvisorio = (tipo === 'sucesion');
+        html += `<div class="check-group">
+            ${!ocultarProvisorio ? `<label><input type="checkbox" id="chkProvisorio" ${esProvisorio ? 'checked' : ''}> Los honorarios son provisorios (art.12)</label>
             ${esProvisorio ? `<div class="info-text">Los honorarios provisorios son una suerte de retribución judicial fijada antes de que el proceso llegue a su fin o antes de que se pueda efectuar la regulación definitiva, permitiendo al profesional cobrar por las tareas efectivamente realizadas hasta ese momento.<br>
             En estos casos, corresponde aplicar el mínimo. Por eso, si haces click se mostrará únicamente el valor mínimo.<br>
-            ARTÍCULO 12.- Si un profesional se aparta de un proceso o gestión antes de su conclusión normal, puede solicitar regulación provisoria de honorarios, los que se fijarán en el mínimo que le hubiere podido corresponder conforme a las actuaciones cumplidas.</div>` : ''}
+            ARTÍCULO 12.- Si un profesional se aparta de un proceso o gestión antes de su conclusión normal, puede solicitar regulación provisoria de honorarios, los que se fijarán en el mínimo que le hubiere podido corresponder conforme a las actuaciones cumplidas.</div>` : ''}` : ''}
         </div>`;
-        html += `<div class="summary-box">📋 Resumen del juicio<br>Tipo de proceso: ${wizardState.tipoProceso}<br>Base final: $${formatNumber(baseFinal)}<br>Valor UMA: $${formatNumber(uma)}<br>Base en UMA: ${calc.baseEnUMA.toFixed(2)}<br>Escala: ${calc.tituloEscala}</div>`;
 
-        function mostrarFilaPatrocinante(etiqueta, minUMA, maxUMA) {
-            const minPesos = minUMA * uma;
+        function mostrarFila(etiqueta, minUMA, maxUMA, minPesos, maxPesos) {
             if (esProvisorio) {
                 return `<tr><td>${etiqueta}</td><td>${minUMA.toFixed(2)}</td><td>$${formatNumber(minPesos)}</td></tr>`;
             } else {
-                const maxPesos = maxUMA * uma;
-                return `<tr><td>${etiqueta}</td><td>${minUMA.toFixed(2)}</td><td>${maxUMA.toFixed(2)}</td>
-                         <td>$${formatNumber(minPesos)}</td><td>$${formatNumber(maxPesos)}</td></tr>`;
+                return `<tr><td>${etiqueta}</td><td>${minUMA.toFixed(2)}</td><td>${maxUMA.toFixed(2)}</td><td>$${formatNumber(minPesos)}</td><td>$${formatNumber(maxPesos)}</td></tr>`;
             }
         }
 
-        function mostrarFilaApoderado(etiqueta, minUMA, maxUMA) {
-            const minPesos = minUMA * uma;
-            if (esProvisorio) {
-                return `<tr><td>${etiqueta}</td><td>${minUMA.toFixed(2)}</td><td>$${formatNumber(minPesos)}</td></tr>`;
-            } else {
-                const maxPesos = maxUMA * uma;
-                return `<tr><td>${etiqueta}</td><td>${minUMA.toFixed(2)}</td><td>${maxUMA.toFixed(2)}</td>
-                         <td>$${formatNumber(minPesos)}</td><td>$${formatNumber(maxPesos)}</td></tr>`;
-            }
+        html += `<div class="dashboard-card"><h4>👨‍⚖️ Patrocinante</h4>
+        <table>
+            <thead><tr><th>Etapas</th>${esProvisorio ? '<th>Mínimo UMA</th><th>Mínimo $</th>' : '<th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th>'}</tr></thead>
+            <tbody>
+                ${mostrarFila("Juicio completo", calc.patrocinante.full.min, calc.patrocinante.full.max, calc.patrocinante.full.min * uma, calc.patrocinante.full.max * uma)}
+                ${mostrarFila("Una etapa (1/3)", calc.patrocinante.uno.min, calc.patrocinante.uno.max, calc.patrocinante.uno.min * uma, calc.patrocinante.uno.max * uma)}
+                ${mostrarFila("Dos etapas (2/3)", calc.patrocinante.dos.min, calc.patrocinante.dos.max, calc.patrocinante.dos.min * uma, calc.patrocinante.dos.max * uma)}
+            </tbody>
+        </table></div>`;
+
+        html += `<div class="dashboard-card"><h4>📑 Apoderado (+40%)</h4>
+        <table>
+            <thead><tr><th>Etapas</th>${esProvisorio ? '<th>Mínimo UMA</th><th>Mínimo $</th>' : '<th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th>'}</tr></thead>
+            <tbody>
+                ${mostrarFila("Juicio completo", calc.apoderado.full.min, calc.apoderado.full.max, calc.apoderado.full.min * uma, calc.apoderado.full.max * uma)}
+                ${mostrarFila("Una etapa (1/3)", calc.apoderado.uno.min, calc.apoderado.uno.max, calc.apoderado.uno.min * uma, calc.apoderado.uno.max * uma)}
+                ${mostrarFila("Dos etapas (2/3)", calc.apoderado.dos.min, calc.apoderado.dos.max, calc.apoderado.dos.min * uma, calc.apoderado.dos.max * uma)}
+            </tbody>
+        </table></div>`;
+
+        html += `<div class="legal-box" style="margin-bottom:0;">ARTÍCULO 20.- Los honorarios de los procuradores se fijarán en un 40% de los que por esta ley corresponda fijar a los abogados patrocinantes. Si el abogado actuare en carácter de apoderado sin patrocinio, percibirá la asignación total que hubiere correspondido a ambos.</div>
+        <div class="check-group"><label><input type="checkbox" id="chkProcurador" ${mostrarProcurador ? 'checked' : ''}> Mostrar resultados de abogado procurador</label></div>
+        <div id="procuradorInfo" style="display: ${mostrarProcurador ? 'block' : 'none'};">
+            <div class="info-text">Al abogado que ejerce el patrocinio (patrocinante) se le regulan los honorarios por el 100% de lo que corresponda según la escala, ver la tabla anterior “Patrocinante”.<br>
+            El abogado que actúa como apoderado y se hace patrocinar (procurador) le corresponde el 40% de lo que perciba el patrocinante.</div>
+            <div class="dashboard-card"><h4>📋 Procurador (40% del patrocinante)</h4>
+            <table>
+                <thead><tr><th>Etapas</th>${esProvisorio ? '<th>Mínimo UMA</th><th>Mínimo $</th>' : '<th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th>'}</tr></thead>
+                <tbody>
+                    ${mostrarFila("Juicio completo", calc.patrocinante.full.min * 0.4, calc.patrocinante.full.max * 0.4, (calc.patrocinante.full.min * 0.4) * uma, (calc.patrocinante.full.max * 0.4) * uma)}
+                    ${mostrarFila("Una etapa (1/3)", calc.patrocinante.uno.min * 0.4, calc.patrocinante.uno.max * 0.4, (calc.patrocinante.uno.min * 0.4) * uma, (calc.patrocinante.uno.max * 0.4) * uma)}
+                    ${mostrarFila("Dos etapas (2/3)", calc.patrocinante.dos.min * 0.4, calc.patrocinante.dos.max * 0.4, (calc.patrocinante.dos.min * 0.4) * uma, (calc.patrocinante.dos.max * 0.4) * uma)}
+                </tbody>
+            </table></div>
+        </div>`;
+
+        html += `<div class="dashboard-card"><h4>🛠️ Auxiliares (5% y 10% de la base)</h4>
+        <table>
+            <thead><tr><th>Mínimo UMA</th>${esProvisorio ? '<th>Mínimo $</th>' : '<th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th>'}</tr></thead>
+            <tbody>
+                ${esProvisorio ? `<tr><td>${calc.auxMin.toFixed(2)}</td><td>$${formatNumber(calc.auxMin * uma)}</td></tr>` :
+                  `<tr><td>${calc.auxMin.toFixed(2)}</td><td>${calc.auxMax.toFixed(2)}</td><td>$${formatNumber(calc.auxMin * uma)}</td><td>$${formatNumber(calc.auxMax * uma)}</td></tr>`}
+            </tbody>
+        </table></div>`;
+
+        if (motivoHonorarios) {
+            html += `<div class="info-text" style="background:#f0e6d2;">💰 ${motivoHonorarios}</div>`;
         }
 
-        html += `<h4>Patrocinante</h4>
-        <table>
-            <tr><th>Etapas</th>${esProvisorio ? '<th>Mínimo UMA</th><th>Mínimo $</th>' : '<th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th>'}</tr>
-            ${mostrarFilaPatrocinante("Juicio completo", calc.patrocinante.full.min, calc.patrocinante.full.max)}
-            ${mostrarFilaPatrocinante("Una etapa (1/3)", calc.patrocinante.uno.min, calc.patrocinante.uno.max)}
-            ${mostrarFilaPatrocinante("Dos etapas (2/3)", calc.patrocinante.dos.min, calc.patrocinante.dos.max)}
-        </table>`;
-
-        html += `<h4>Apoderado (+40%)</h4>
-        <table>
-            <tr><th>Etapas</th>${esProvisorio ? '<th>Mínimo UMA</th><th>Mínimo $</th>' : '<th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th>'}</tr>
-            ${mostrarFilaApoderado("Juicio completo", calc.apoderado.full.min, calc.apoderado.full.max)}
-            ${mostrarFilaApoderado("Una etapa (1/3)", calc.apoderado.uno.min, calc.apoderado.uno.max)}
-            ${mostrarFilaApoderado("Dos etapas (2/3)", calc.apoderado.dos.min, calc.apoderado.dos.max)}
-        </table>`;
-
-        html += `<h4>Auxiliares (5% y 10% base)</h4>
-        <table>
-            <tr><th>Mínimo UMA</th><th>Máximo UMA</th><th>Mínimo $</th><th>Máximo $</th></tr>
-            <tr><td>${calc.auxMin.toFixed(2)}</td><td>${calc.auxMax.toFixed(2)}</td>
-                <td>$${formatNumber(calc.auxMin * uma)}</td><td>$${formatNumber(calc.auxMax * uma)}</td></tr>
-        </table>`;
         document.getElementById('resultadosDinamicos').innerHTML = html;
 
         const chkProv = document.getElementById('chkProvisorio');
         if (chkProv) chkProv.addEventListener('change', (e) => { wizardState.esProvisorio = e.target.checked; calcularFinal(); });
+        const chkProc = document.getElementById('chkProcurador');
+        if (chkProc) chkProc.addEventListener('change', (e) => { wizardState.mostrarProcurador = e.target.checked; calcularFinal(); });
     }
 
     function attachStepEvents() {
@@ -1090,7 +1248,7 @@
                 step: 0, valorUMA: wizardState.valorUMA, tipoProceso: '', modoTerminacion: '', sentenciaResultado: null,
                 aperturaPrueba: null, caducidadCriterio: '', tuvoExcepciones: null, sucesionUnicoLetrado: false,
                 medidaOposicion: null, homologacionVivienda: false, objetoBase: '', desalojoVivienda: false,
-                baseValor: 0, esProvisorio: false, etapasRealizadas: 3
+                baseValor: 0, esProvisorio: false, mostrarProcurador: false
             };
             renderScreen();
         });
