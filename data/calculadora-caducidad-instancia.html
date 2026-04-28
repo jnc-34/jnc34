@@ -198,32 +198,9 @@
             line-height: 1.6;
         }
 
-        .hr-divider {
-            margin: 20px 0;
-            border: 0;
-            border-top: 1px solid #cbd5e0;
-        }
-
-        details {
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        summary {
-            font-weight: 600;
-            color: #2d3748;
-            font-size: 13px;
-        }
-
-        .inhabiles-list {
-            margin-top: 8px;
-            font-size: 12px;
-            color: #4a5568;
-            list-style: none;
-            padding-left: 5px;
+        /* Ocultamos la sección del cómputo con feriados */
+        .hidden-computation {
+            display: none;
         }
 
         .error-message {
@@ -277,13 +254,16 @@
         </form>
 
         <div class="result" id="result">
-            <div class="result-title">Cómputo Ordinario (Solo ferias):</div>
+            <div class="result-title">La caducidad se produce el día:</div>
             <div class="result-date" id="resultDate"></div>
             <div class="result-details" id="resultDetails"></div>
-            <hr class="hr-divider">
-            <div class="result-title">Cómputo con Días Inhábiles y Feriados:</div>
-            <div class="result-date" id="resultDateFull"></div>
-            <div class="result-details" id="resultDetailsFull"></div>
+            <!-- La siguiente sección está oculta pero el código JavaScript sigue generando los datos -->
+            <div class="hidden-computation">
+                <hr class="hr-divider">
+                <div class="result-title">Cómputo con Días Inhábiles y Feriados:</div>
+                <div class="result-date" id="resultDateFull"></div>
+                <div class="result-details" id="resultDetailsFull"></div>
+            </div>
         </div>
     </div>
 
@@ -296,14 +276,12 @@
 
         async function initData() {
             try {
-                // Cargar JSON de días inhábiles adicionales
                 const resJson = await fetch('https://raw.githubusercontent.com/jnc-34/jnc34/refs/heads/main/dias-inhabiles.json');
                 const dataJson = await resJson.json();
                 (dataJson.dias_inhabiles_adicionales || []).forEach(item => {
                     inhabilesMap.set(item.fecha, item.motivo);
                 });
 
-                // Cargar feriados de la API
                 for (let y = 2021; y <= 2026; y++) {
                     try {
                         const resApi = await fetch(`https://api.argentinadatos.com/v1/feriados/${y}`);
@@ -318,11 +296,11 @@
                     } catch (e) { console.error(`Error año ${y}:`, e); }
                 }
 
-                // --- Agregar 16 de noviembre de cada año (2021-2026) como día inhábil fijo ---
+                // Agregar 16 de noviembre de cada año (2021-2026) como inhábil fijo
                 for (let y = 2021; y <= 2026; y++) {
                     const fecha = `${y}-11-16`;
                     if (!inhabilesMap.has(fecha)) {
-                        inhabilesMap.set(fecha, "16 de noviembre (Ley 26.674)");
+                        inhabilesMap.set(fecha, "16 de noviembre (incorporado por regla fija)");
                     }
                 }
 
@@ -364,52 +342,61 @@
 
             const startDate = new Date(y, m - 1, d);
             
-            // --- CÁLCULO ORDINARIO ---
+            // --- CÁLCULO ORDINARIO (solo ferias, corregido) ---
             let ordDate = new Date(startDate);
             let ordObs = [];
-            let feriasJulioVistas = new Set();
 
+            // Sumar los meses del plazo, salteando los eneros
             for (let i = 0; i < plazo; i++) {
                 let dayRef = ordDate.getDate();
                 ordDate.setMonth(ordDate.getMonth() + 1);
+                // Ajuste por meses que no tienen ese día (ej. 31 -> 28/30)
                 if (ordDate.getDate() !== dayRef) ordDate.setDate(0);
 
+                // Si caímos en enero, lo salteamos entero
                 if (ordDate.getMonth() === 0) {
                     ordObs.push(`Se excluyó enero ${ordDate.getFullYear()} (feria)`);
-                    ordDate.setMonth(1);
-                }
-                
-                let curY = ordDate.getFullYear();
-                let fJul = getFeriaJulyRange(curY);
-                if (ordDate >= fJul.start && !feriasJulioVistas.has(curY)) {
-                    feriasJulioVistas.add(curY);
+                    ordDate.setMonth(1); // febrero
+                    if (ordDate.getDate() !== dayRef) ordDate.setDate(0);
                 }
             }
 
-            feriasJulioVistas.forEach(yr => {
-                let range = getFeriaJulyRange(yr);
-                ordDate.setDate(ordDate.getDate() + 12);
-                ordObs.push(`Se atravesó la feria de julio ${yr} (${range.start.toLocaleDateString('es-AR')} al ${range.end.toLocaleDateString('es-AR')}) y se agregaron 12 días`);
-            });
+            // Agregar las ferias de julio que realmente se atraviesen (superposición)
+            let changed;
+            do {
+                changed = false;
+                for (let yr = startDate.getFullYear(); yr <= ordDate.getFullYear(); yr++) {
+                    let feria = getFeriaJulyRange(yr);
+                    // ¿El intervalo [startDate, ordDate] se superpone con la feria?
+                    if (startDate <= feria.end && ordDate >= feria.start) {
+                        ordDate.setDate(ordDate.getDate() + 12);
+                        ordObs.push(
+                            `Se atravesó la feria de julio ${yr} ` +
+                            `(${feria.start.toLocaleDateString('es-AR')} al ${feria.end.toLocaleDateString('es-AR')}) ` +
+                            `y se agregaron 12 días`
+                        );
+                        changed = true;
+                        break; // reiniciamos verificación con la nueva fecha
+                    }
+                }
+            } while (changed);
 
             document.getElementById('resultDate').innerText = ordDate.toLocaleDateString('es-AR');
             document.getElementById('resultDetails').innerHTML = `<strong>Inicio:</strong> ${startDate.toLocaleDateString('es-AR')}<br><strong>Observaciones:</strong><br>${ordObs.map(o => `• ${o}`).join('<br>')}`;
 
-            // --- CÁLCULO FULL (SUSPENSIÓN CON LISTADO) ---
+            // --- CÁLCULO FULL (con días inhábiles y feriados) ---
+            // Este cómputo se sigue haciendo igual, pero se muestra en la sección oculta
             let inhabilesList = [];
             
-            // Calculamos la fecha final considerando feriados de forma iterativa
             let fullDate = new Date(ordDate);
             let previousLength;
             do {
                 previousLength = inhabilesList.length;
                 
-                // Reiniciamos la lista de inhábiles para esta iteración
                 inhabilesList = [];
                 let iter = new Date(startDate);
                 iter.setDate(iter.getDate() + 1);
                 
-                // Buscamos inhábiles entre startDate+1 y fullDate
                 while (iter <= fullDate) {
                     let iso = iter.getFullYear() + '-' + String(iter.getMonth() + 1).padStart(2, '0') + '-' + String(iter.getDate()).padStart(2, '0');
                     
@@ -417,20 +404,17 @@
                     let rangeJul = getFeriaJulyRange(iter.getFullYear());
                     let inFeriaJul = (iter >= rangeJul.start && iter <= rangeJul.end);
 
-                    // Solo contamos si es inhábil y NO está en feria (porque las ferias ya se computaron aparte)
                     if (inhabilesMap.has(iso) && !inFeriaJan && !inFeriaJul) {
                         inhabilesList.push({ fecha: iter.toLocaleDateString('es-AR'), nombre: inhabilesMap.get(iso) });
                     }
                     iter.setDate(iter.getDate() + 1);
                 }
                 
-                // Actualizamos fullDate sumando los nuevos inhábiles encontrados
                 fullDate = new Date(ordDate);
                 fullDate.setDate(fullDate.getDate() + inhabilesList.length);
                 
-            } while (inhabilesList.length > previousLength); // Repetimos hasta que no aparezcan nuevos inhábiles
+            } while (inhabilesList.length > previousLength);
 
-            // NUEVA LÓGICA: Ajuste de vencimiento para que no caiga en inhábil/feria
             let adjusted = true;
             let adObs = "";
             while(adjusted) {
@@ -438,25 +422,21 @@
                 let isoFull = fullDate.getFullYear() + '-' + String(fullDate.getMonth() + 1).padStart(2, '0') + '-' + String(fullDate.getDate()).padStart(2, '0');
                 let rangeJulFull = getFeriaJulyRange(fullDate.getFullYear());
                 
-                // 1. Si cae en Feria de Enero
                 if (fullDate.getMonth() === 0) {
                     fullDate.setMonth(1, 1);
                     adObs = " (Ajustado al primer día hábil post-feria de enero)";
                     adjusted = true;
                 }
-                // 2. Si cae en Feria de Julio
                 else if (fullDate >= rangeJulFull.start && fullDate <= rangeJulFull.end) {
                     fullDate.setDate(rangeJulFull.end.getDate() + 1);
                     adObs = " (Ajustado al primer día hábil post-feria de julio)";
                     adjusted = true;
                 }
-                // 3. Si cae en fin de semana
                 else if (fullDate.getDay() === 0 || fullDate.getDay() === 6) {
                     fullDate.setDate(fullDate.getDate() + 1);
                     adObs = " (Ajustado al siguiente día hábil por fin de semana)";
                     adjusted = true;
                 }
-                // 4. Si cae en feriado/inhábil de la lista
                 else if (inhabilesMap.has(isoFull)) {
                     fullDate.setDate(fullDate.getDate() + 1);
                     adObs = ` (Ajustado por feriado: ${inhabilesMap.get(isoFull)})`;
@@ -472,6 +452,7 @@
                     </ul>
                 </details>` : '';
 
+            // Resultados del cómputo con feriados (ocultos)
             document.getElementById('resultDateFull').innerText = fullDate.toLocaleDateString('es-AR');
             document.getElementById('resultDetailsFull').innerHTML = `Se adicionaron <strong>${inhabilesList.length} días inhábiles</strong> extra (fuera de ferias).<strong>${adObs}</strong>${listHTML}`;
 
